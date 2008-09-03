@@ -1,0 +1,144 @@
+API for faceted browsing within PostgreSQL, with extensions for Merb/DataMapper.
+
+===== Strategy =====
+
+- faceting only on individual tables (table is context)
+- packed id (0..n) kept for each model with facets
+- faceting tables kept in own schema ('faceting')
+- each facet has own index table (named {schema}_{table}_{facet}_index, of value -> signature)
+- nested facet values kept as arrays
+
+for now:
+
+- update facet index using trigger on all related tables that reconstructs entire facet index using a query
+- or update using DataMapper callbacks
+
+
+===== DataMapper extensions =====
+
+= to declare a faceting index on a model field or computed value
+=    [ note the nested computed facet ]
+
+is :faceted :genre, 						# simple form: index a property value
+            :published => "ARRAY[ EXTRACT(year FROM date), EXTRACT(month FROM date), EXTRACT(day FROM date) ]"
+											# complex form: index an sql expression
+											
+= to declare a faceting index using a datamapper hook rather than a postgresql trigger,
+=    provide a block that returns a hash.  (This example is functionally equivalent to the above.)
+=    NOT IMPLEMENTED YET
+
+is :faceted do |model|
+  { :genre     => model.genre,
+    :published => [ model.date.year, model.date.month, model.date.day ] }
+end
+
+= to declare a property set (basic, for migration from Simile exhibit)
+
+property :status, Array[String]
+
+= to do a facet value count [ facet indices are used automatically ]
+
+Film.facet_count(:location, :genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:location, :count] )
+
+# provides facet to count, facet filter selections, a base query, and order for the facet value counts
+
+= to do a facet result count [ should also allow pagination ]
+
+Film.all(:genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:title, :author])
+
+== { note that all nested facet values are passed back and forth as arrays }
+
+
+===== Merb extensions =====
+
+in controller...
+
+def value_counts(facet, refinements, search)     # still need to figure out how to parse refinements from JSON automatically
+  provides :json
+  counts = Project.facet_count(facet, refinements.merge { :fulltext.matches => search, :order => [:count] })
+  display counts
+end
+
+def results(refinements, search)
+  provides :html
+  results = Project.paginate(refinements.merge { :fulltext.matches => search, :order => [:title] })
+  display results
+end
+
+in view.... (index.html.erb)
+
+<% jquery do %>
+  $("#summary").summary({});
+  $("#feature_facet").facet('feature', '/projects/value_counts/feature', { 'title' : 'Features of Project' });
+  $("#results").results('/projects/results', {});
+  jQuery(document).trigger('update.facets.repertoire');
+<% end %>
+<div id="summary"></div>
+<div id="feature_facet" facet="foo"></div>
+<div id="results"></div>
+
+in routes...
+
+r.match('/:controller/value_counts/:facet').to(:action => 'value_counts')
+r.match('/:controller/results').to(:action => 'results')
+
+todo...   web service interfaces for use with visualization tools
+
+
+===== PostgreSQL extensions =====
+
+= to pack indices in entity (notice that table locks):
+
+nextval_min(table, id_column) => returns the lowest available id in the table   # NOT IMPLEMENTED
+
+= to get context base signature (in entity, e.g.)
+
+SELECT sig_collect(project_id) FROM projects WHERE fulltext @@ to_tsquery('Bush')
+
+= to get filter base signature (from facets, e.g.):
+
+SELECT sig_filter(signature) FROM 
+  SELECT signature FROM projects_features_index WHERE value = 'visualize'
+  UNION SELECT signature FROM projects_statuses_index WHERE value = 'in progress'
+  ...
+
+= to get facet value counts (e.g.): { provide a helper for this? }
+
+SELECT value, sig_count(base & filter & signature) AS count FROM projects_features_index WHERE count > 0 ORDER BY count DESC;
+
+= trigger to update facet value counts (e.g.):
+
+CREATE OR REPLACE FUNCTION public_registers_author_play_1_reindex() RETURNS trigger AS $$
+  BEGIN
+    DROP TABLE faceting.public_registers_author_play_1_index;
+    CREATE TABLE faceting.public_registers_author_play_1_index AS SELECT author_play_1, sig_collect(id) FROM registers GROUP BY author_play_1;
+  END;
+$$ LANGUAGE 'plpgsql';
+
+CREATE TRIGGER registers_reindex_facets
+  AFTER INSERT OR UPDATE OR DELETE ON registers FOR EACH STATEMENT
+  EXECUTE PROCEDURE public_registers_author_play_1_reindex();
+
+= to get facet results (e.g.):
+
+  { get base signature for filter }
+
+SELECT * FROM projects WHERE sig_get(base & filter, id) = 1 AND ...;
+
+SELECT * FROM projects WHERE 
+
+
+===== PostgreSQL C data types =====
+
+Signature: an auto-sizing bitset with the following functions
+
+sig_in, sig_out => { mandatory I/O functions }
+sig_and(a, b)    		=> a & b
+sig_or(a, b)     		=> a | b
+sig_xor(a)       		=> ~a
+sig_length(a)	    	=> { number of bits in a }
+sig_count(a)     		=> { count of 1s in a }
+sig_min(a)       		=> { lowest 1 in a, a.length }
+sig_get(a, i)       => { ith bit of a, or 0 }
+sig_set(a, i, n)    => { sets ith bit of a to n }
+sig_resize(a, n)    => { resizes a to hold n bits }
