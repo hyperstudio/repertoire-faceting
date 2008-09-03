@@ -6,6 +6,8 @@ class Project
   property :abbreviation,       String,   :nullable => false, :unique => true
   property :region,             String
   has n, :fields
+  
+  is :faceted
 end
 
 class Field
@@ -23,6 +25,6 @@ describe "Repertoire faceting" do
   
   it "should install an update trigger for each facet" do
     ber = Project.create(:abbreviation => 'ber', :region => 'Germany')    
-    repository.adapter.query("SELECT count(*) FROM faceting.public_projects_region").should_be 1
+    repository.adapter.query("SELECT count(*) FROM faceting.public_projects_region_index").should_be 1
   end
 end

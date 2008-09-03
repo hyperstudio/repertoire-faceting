@@ -1,4 +1,4 @@
-API for faceted browsing within PostgreSQL, with extensions for Merb/DataMapper.
+API for faceted browsing within PostgreSQL, with extensions for DataMapper/Merb.
 
 ===== Strategy =====
 
@@ -7,34 +7,23 @@ API for faceted browsing within PostgreSQL, with extensions for Merb/DataMapper.
 - faceting tables kept in own schema ('faceting')
 - each facet has own index table (named {schema}_{table}_{facet}_index, of value -> signature)
 - nested facet values kept as arrays
-
-for now:
-
 - update facet index using trigger on all related tables that reconstructs entire facet index using a query
-- or update using DataMapper callbacks
-
 
 ===== DataMapper extensions =====
 
-= to declare a faceting index on a model field or computed value
-=    [ note the nested computed facet ]
+*In your model*
+
+= to declare a faceting index on a model field or computed value [ note the nested computed facet ]
 
 is :faceted :genre, 						# simple form: index a property value
             :published => "ARRAY[ EXTRACT(year FROM date), EXTRACT(month FROM date), EXTRACT(day FROM date) ]"
 											# complex form: index an sql expression
-											
-= to declare a faceting index using a datamapper hook rather than a postgresql trigger,
-=    provide a block that returns a hash.  (This example is functionally equivalent to the above.)
-=    NOT IMPLEMENTED YET
-
-is :faceted do |model|
-  { :genre     => model.genre,
-    :published => [ model.date.year, model.date.month, model.date.day ] }
-end
 
 = to declare a property set (basic, for migration from Simile exhibit)
 
 property :status, Array[String]
+
+*In your controller*
 
 = to do a facet value count [ facet indices are used automatically ]
 
@@ -47,7 +36,6 @@ Film.facet_count(:location, :genre => 'tragedy', :published => [2008, 11], :titl
 Film.all(:genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:title, :author])
 
 == { note that all nested facet values are passed back and forth as arrays }
-
 
 ===== Merb extensions =====
 
@@ -123,22 +111,53 @@ CREATE TRIGGER registers_reindex_facets
 
   { get base signature for filter }
 
-SELECT * FROM projects WHERE sig_get(base & filter, id) = 1 AND ...;
+SELECT * FROM projects WHERE sig_contains(base & filter, id) ...;
 
-SELECT * FROM projects WHERE 
+= putting it all together - in actual practice, you'll probably use subselects to compute the base and filter signatures:
+  { this is a count query on the facet 'region', base query 'Bush', filter feature=browse&pi=Fendt, ordered by count descending }
 
+SELECT facet.value, sig_count(base.signature & filter.signature & facet.signature) AS count FROM 
+  faceting.public_projects_regions_index AS facet,
+  (SELECT sig_collect(id) AS signature FROM projects WHERE fulltext @@ to_tsquery('Bush')) AS base,
+  (SELECT sig_filter(signature) FROM
+    (SELECT signature FROM faceting.public_projects_feature_index WHERE value = 'browse' UNION
+     SELECT signature FROM faceting.public_projects_pi_index      WHERE value = 'Fendt')) AS filter
+  WHERE count > 0 ORDER BY count DESC;
+
+- putting it all together - a facet result query for the same query, ordered by activity date
+
+SELECT projects.* FROM projects,
+  (SELECT sig_collect(id) AS signature FROM projects WHERE fulltext @@ to_tsquery('Bush')) AS base,
+  (SELECT sig_filter(signature) FROM
+    (SELECT signature FROM faceting.public_projects_feature_index WHERE value = 'browse' UNION
+     SELECT signature FROM faceting.public_projects_pi_index      WHERE value = 'Fendt')) AS filter,
+  WHERE sig_contains(base.signature & filter.signature, projects.id)
+  ORDER BY projects.activity_date;
+
+CREATE OR REPLACE FUNCTION 
 
 ===== PostgreSQL C data types =====
 
 Signature: an auto-sizing bitset with the following functions
 
 sig_in, sig_out => { mandatory I/O functions }
-sig_and(a, b)    		=> a & b
-sig_or(a, b)     		=> a | b
-sig_xor(a)       		=> ~a
-sig_length(a)	    	=> { number of bits in a }
-sig_count(a)     		=> { count of 1s in a }
-sig_min(a)       		=> { lowest 1 in a, a.length }
+sig_and(a, b)    	=> a & b
+sig_or(a, b)     	=> a | b
+sig_xor(a)       	=> ~a
+sig_length(a)	    => { number of bits in a }
+sig_count(a)     	=> { count of 1s in a }
+sig_min(a)       	=> { lowest 1 in a, a.length }
 sig_get(a, i)       => { ith bit of a, or 0 }
 sig_set(a, i, n)    => { sets ith bit of a to n }
+sig_contains(a, i)  => { true if the ith bit of a set }
 sig_resize(a, n)    => { resizes a to hold n bits }
+
+===== Future extensions =====
+
+= FUTURE: to declare a faceting index using a datamapper hook rather than a postgresql trigger,
+=    provide a block that returns a hash.  (This example is functionally equivalent to the above.)
+
+is :faceted do |model|
+{ :genre     => model.genre,
+:published => [ model.date.year, model.date.month, model.date.day ] }
+end
