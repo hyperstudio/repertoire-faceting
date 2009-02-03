@@ -1,13 +1,13 @@
-API for faceted browsing within PostgreSQL, with extensions for DataMapper/Merb.
+API for faceted browsing within PostgreSQL, with extensions for Merb
 
 ===== Strategy =====
 
 - faceting only on individual tables (table is context)
 - packed id (0..n) kept for each model with facets
-- faceting tables kept in own schema ('faceting')
-- each facet has own index table (named {schema}_{table}_{facet}_index, of value -> signature)
+- faceting tables kept in project schema
+- each facet has own index table (named _{table}_{facet}_index, of value -> signature)
 - nested facet values kept as arrays
-- update facet index using trigger on all related tables that reconstructs entire facet index using a query
+- update facet index (a) explicitly, (b) using Repertoire's crontab sweeper, or (c) both
 
 ===== DataMapper extensions =====
 
@@ -75,66 +75,75 @@ todo...   web service interfaces for use with visualization tools
 
 ===== PostgreSQL extensions =====
 
-= to pack indices in entity (notice that table locks):
+= The following code leads you through an example of the SQL calls to set up and execute
+= a faceted navigation.
 
-nextval_min(table, id_column) => returns the lowest available id in the table   # NOT IMPLEMENTED
+= You can either use this SQL interface directly, or the Datamapper model and migration extensions
+= above (which wrap the SQL interface).
 
-= to get context base signature (in entity, e.g.)
+== Setup ==
+ 
+= to declare a table as a faceting context (adds _packed_id):
 
-SELECT sig_collect(project_id) FROM projects WHERE fulltext @@ to_tsquery('Bush')
+SELECT declare_context('project');
 
-= to get filter base signature (from facets, e.g.):
+= to declare a facet (simple version, accepts context table and column name):
+
+INSERT INTO _facets VALUES('project', 'status');
+
+= to declare a facet (join version, accepts context table, facet name, column expr, and from expr):
+
+INSERT INTO _facets VALUES('project', 'feature', 'features.name AS feature',
+                           'FROM project JOIN project_features ON (project_id = project.id) ' ||
+                                        'JOIN features ON (feature_id = features.id)');
+
+= to refresh a facet index (also reassigns packed ids):
+
+SELECT reindex_facets('project');
+
+= to refresh facet index for a single item, given its packed id:
+
+SELECT reindex_facets('project', 12);
+
+= if using Repertoire crontab, you can easily update indices periodically:
+
+INSERT INTO crontab(notice, role, task, interval) 
+            VALUES ('Update Project facets', 'web', 'SELECT reindex_facets(''project'');', '10 seconds');
+
+== Faceted Navigation ==
+
+= to get context base signature (from a fulltext search):
+
+SELECT sig_collect(_packed_id) FROM project WHERE _fulltext @@ to_tsquery('Bush');
+
+= to get filter base signature (using indices declared above):
 
 SELECT sig_filter(signature) FROM 
-  SELECT signature FROM projects_features_index WHERE value = 'visualize'
-  UNION SELECT signature FROM projects_statuses_index WHERE value = 'in progress'
+  SELECT signature FROM _project_feature_facet WHERE value = 'visualize'
+  UNION SELECT signature FROM _project_status_facet WHERE value = 'in progress'
   ...
 
-= to get facet value counts (e.g.): { provide a helper for this? }
+= to get facet value counts, given base and filter signatures (here ordered by count, excluding empty facet values):
 
-SELECT value, sig_count(base & filter & signature) AS count FROM projects_features_index WHERE count > 0 ORDER BY count DESC;
-
-= trigger to update facet value counts (e.g.):
-
-CREATE OR REPLACE FUNCTION public_registers_author_play_1_reindex() RETURNS trigger AS $$
-  BEGIN
-    DROP TABLE faceting.public_registers_author_play_1_index;
-    CREATE TABLE faceting.public_registers_author_play_1_index AS SELECT author_play_1, sig_collect(id) FROM registers GROUP BY author_play_1;
-  END;
-$$ LANGUAGE 'plpgsql';
-
-CREATE TRIGGER registers_reindex_facets
-  AFTER INSERT OR UPDATE OR DELETE ON registers FOR EACH STATEMENT
-  EXECUTE PROCEDURE public_registers_author_play_1_reindex();
+SELECT feature, sig_count(base & filter & signature) AS count FROM _project_feature_facet WHERE count > 0 ORDER BY count DESC, value ASC;
 
 = to get facet results (e.g.):
 
-  { get base signature for filter }
-
-SELECT * FROM projects WHERE sig_contains(base & filter, id) ...;
+SELECT * FROM project WHERE sig_contains(base & filter, _packed_id) ...;
 
 = putting it all together - in actual practice, you'll probably use subselects to compute the base and filter signatures:
   { this is a count query on the facet 'region', base query 'Bush', filter feature=browse&pi=Fendt, ordered by count descending }
 
-SELECT facet.value, sig_count(base.signature & filter.signature & facet.signature) AS count FROM 
-  faceting.public_projects_regions_index AS facet,
-  (SELECT sig_collect(id) AS signature FROM projects WHERE fulltext @@ to_tsquery('Bush')) AS base,
+SELECT facet.region, sig_count(base.signature & filter.signature & facet.signature) AS count FROM 
+    _projects_region_facet AS facet,
+  (SELECT sig_collect(_packed_id) AS signature FROM project WHERE fulltext @@ to_tsquery('Bush')) AS base,
   (SELECT sig_filter(signature) FROM
-    (SELECT signature FROM faceting.public_projects_feature_index WHERE value = 'browse' UNION
-     SELECT signature FROM faceting.public_projects_pi_index      WHERE value = 'Fendt')) AS filter
-  WHERE count > 0 ORDER BY count DESC;
+    (SELECT signature FROM _project_feature_facet WHERE value = 'browse' UNION
+     SELECT signature FROM _project_pi_facet      WHERE value = 'Fendt')) AS filter
+  WHERE count > 0 ORDER BY count DESC, facet.region ASC;
 
-- putting it all together - a facet result query for the same query, ordered by activity date
-
-SELECT projects.* FROM projects,
-  (SELECT sig_collect(id) AS signature FROM projects WHERE fulltext @@ to_tsquery('Bush')) AS base,
-  (SELECT sig_filter(signature) FROM
-    (SELECT signature FROM faceting.public_projects_feature_index WHERE value = 'browse' UNION
-     SELECT signature FROM faceting.public_projects_pi_index      WHERE value = 'Fendt')) AS filter,
-  WHERE sig_contains(base.signature & filter.signature, projects.id)
-  ORDER BY projects.activity_date;
-
-CREATE OR REPLACE FUNCTION 
+= by using standard SQL WHERE and ORDER BY clauses, you can achieve most standard facet value configurations
+= [ order by count, by facet value, include/exclude zero values, etc. ]
 
 ===== PostgreSQL C data types =====
 

@@ -6,7 +6,7 @@ PG_MODULE_MAGIC;
 
 typedef struct
 {
-	int32		vl_len_; 
+	int32   vl_len_; 
 	uint32  len;
 	uint8   data[1];
 }	Signature;
@@ -107,13 +107,13 @@ PG_FUNCTION_INFO_V1( sig_out );
 Datum
 sig_out( PG_FUNCTION_ARGS )
 {
-	Signature	  *s = PG_GETARG_SIGNATURE_P(0);
-	char 				*result;
+	Signature	*s = PG_GETARG_SIGNATURE_P(0);
+	char 		*result;
 	uint8       *bptr,
-							x;
+				x;
 	char        *sptr;
 	int32       len,
-							i, j, k;
+				i, j, k;
 	
 	len = s->len;
 	result = (char *) palloc(len + 1);
@@ -145,11 +145,11 @@ PG_FUNCTION_INFO_V1( sig_resize );
 Datum
 sig_resize( PG_FUNCTION_ARGS )
 {
-	Signature *sig,
+	Signature   *sig,
 		        *res;
 	int32 sigbytes,
 	      resbytes,
-				reslen;
+		  reslen;
 	
 	sig = PG_GETARG_SIGNATURE_P(0);
 	sigbytes = VARSIZE(sig) - VARHDRSZ - SIGNATUREHDRSZ;
