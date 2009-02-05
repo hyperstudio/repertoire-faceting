@@ -82,33 +82,44 @@ todo...   web service interfaces for use with visualization tools
 = above (which wrap the SQL interface).
 
 == Setup ==
- 
-= to declare a table as a faceting context (adds _packed_id):
 
-SELECT declare_context('project');
+= creating facet indices =
 
-= to declare a facet (simple version, accepts context table and column name):
+CREATE TABLE _project_status_facet AS SELECT status, signature(id) FROM project
 
-INSERT INTO _facets VALUES('project', 'status');
+[ This creates an inverted bitmap index of facet values and project ids. ]
+[ However, it wastes space since even unused id numbers occupy a bit in each entry.  Let's use packed ids beginning at 1 instead. ]
 
-= to declare a facet (join version, accepts context table, facet name, column expr, and from expr):
+SELECT renumber_table('project', 'packed_id');
+CREATE TABLE _project_status_facet AS SELECT status, signature(packed_id) FROM project GROUP BY status;
 
-INSERT INTO _facets VALUES('project', 'feature', 'features.name AS feature',
-                           'FROM project JOIN project_features ON (project_id = project.id) ' ||
-                                        'JOIN features ON (feature_id = features.id)');
+[ Now the inverted index contains packed bitmaps that refer to a new column on the base table ]
+[ But what if we're refreshing an existing facet index instead of creating one from scratch? ]
 
-= to refresh a facet index (also reassigns packed ids):
+SELECT renumber_table('project', 'packed_id');
+SELECT recreate_table('_project_status_facet', 'SELECT status, signature(packed_id) FROM project GROUP BY status');
 
-SELECT reindex_facets('project');
-
-= to refresh facet index for a single item, given its packed id:
-
-SELECT reindex_facets('project', 12);
-
-= if using Repertoire crontab, you can easily update indices periodically:
+[ Now we can run this pair of commands to regenerate the facet indices periodically ]
+[ For example, if you're using Repertoire's crontab feature: ]
 
 INSERT INTO crontab(notice, role, task, interval) 
-            VALUES ('Update Project facets', 'web', 'SELECT reindex_facets(''project'');', '10 seconds');
+            VALUES ('Update Project facets', 'web', $$ 
+			    SELECT renumber_table('project', 'packed_id');
+			    SELECT recreate_table('_project_status_facet', 'SELECT status, signature(packed_id) FROM project GROUP BY status');
+			  $$, '10 seconds');
+
+[ Simply declare any other facet indices in separate recreate_table statements and set the refresh cycle time ]
+[ But what if you have a complex data model whose facet values are defined by a join? This example indexes a multivalued many-to-many join ]
+
+... SELECT recreate_table('_project_feature_facet', 
+       'SELECT features.name AS feature, signature(project.packed_id) ' ||
+       'FROM project JOIN project_features ON (project_id = project.id) JOIN features ON (feature_id = features.id) GROUP BY features.name');
+
+[ To index nested facets, collect the values into an array ]
+
+... SELECT recreate_table('_project_start_facet',
+       'SELECT ARRAY[ EXTRACT(year FROM date), EXTRACT(month FROM date), EXTRACT(day FROM date) ] AS start, signature(packed_id) ' || 
+       'FROM project GROUP BY date');
 
 == Faceted Navigation ==
 
@@ -134,12 +145,12 @@ SELECT * FROM project WHERE sig_contains(base & filter, _packed_id) ...;
 = putting it all together - in actual practice, you'll probably use subselects to compute the base and filter signatures:
   { this is a count query on the facet 'region', base query 'Bush', filter feature=browse&pi=Fendt, ordered by count descending }
 
-SELECT facet.region, sig_count(base.signature & filter.signature & facet.signature) AS count FROM 
-    _projects_region_facet AS facet,
+SELECT facet.region, sig_count(base.signature & filter.signature & facet.signature) AS count 
+    FROM _projects_region_facet AS facet,
   (SELECT sig_collect(_packed_id) AS signature FROM project WHERE fulltext @@ to_tsquery('Bush')) AS base,
-  (SELECT sig_filter(signature) FROM
-    (SELECT signature FROM _project_feature_facet WHERE value = 'browse' UNION
-     SELECT signature FROM _project_pi_facet      WHERE value = 'Fendt')) AS filter
+  (SELECT sig_filter(signature) AS signature FROM
+    (SELECT signature FROM _project_feature_facet WHERE feature = 'browse' UNION
+     SELECT signature FROM _project_pi_facet      WHERE pi = 'Fendt')) AS filter
   WHERE count > 0 ORDER BY count DESC, facet.region ASC;
 
 = by using standard SQL WHERE and ORDER BY clauses, you can achieve most standard facet value configurations

@@ -68,3 +68,86 @@ sig_or( PG_FUNCTION_ARGS )
 }
 
 
+-- sql to see if packed_id argument was provided and add clause
+
+  sql = 'UPDATE ' || facet_table_name(context, facet.name)
+
+  IF (NOT like(sql, '%WHERE%')) THEN
+    sql = sql || ' WHERE _packed_id = ' || quote_literal(packed_id);
+  ELSE  
+    sql = sql || ' AND _packed_id = ' || quote_literal(packed_id);
+  END IF;
+END IF;
+
+
+
+
+-- Facet declarations table
+
+CREATE TABLE _facets(
+  context TEXT NOT NULL,
+  name TEXT NOT NULL,
+  select_expr TEXT CHECK (select_expr IS NULL OR select_expr LIKE 'SELECT % FROM %'),
+  PRIMARY KEY (context, name)
+);
+
+-- Utility functions for naming facet index tables and sequences
+
+CREATE OR REPLACE FUNCTION facet_table_name(context TEXT, name TEXT) RETURNS TEXT AS $$
+BEGIN
+  RETURN quote_ident('_' || context || '_' || name || '_facet');
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION facet_seq_name(context TEXT) RETURNS TEXT AS $$
+BEGIN
+  RETURN quote_ident('_' || context || '_packed_id_seq');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Declare that a table will be used as faceting context  [ provides for packed ids ]
+
+CREATE OR REPLACE FUNCTION declare_context(context TEXT) RETURNS VOID AS $$
+BEGIN
+  EXECUTE 'CREATE SEQUENCE ' || facet_seq_name(context);
+  EXECUTE 'ALTER TABLE ' || quote_ident(context) || ' ADD COLUMN _packed_id INT UNIQUE DEFAULT nextval( ''' || facet_seq_name(context) || ''' )';
+END;
+$$ LANGUAGE plpgsql;
+
+-- Update all facet counts for the given context
+
+CREATE OR REPLACE FUNCTION reindex_facets(context TEXT) RETURNS VOID AS $$
+DECLARE
+  select_expr TEXT;
+BEGIN
+  -- Pack index ids
+  EXECUTE 'ALTER SEQUENCE ' || facet_seq_name(context) || ' RESTART WITH 1';
+  EXECUTE 'UPDATE production SET _packed_id = nextval( ''' || facet_seq_name(context) || ''' )';
+  -- Update facets for context table
+  FOR facet IN SELECT * FROM _facets WHERE _facets.context = context LOOP
+    select_expr = facet.select_expr;
+    -- From expr defaults to context table and facet column
+    IF (select_expr IS NULL) THEN
+      select_expr = 'SELECT ' || facet.name || ' FROM ' || facet.context;
+    END IF;
+    -- Augment to collect signature
+    select_expr = replace(select_expr, 'FROM', ', sig_collect(' || context || '._packed_id) AS signature FROM');
+	  -- Remove old facet value table
+	  EXECUTE 'DROP TABLE IF EXISTS ' || facet_table_name(context, facet.name);
+	  -- Create facet value table, with signature of ids
+	  EXECUTE 'CREATE TABLE ' || facet_table_name(context, facet.name) || ' AS ' || select_expr 
+	                          || ' GROUP BY ' || facet.name;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Update all facet counts for the given context and id
+
+CREATE OR REPLACE FUNCTION reindex_facets(context TEXT, packed_id INT) RETURNS VOID AS $$
+BEGIN
+  -- (1) increment packed id
+  -- (2) update any existing facet values
+  -- (3) add any new facet values
+  RAISE EXCEPTION 'Not implemented yet';
+END;
+$$ LANGUAGE plpgsql;
