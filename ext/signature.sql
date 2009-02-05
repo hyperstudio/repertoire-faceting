@@ -103,7 +103,7 @@ CREATE OR REPLACE FUNCTION sig_xor( signature )
 
 -- aggregate functions for faceting
 
-CREATE AGGREGATE signature( int )
+CREATE AGGREGATE signature( INT )
 (
 	sfunc = sig_set,
 	stype = signature,
@@ -121,3 +121,24 @@ CREATE AGGREGATE filter( signature )
    sfunc = sig_and,
    stype = signature
 );
+
+-- utility functions for maintaining facet indices
+
+CREATE OR REPLACE FUNCTION renumber_table(tbl TEXT, col TEXT) RETURNS VOID AS $$
+BEGIN
+  BEGIN
+    EXECUTE 'ALTER TABLE ' || quote_ident(tbl) || ' DROP COLUMN ' || quote_ident(col);
+  EXCEPTION
+    WHEN undefined_column THEN
+      NULL;
+  END;
+  EXECUTE 'ALTER TABLE ' || quote_ident(tbl) || ' ADD COLUMN ' || quote_ident(col) || ' SERIAL4';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION recreate_table(tbl TEXT, select_expr TEXT) RETURNS VOID AS $$
+BEGIN
+  EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(tbl);
+  EXECUTE 'CREATE TABLE ' || quote_ident(tbl) || ' AS ' || select_expr;
+END;
+$$ LANGUAGE plpgsql;
