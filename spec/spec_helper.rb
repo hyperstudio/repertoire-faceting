@@ -5,7 +5,7 @@ require 'spec'
 require 'dm-core'
 
 $TESTING=true
-# $:.push File.join(File.dirname(__FILE__), '..', 'lib')   # CWY: is this necessary?
+$:.push File.join(File.dirname(__FILE__), '..', 'lib')   # CWY: is this necessary?
 
 module Merb
   def self.orm
@@ -15,8 +15,11 @@ end
 
 ENV['ADAPTER'] ||= 'postgres'
 
-# Set up database for integration tests
-DataMapper.setup(:default, 'postgres://postgres@localhost/repertoire_testing')
+Merb::BootLoader.before_app_loads do
+  require 'repertoire_faceting'
+  # Set up database for integration tests
+  DataMapper.setup(:default, 'postgres://postgres@localhost/repertoire_testing')
+end
 
 # Using Merb.root below makes sure that the correct root is set for
 # - testing standalone, without being installed as a gem and no host application

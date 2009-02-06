@@ -75,11 +75,6 @@ CREATE OR REPLACE FUNCTION sig_length( signature )
 	RETURNS INT
 	AS 'signature.so', 'sig_length'
 	LANGUAGE C STRICT IMMUTABLE;
-
-CREATE OR REPLACE FUNCTION sig_count( signature )
-	RETURNS INT
-	AS 'signature.so', 'sig_count'
-	LANGUAGE C STRICT IMMUTABLE;
 	
 CREATE OR REPLACE FUNCTION sig_min( signature )
 	RETURNS INT
@@ -100,6 +95,33 @@ CREATE OR REPLACE FUNCTION sig_xor( signature )
  RETURNS signature
  AS 'signature.so', 'sig_xor'
  LANGUAGE C STRICT IMMUTABLE;
+ 
+CREATE OR REPLACE FUNCTION count( signature )
+	RETURNS INT
+	AS 'signature.so', 'count'
+	LANGUAGE C STRICT IMMUTABLE;
+ 
+-- operators for signatures
+
+CREATE OPERATOR & (
+    leftarg = signature,
+    rightarg = signature,
+    procedure = sig_and,
+    commutator = &
+);
+
+CREATE OPERATOR | (
+    leftarg = signature,
+    rightarg = signature,
+    procedure = sig_or,
+    commutator = |
+);
+
+CREATE OPERATOR + (
+    leftarg = signature,
+    rightarg = int,
+    procedure = sig_set
+);
 
 -- aggregate functions for faceting
 

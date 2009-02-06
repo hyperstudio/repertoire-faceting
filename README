@@ -11,17 +11,41 @@ API for faceted browsing within PostgreSQL, with extensions for Merb
 
 ===== DataMapper extensions =====
 
+*Setup*
+
+-Proviso-.  The faceting library does not yet support automigration.  The best approach is to maintain your facet indices using
+explicit migrations as your datamapper models change.
+
+Make sure the columns you wish to facet over are indexed.  For a complete description, see the section "PostgreSQL extensions."  Simple example for use in a datamapper migration:
+
+migration 5, :add_facet_indices do
+  up do
+    execute <<-SQL.compress_lines
+      INSERT INTO crontab(notice, role, task, interval) 
+	        VALUES ('Update Project facets', 'web', $$ 
+				    SELECT renumber_table('project', '_packed_id');
+				    SELECT recreate_table('_project_status_facet', 'SELECT status, signature(_packed_id) FROM project GROUP BY status');
+				    $$, '10 seconds');
+    SQL
+  end
+  down do
+    execute <<-SQL.compress_lines
+      DELETE FROM crontab WHERE notice = 'Update Project facets';
+    SQL
+  end
+end
+
+A later version of this package may include generator macros to ease the task of defining new facet indices.
+
 *In your model*
 
-= to declare a faceting index on a model field or computed value [ note the nested computed facet ]
+= declare facets for later use
 
-is :faceted :genre, 						# simple form: index a property value
-            :published => "ARRAY[ EXTRACT(year FROM date), EXTRACT(month FROM date), EXTRACT(day FROM date) ]"
-											# complex form: index an sql expression
-
-= to declare a property set (basic, for migration from Simile exhibit)
-
-property :status, Array[String]
+class Project
+  is :faceted :genre,
+              :published,
+	  		      [ etc. ]
+end
 
 *In your controller*
 
@@ -85,91 +109,108 @@ todo...   web service interfaces for use with visualization tools
 
 = creating facet indices =
 
-CREATE TABLE _project_status_facet AS SELECT status, signature(id) FROM project
+CREATE TABLE _project_status_facet AS SELECT status, signature(id) FROM project;
 
 [ This creates an inverted bitmap index of facet values and project ids. ]
 [ However, it wastes space since even unused id numbers occupy a bit in each entry.  Let's use packed ids beginning at 1 instead. ]
 
-SELECT renumber_table('project', 'packed_id');
-CREATE TABLE _project_status_facet AS SELECT status, signature(packed_id) FROM project GROUP BY status;
+SELECT renumber_table('project', '_packed_id');
+CREATE TABLE _project_status_facet AS SELECT status, signature(_packed_id) FROM project GROUP BY status;
 
 [ Now the inverted index contains packed bitmaps that refer to a new column on the base table ]
 [ But what if we're refreshing an existing facet index instead of creating one from scratch? ]
 
-SELECT renumber_table('project', 'packed_id');
-SELECT recreate_table('_project_status_facet', 'SELECT status, signature(packed_id) FROM project GROUP BY status');
+SELECT renumber_table('project', '_packed_id');
+SELECT recreate_table('_project_status_facet', 'SELECT status, signature(_packed_id) FROM project GROUP BY status');
 
-[ Now we can run this pair of commands to regenerate the facet indices periodically ]
-[ For example, if you're using Repertoire's crontab feature: ]
+[ Now we can run this pair of commands to regenerate the facet indices periodically (uses Repertoire's crontab): ]
 
 INSERT INTO crontab(notice, role, task, interval) 
             VALUES ('Update Project facets', 'web', $$ 
-			    SELECT renumber_table('project', 'packed_id');
-			    SELECT recreate_table('_project_status_facet', 'SELECT status, signature(packed_id) FROM project GROUP BY status');
+			    SELECT renumber_table('project', '_packed_id');
+			    SELECT recreate_table('_project_status_facet', 'SELECT status, signature(_packed_id) FROM project GROUP BY status');
 			  $$, '10 seconds');
 
 [ Simply declare any other facet indices in separate recreate_table statements and set the refresh cycle time ]
 [ But what if you have a complex data model whose facet values are defined by a join? This example indexes a multivalued many-to-many join ]
 
 ... SELECT recreate_table('_project_feature_facet', 
-       'SELECT features.name AS feature, signature(project.packed_id) ' ||
-       'FROM project JOIN project_features ON (project_id = project.id) JOIN features ON (feature_id = features.id) GROUP BY features.name');
+       'SELECT features.name AS feature, signature(project._packed_id) ' ||
+       'FROM project JOIN project_features ON (project_id = project.id) JOIN features ON (feature_id = features.id) ' ||
+       'GROUP BY features.name');
 
-[ To index nested facets, collect the values into an array ]
+[ Finally, to index nested facets collect the values into an array ]
 
 ... SELECT recreate_table('_project_start_facet',
-       'SELECT ARRAY[ EXTRACT(year FROM date), EXTRACT(month FROM date), EXTRACT(day FROM date) ] AS start, signature(packed_id) ' || 
+       'SELECT ARRAY[ EXTRACT(year FROM date), EXTRACT(month FROM date), EXTRACT(day FROM date) ] AS start, signature(_packed_id) ' || 
        'FROM project GROUP BY date');
 
 == Faceted Navigation ==
 
-= to get context base signature (from a fulltext search):
+= to get a context base signature (via fulltext search):
 
-SELECT sig_collect(_packed_id) FROM project WHERE _fulltext @@ to_tsquery('Bush');
+SELECT signature(_packed_id) FROM project WHERE _fulltext @@ to_tsquery('Bush');
 
-= to get filter base signature (using indices declared above):
+= to get refinement filter signature (using indices declared above):
 
-SELECT sig_filter(signature) FROM 
-  SELECT signature FROM _project_feature_facet WHERE value = 'visualize'
-  UNION SELECT signature FROM _project_status_facet WHERE value = 'in progress'
+SELECT filter(signature) FROM 
+  SELECT signature FROM _project_feature_facet WHERE feature = 'visualize'
+  UNION SELECT signature FROM _project_status_facet WHERE status = 'in progress'
   ...
 
-= to get facet value counts, given base and filter signatures (here ordered by count, excluding empty facet values):
+= assuming you have the base and refinement signatures already calculated, get facet value counts with
 
-SELECT feature, sig_count(base & filter & signature) AS count FROM _project_feature_facet WHERE count > 0 ORDER BY count DESC, value ASC;
+SELECT facet.feature, count(base & filter & facet.signature)
+FROM _project_feature_facet AS facet
+WHERE count > 0 ORDER BY count DESC, feature ASC;
 
-= to get facet results (e.g.):
+= or, to get facet results (e.g.):
 
-SELECT * FROM project WHERE sig_contains(base & filter, _packed_id) ...;
-
-= putting it all together - in actual practice, you'll probably use subselects to compute the base and filter signatures:
+SELECT * FROM project WHERE contains(base & filter, _packed_id) ...;
+       
+= putting it all together - in practice, you'll probably use subselects to compute the base and filter signatures:
   { this is a count query on the facet 'region', base query 'Bush', filter feature=browse&pi=Fendt, ordered by count descending }
-
-SELECT facet.region, sig_count(base.signature & filter.signature & facet.signature) AS count 
-    FROM _projects_region_facet AS facet,
-  (SELECT sig_collect(_packed_id) AS signature FROM project WHERE fulltext @@ to_tsquery('Bush')) AS base,
-  (SELECT sig_filter(signature) AS signature FROM
+             
+SELECT facet.region, count(base.signature & filter.signature & facet.signature)
+  FROM _projects_region_facet AS facet,
+  (SELECT signature(_packed_id) FROM project WHERE fulltext @@ to_tsquery('Bush')) AS base,
+  (SELECT filter(signature) AS signature FROM
     (SELECT signature FROM _project_feature_facet WHERE feature = 'browse' UNION
      SELECT signature FROM _project_pi_facet      WHERE pi = 'Fendt')) AS filter
   WHERE count > 0 ORDER BY count DESC, facet.region ASC;
 
 = by using standard SQL WHERE and ORDER BY clauses, you can achieve most standard facet value configurations
-= [ order by count, by facet value, include/exclude zero values, etc. ]
+  [ order by count, order by facet value, include/exclude zero values, etc. ]
+  
+= if you find the subselects distracting, you can also use the module's extended filter method, which
+  collects the results of a series of SQL statements, applies the filter aggregator to them, and passes
+  the result to the final statement as a variable named 'filter' { not implemented yet }:
+  
+SELECT filter($${
+  "SELECT signature(_packed_id) FROM project WHERE fulltext @@ to_tsquery('Bush')",             -- base query
+  "SELECT signature             FROM _project_feature_facet WHERE feature IN ('browse')",       -- filter...
+  "SELECT signature             FROM _project_pi_facet      WHERE pi IN ('Fendt', 'Crocker')",
+  "SELECT facet.feature, count(facet.signature & filter)                                        -- facet count
+   FROM _project_feature_facet AS facet
+   WHERE count > 0 ORDER BY count DESC, feature ASC" }$$
+)
+  
 
 ===== PostgreSQL C data types =====
 
 Signature: an auto-sizing bitset with the following functions
 
-sig_in, sig_out => { mandatory I/O functions }
-sig_and(a, b)    	=> a & b
-sig_or(a, b)     	=> a | b
-sig_xor(a)       	=> ~a
-sig_length(a)	    => { number of bits in a }
-sig_count(a)     	=> { count of 1s in a }
-sig_min(a)       	=> { lowest 1 in a, a.length }
+count(a)            => { count of 1s in a }
+contains(a, i)      => { true if the ith bit of a set }
+
+sig_in, sig_out     => { mandatory I/O functions }
+sig_and(a, b)    	  => a & b
+sig_or(a, b)     	  => a | b
+sig_xor(a)       	  => ~a
+sig_length(a)	      => { number of bits in a }
+sig_min(a)       	  => { lowest 1 in a, a.length }
 sig_get(a, i)       => { ith bit of a, or 0 }
 sig_set(a, i, n)    => { sets ith bit of a to n }
-sig_contains(a, i)  => { true if the ith bit of a set }
 sig_resize(a, n)    => { resizes a to hold n bits }
 
 ===== Future extensions =====

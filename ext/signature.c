@@ -36,14 +36,15 @@ Datum sig_out( PG_FUNCTION_ARGS );
 Datum sig_resize( PG_FUNCTION_ARGS );
 Datum sig_set( PG_FUNCTION_ARGS );
 Datum sig_get( PG_FUNCTION_ARGS );
-Datum sig_contains( PG_FUNCTION_ARGS );
 Datum sig_length( PG_FUNCTION_ARGS );
-Datum sig_count( PG_FUNCTION_ARGS );
 Datum sig_min( PG_FUNCTION_ARGS );
 Datum sig_and( PG_FUNCTION_ARGS );
 Datum sig_or( PG_FUNCTION_ARGS );
 Datum sig_xor( PG_FUNCTION_ARGS );
 Datum sig_on( PG_FUNCTION_ARGS );
+
+Datum contains( PG_FUNCTION_ARGS );
+Datum count( PG_FUNCTION_ARGS );
 
 int COUNT_TABLE[] = {
   0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
@@ -319,32 +320,6 @@ sig_length( PG_FUNCTION_ARGS )
 }
 
 
-PG_FUNCTION_INFO_V1( sig_count );
-
-Datum
-sig_count( PG_FUNCTION_ARGS )
-{	
-  Signature *sig;
-	int32 sigbytes,
-	      count,
-	      i;
-	uint8 ch;
-	
-	sig = PG_GETARG_SIGNATURE_P(0);
-	sigbytes = VARSIZE(sig) - VARHDRSZ - SIGNATUREHDRSZ;
-	
-	count = 0;
-	for(i=0; i < sigbytes; i++) {
-		ch = sig->data[i];
-		count += COUNT_TABLE[ch];
-	}
-	
-	PG_FREE_IF_COPY( sig, 0 );
-
-	PG_RETURN_INT32( count );
-}
-
-
 PG_FUNCTION_INFO_V1( sig_min );
 
 Datum
@@ -500,4 +475,30 @@ sig_xor( PG_FUNCTION_ARGS )
 	PG_FREE_IF_COPY(sig, 0);
 	
 	PG_RETURN_SIGNATURE_P( res );
+}
+
+
+PG_FUNCTION_INFO_V1( count );
+
+Datum
+count( PG_FUNCTION_ARGS )
+{	
+  Signature *sig;
+	int32 sigbytes,
+	      count,
+	      i;
+	uint8 ch;
+	
+	sig = PG_GETARG_SIGNATURE_P(0);
+	sigbytes = VARSIZE(sig) - VARHDRSZ - SIGNATUREHDRSZ;
+	
+	count = 0;
+	for(i=0; i < sigbytes; i++) {
+		ch = sig->data[i];
+		count += COUNT_TABLE[ch];
+	}
+	
+	PG_FREE_IF_COPY( sig, 0 );
+
+	PG_RETURN_INT32( count );
 }

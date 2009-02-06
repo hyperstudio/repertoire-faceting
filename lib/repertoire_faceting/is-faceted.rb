@@ -2,7 +2,7 @@
 require 'rubygems'
 require 'pathname'
 
-gem 'dm-core', '=0.9.5'
+gem 'dm-core', '~>0.9.10'
 require 'dm-core'
 
 require Pathname(__FILE__).dirname.expand_path / 'is-faceted' / 'is' / 'faceted.rb'
@@ -17,11 +17,6 @@ module DataMapper
       include DataMapper::Is::Faceted
     end # module ClassMethods
   end # module Resource
-
-  class AutoMigrator
-    include Extlib::Hook
-    include DataMapper::Is::Faceted::PostgresAdapter::Migration
-  end
 
   module Adapters
     class PostgresAdapter

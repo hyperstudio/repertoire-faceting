@@ -151,3 +151,13 @@ BEGIN
   RAISE EXCEPTION 'Not implemented yet';
 END;
 $$ LANGUAGE plpgsql;
+
+
+
+SELECT facet.region, count(base.signature & filter.signature & facet.signature) AS count 
+    FROM _projects_region_facet AS facet,
+  (SELECT sig_collect(_packed_id) AS signature FROM project WHERE fulltext @@ to_tsquery('Bush')) AS base,
+  (SELECT sig_filter(signature) AS signature FROM
+    (SELECT signature FROM _project_feature_facet WHERE feature = 'browse' UNION
+     SELECT signature FROM _project_pi_facet      WHERE pi = 'Fendt')) AS filter
+  WHERE count > 0 ORDER BY count DESC, facet.region ASC;
