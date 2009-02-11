@@ -32,10 +32,24 @@ module DataMapper
 
           raise "Property #{facet} must be declared as a facet" unless self.facet?(facet)
           
-          # (1) detemine which parameters are facets and which are ordinary columns
-          # (2) run the query with the ordinary columns.  this is the base signature
-          # (3) run a sig_filter query with the facet columns.  this is the filter signature
-          # (4) run a count over all of the values on the facet to count          
+          adapter = query.repository.adapter
+          
+          # (1) extract facet refinements from query
+          refinements = query.only(*@facets.keys)
+          query.delete_if { |k, v| facet?(k) }
+          order       = query.delete(:order) || [:count.desc]
+
+          # (2) run the query with the ordinary columns.  this is the base signature (as a string)
+          query[:fields] = [:id]
+          base = adapter.signature(scoped_query(query))
+
+          # (3) run a signature filter query with the facet columns.  this is the filter signature (as a string)
+          filter = refinements.empty? ? nil : adapter.filter(storage_name, refinements)
+
+          # (4) run a count over all of the values on the facet to count
+          counts = adapter.facet_count(storage_name, facet, base, filter, order)
+
+          return counts
         end
 
         def facet_result(*args)

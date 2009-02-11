@@ -4,8 +4,8 @@ API for faceted browsing within PostgreSQL, with extensions for Merb
 
 - faceting only on individual tables (table is context)
 - packed id (0..n) kept for each model with facets
-- faceting tables kept in project schema
-- each facet has own index table (named _{table}_{facet}_index, of value -> signature)
+- faceting tables kept in each project schema
+- each facet has own index table (named _{table}_{facet}_facet, of facet value -> signature)
 - nested facet values kept as arrays
 - update facet index (a) explicitly, (b) using Repertoire's crontab sweeper, or (c) both
 
@@ -154,23 +154,26 @@ SELECT signature(_packed_id) FROM project WHERE _fulltext @@ to_tsquery('Bush');
 = to get refinement filter signature (using indices declared above):
 
 SELECT filter(signature) FROM 
-  SELECT signature FROM _project_feature_facet WHERE feature = 'visualize'
-  UNION SELECT signature FROM _project_status_facet WHERE status = 'in progress'
+  (SELECT signature FROM _project_feature_facet WHERE feature = 'visualize'
+   UNION 
+   SELECT signature FROM _project_status_facet WHERE status = 'in progress') AS filter
   ...
 
 = assuming you have the base and refinement signatures already calculated, get facet value counts with
 
-SELECT facet.feature, count(base & filter & facet.signature)
-FROM _project_feature_facet AS facet
+SELECT feature, count FROM
+  (SELECT feature, count(<base> & <filter> & signature)
+   FROM _project_feature_facet) AS facet
 WHERE count > 0 ORDER BY count DESC, feature ASC;
 
 = or, to get facet results (e.g.):
 
 SELECT * FROM project WHERE contains(base & filter, _packed_id) ...;
        
-= putting it all together - in practice, you'll probably use subselects to compute the base and filter signatures:
+= putting it all together - if you're querying directly using SQL, you'll probably use sub-selects to compute the base and filter
+  signatures: 
   { this is a count query on the facet 'region', base query 'Bush', filter feature=browse&pi=Fendt, ordered by count descending }
-             
+
 SELECT facet.region, count(base.signature & filter.signature & facet.signature)
   FROM _projects_region_facet AS facet,
   (SELECT signature(_packed_id) FROM project WHERE fulltext @@ to_tsquery('Bush')) AS base,
@@ -215,10 +218,10 @@ sig_resize(a, n)    => { resizes a to hold n bits }
 
 ===== Future extensions =====
 
-= FUTURE: to declare a faceting index using a datamapper hook rather than a postgresql trigger,
+= FUTURE: to declare a faceting index using a datamapper hook rather than a postgresql crontab,
 =    provide a block that returns a hash.  (This example is functionally equivalent to the above.)
 
 is :faceted do |model|
 { :genre     => model.genre,
-:published => [ model.date.year, model.date.month, model.date.day ] }
+  :published => [ model.date.year, model.date.month, model.date.day ] }
 end

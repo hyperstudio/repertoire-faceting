@@ -265,10 +265,10 @@ sig_get( PG_FUNCTION_ARGS )
 }
 
 
-PG_FUNCTION_INFO_V1( sig_contains );
+PG_FUNCTION_INFO_V1( contains );
 
 Datum
-sig_contains( PG_FUNCTION_ARGS )
+contains( PG_FUNCTION_ARGS )
 {
 	Signature *sig;
 	int32 sigbytes,

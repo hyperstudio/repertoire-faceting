@@ -33,10 +33,15 @@ describe "Repertoire faceting" do
     Project.auto_migrate!
     Field.auto_migrate!
   end
-  
+
   it "should index the regions facet" do
     ber = Project.create(:abbreviation => 'ber', :region => 'Germany')
+    ber.fields << Field.create(:field_name => 'languages')
+    ber.save
     reindex_facets
-    Project.facet_count(:region).should == ['Germany', 1]
+    Project.facet_count(:region, :order => [ :region ]).should == ['Germany', 1]                          # full browse
+    Project.facet_count(:region, :abbreviation => 'ber').should == ['Germany', 1]                         # base query
+    Project.facet_count(:region, :field => 'languages').should == ['Germany', 1]                          # filter
+    Project.facet_count(:region, :abbreviation => 'ber', :field => 'languages').should == ['Germany', 1]  # base & filter
   end
 end

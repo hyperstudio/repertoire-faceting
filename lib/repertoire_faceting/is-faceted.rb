@@ -6,7 +6,7 @@ gem 'dm-core', '~>0.9.10'
 require 'dm-core'
 
 require Pathname(__FILE__).dirname.expand_path / 'is-faceted' / 'is' / 'faceted.rb'
-require Pathname(__FILE__).dirname.expand_path / 'is-faceted' / 'is' / 'postgres_adapter'
+require Pathname(__FILE__).dirname.expand_path / 'is-faceted' / 'is' / 'data_objects_adapter'
 
 DataMapper::Model.append_extensions DataMapper::Is::Faceted
 
