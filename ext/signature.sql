@@ -22,7 +22,7 @@
 --
 -- Installation
 --
---    (1) gem install repertoire-faceting [ builds c extensions automatically ]
+--    (1) gem install repertoire_faceting [ builds c extensions automatically ]
 --    (2) psql -Upostgres <your database> -f ext/signature.sql [ installs SQL wrapper functions ]
 --    (3) [ optional ] install Repertoire crontab support [ see wiki ]
 --  
@@ -146,12 +146,6 @@ CREATE AGGREGATE filter( signature )
 
 -- utility functions for maintaining facet indices
 
-CREATE OR REPLACE FUNCTION renumber_table(tbl TEXT) RETURNS VOID AS $$
-BEGIN
-  EXECUTE renumber_table(tbl, '_packed_id');
-END;
-$$ LANGUAGE plpgsql;
-
 CREATE OR REPLACE FUNCTION renumber_table(tbl TEXT, col TEXT) RETURNS VOID AS $$
 DECLARE
   seq TEXT;
@@ -163,7 +157,7 @@ BEGIN
   BEGIN
     EXECUTE 'CREATE SEQUENCE ' || quote_ident(seq) || ' MINVALUE 0 ';
     EXECUTE 'ALTER TABLE ' || quote_ident(tbl) || ' ADD COLUMN ' || quote_ident(col) || ' INT4 DEFAULT nextval(''' || quote_ident(seq) || ''')';
-    EXECUTE 'ALTER SEQUENCE ' || quote_ident(seq) || ' OWNED BY ' || quote_ident(tbl) '.' || quote_ident(col);
+    EXECUTE 'ALTER SEQUENCE ' || quote_ident(seq) || ' OWNED BY ' || quote_ident(tbl) || '.' || quote_ident(col);
   EXCEPTION
     WHEN duplicate_table THEN NULL;
     WHEN duplicate_column THEN NULL;

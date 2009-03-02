@@ -1,21 +1,26 @@
 NEXT:
 
-- write rake task to install on migrate (?)  
+-- make order by count if none given
 
+(1) event to tell other components to update  DONE
+(2) read facet counts from provided url, in json  DONE
+(3) store current refinements in top-level element  DONE
+(4) on click handler to change refinements  DONE
+--- refinements work in query  DONE
+--- put in css
+(8) checkboxes in facets  NOT TO DO
+--- other facet configurations
+(5) summary box
+(6) results box
+(7) nesting facets
+
+--- deal with queries with multiple facet values selected  DONE
+
+- write rake task to install on migrate (?)
 - make sure that the migrations install good postgresql indexing code for facets
-
 - continue on signature dump out & load in  DONE
 - then other signauture functions  DONE
 - the sql functions  DONE
-
-
-
-
-
-
-
-
-
 
 ======= potentially of use later:
 

@@ -9,6 +9,7 @@ API for faceted browsing within PostgreSQL, with extensions for Merb
 - nested facet values kept as arrays
 - update facet index (a) explicitly, (b) using Repertoire's crontab sweeper, or (c) both
 
+
 ===== DataMapper extensions =====
 
 *Setup*
@@ -22,10 +23,10 @@ migration 5, :add_facet_indices do
   up do
     execute <<-SQL.compress_lines
       INSERT INTO crontab(notice, role, task, interval) 
-	        VALUES ('Update Project facets', 'web', $$ 
+	        VALUES ('Update Project facets', NULL, $$ 
 				    SELECT renumber_table('project', '_packed_id');
 				    SELECT recreate_table('_project_status_facet', 'SELECT status, signature(_packed_id) FROM project GROUP BY status');
-				    $$, '10 seconds');
+				    $$, '5 minutes');
     SQL
   end
   down do
@@ -35,17 +36,21 @@ migration 5, :add_facet_indices do
   end
 end
 
-A later version of this package may include generator macros to ease the task of defining new facet indices.
+A later version of this package may include generator macros to ease the task of defining new facet indices.  However, this will 
+have to wait until DataMapper can reliably transform expressions like Project.all(:field => 'science').status into a single SQL join query (currently it issues two queries in turn).  Until then, the SQL expressions must be produced by hand.
 
 *In your model*
 
 = declare facets for later use
 
 class Project
-  is :faceted :genre,
-              :published,
-	  		      [ etc. ]
+  include Repertoire::Is:Faceted
+  is :faceted, :genre,
+               :published,
+	  		       [ etc. ]
 end
+
+[ note this merely names the facets - definitions belong in a database migration ]
 
 *In your controller*
 
@@ -61,29 +66,29 @@ Film.all(:genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%'
 
 == { note that all nested facet values are passed back and forth as arrays }
 
+
 ===== Merb extensions =====
 
 in controller...
 
-def value_counts(facet, refinements, search)     # still need to figure out how to parse refinements from JSON automatically
+def counts(facet, search, filter={})
   provides :json
-  counts = Project.facet_count(facet, refinements.merge { :fulltext.matches => search, :order => [:count] })
+  counts = Project.facet_count(facet, :refinements => filter, :fulltext.matches => search, :order => [:count])
   display counts
 end
 
-def results(refinements, search)
+def results(search, filter={}, page)
   provides :html
-  results = Project.paginate(refinements.merge { :fulltext.matches => search, :order => [:title] })
+  results = Project.facet_result(:refinements => filter, :fulltext.matches => search, :order => [:title])
   display results
 end
 
 in view.... (index.html.erb)
 
-<% jquery do %>
+<% throw_content :jquery do %>
   $("#summary").summary({});
-  $("#feature_facet").facet('feature', '/projects/value_counts/feature', { 'title' : 'Features of Project' });
+  $("#feature_facet").facet('feature', '/projects/counts/feature', { 'title' : 'Features of Project' });
   $("#results").results('/projects/results', {});
-  jQuery(document).trigger('update.facets.repertoire');
 <% end %>
 <div id="summary"></div>
 <div id="feature_facet" facet="foo"></div>
@@ -91,7 +96,7 @@ in view.... (index.html.erb)
 
 in routes...
 
-r.match('/:controller/value_counts/:facet').to(:action => 'value_counts')
+r.match('/:controller/counts/:facet').to(:action => 'counts')
 r.match('/:controller/results').to(:action => 'results')
 
 todo...   web service interfaces for use with visualization tools
@@ -144,6 +149,7 @@ INSERT INTO crontab(notice, role, task, interval)
 ... SELECT recreate_table('_project_start_facet',
        'SELECT ARRAY[ EXTRACT(year FROM date), EXTRACT(month FROM date), EXTRACT(day FROM date) ] AS start, signature(_packed_id) ' || 
        'FROM project GROUP BY date');
+
 
 == Faceted Navigation ==
 
@@ -215,6 +221,7 @@ sig_min(a)       	  => { lowest 1 in a, a.length }
 sig_get(a, i)       => { ith bit of a, or 0 }
 sig_set(a, i, n)    => { sets ith bit of a to n }
 sig_resize(a, n)    => { resizes a to hold n bits }
+
 
 ===== Future extensions =====
 

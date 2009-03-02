@@ -1,3 +1,15 @@
+# require code that must be loaded before the application
+dir = Pathname(__FILE__).dirname.expand_path + 'repertoire_faceting'
+
+require dir + 'types' + 'array'
+require dir + 'adapters' + 'data_objects_adapter'
+require dir + 'faceting_methods'
+require dir + 'faceting_mixin'
+require dir + 'collection'
+require dir + 'model'
+ 
+require dir + 'is-faceted'
+
 # make sure we're running inside Merb
 if defined?(Merb::Plugins)
 
@@ -5,12 +17,8 @@ if defined?(Merb::Plugins)
   Merb::Plugins.config[:repertoire_faceting] = {
   }
   
-  Merb::BootLoader.before_app_loads do
-    # require code that must be loaded before the application
-    dir = Pathname(__FILE__).dirname.expand_path + 'repertoire_faceting'
-
-    require dir + 'types' + 'array'
-    require dir + 'is-faceted'
+  Merb::BootLoader.before_app_loads do    
+    Merb::Controller.send(:include, Repertoire::FacetingMixin)
   end
   
   Merb::BootLoader.after_app_loads do
