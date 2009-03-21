@@ -1,7 +1,7 @@
 # require code that must be loaded before the application
 dir = Pathname(__FILE__).dirname.expand_path + 'repertoire_faceting'
 
-require dir + 'types' + 'array'
+# require dir + 'types' + 'array'
 require dir + 'adapters' + 'data_objects_adapter'
 require dir + 'faceting_methods'
 require dir + 'faceting_mixin'
