@@ -1,4 +1,3 @@
 require "mkmf"
 
-# nothing to do since makefile only extends postgresql
-
+# nothing to do since we use a hand-coded Makefile

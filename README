@@ -10,6 +10,31 @@ API for faceted browsing within PostgreSQL, with extensions for Merb
 - update facet index (a) explicitly, (b) using Repertoire's crontab sweeper, or (c) both
 
 
+===== Installation =====
+
+-Proviso-.  You must already have PostgreSQL installed, and pg_config should display the correct values for the version of postgres you intend to use.
+
+1. Install the repertoire-faceting gem
+gem install repertoire-faceting
+
+2. Install Repertoire crontab support
+[ see documentation for the repertoire-devtools gem for this ]
+
+3. Create a migration to load faceting sql extensions into your project's database
+[ this may eventually be moved into a migration extension, but it's left here to be explicit ]
+
+migration 1, :install_signature do
+  sharedir = /SHAREDIR = (.*)/.match(`pg_config`)[1]			# e.g. "/opt/local/share/postgresql83"
+  
+  up do
+    execute "\i #{sharedir}/contrib/signature.sql"
+  end
+  down do
+    execute "\i #{sharedir}/contrib/uninstall_signature.sql"
+  end
+end
+
+
 ===== DataMapper extensions =====
 
 *Setup*

@@ -17,16 +17,18 @@ spec = Gem::Specification.new do |s|
   s.version = GEM_VERSION
   s.platform = Gem::Platform::RUBY
   s.has_rdoc = true
-  s.extra_rdoc_files = ["README", "LICENSE", 'TODO']
+  s.extra_rdoc_files = ["README", "LICENSE", "TODO"]
   s.summary = SUMMARY
   s.description = s.summary
   s.author = AUTHOR
   s.email = EMAIL
   s.homepage = HOMEPAGE
-  s.add_dependency('merb', '>= 1.0.10')
+  s.add_dependency('ruby-pg')
+  s.add_dependency('merb-core')
+  s.add_dependency('dm-core')
+  s.extensions = ["ext/extconf.rb"]
+  s.files = %w(LICENSE README Rakefile TODO ext/extconf.rb ext/Makefile ext/signature.c ext/signature.sql.IN ext/uninstall_signature.sql.IN) + Dir.glob("{lib,spec}/**/*")
   s.require_path = 'lib'
-  s.files = %w(LICENSE README Rakefile TODO) + Dir.glob("{lib,spec}/**/*")
-  
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
