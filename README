@@ -14,8 +14,8 @@ API for faceted browsing within PostgreSQL, with extensions for Merb
 
 -Proviso-.  You must already have PostgreSQL installed, and pg_config should display the correct values for the version of postgres you intend to use.
 
-1. Install the repertoire-faceting gem
-gem install repertoire-faceting
+1. Install the repertoire-faceting gem from source
+[ once it's released open-source, this will be possible from github or rubyforge ]
 
 2. Install Repertoire crontab support
 [ see documentation for the repertoire-devtools gem for this ]
@@ -27,10 +27,10 @@ migration 1, :install_signature do
   sharedir = /SHAREDIR = (.*)/.match(`pg_config`)[1]			# e.g. "/opt/local/share/postgresql83"
   
   up do
-    execute "\i #{sharedir}/contrib/signature.sql"
+    execute File.read("#{sharedir}/contrib/signature.sql")
   end
   down do
-    execute "\i #{sharedir}/contrib/uninstall_signature.sql"
+    execute File.read("#{sharedir}/contrib/uninstall_signature.sql")
   end
 end
 
