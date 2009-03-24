@@ -20,19 +20,26 @@ API for faceted browsing within PostgreSQL, with extensions for Merb
 2. Install Repertoire crontab support
 [ see documentation for the repertoire-devtools gem for this ]
 
-3. Create a migration to load faceting sql extensions into your project's database
-[ this may eventually be moved into a migration extension, but it's left here to be explicit ]
+3. Load the faceting sql extensions into your project's database
 
-migration 1, :install_signature do
-  sharedir = /SHAREDIR = (.*)/.match(`pg_config`)[1]			# e.g. "/opt/local/share/postgresql83"
+  - If your project shares the database with others (as in Repertoire), it's best to install by hand.
+
+  psql -Upostgres <your database> -f /opt/local/share/postgresql83/contrib/signature.sql
+
+  Note that the sql extensions are global to your entire database, since they land in the public schema.
+
+  - If your project owns the entire database, you can use a migration:
+
+		migration 1, :install_signature do
+		  sharedir = /SHAREDIR = (.*)/.match(`pg_config`)[1]			# e.g. "/opt/local/share/postgresql83"
   
-  up do
-    execute File.read("#{sharedir}/contrib/signature.sql")
-  end
-  down do
-    execute File.read("#{sharedir}/contrib/uninstall_signature.sql")
-  end
-end
+		  up do
+		    execute File.read("#{sharedir}/contrib/signature.sql")
+		  end
+		  down do
+		    execute File.read("#{sharedir}/contrib/uninstall_signature.sql")
+		  end
+		end
 
 
 ===== DataMapper extensions =====
