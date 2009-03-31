@@ -1,6 +1,9 @@
+gem 'do_postgres', '~>0.9.11'
+require 'do_postgres'
+
 module DataMapper
   module Adapters
-    class PostgresAdapter
+    class PostgresAdapter < DataObjectsAdapter
       def signature(query, dummy_id_col, packed_id_col)
         stmt = read_statement(query)
         # TODO. hack -- should really be doneby over-riding property_to_column_name in DataObjects; see dm-aggregates
