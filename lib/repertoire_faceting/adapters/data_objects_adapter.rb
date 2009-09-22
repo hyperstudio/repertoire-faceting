@@ -1,4 +1,6 @@
-gem 'do_postgres', '~>0.9.11'
+require DataMapper.root / 'lib' / 'dm-core' / 'adapters' / 'data_objects_adapter'
+
+gem 'do_postgres', '~>0.10.0'
 require 'do_postgres'
 
 module DataMapper
