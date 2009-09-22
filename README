@@ -76,7 +76,7 @@ have to wait until DataMapper can reliably transform expressions like Project.al
 = declare facets for later use
 
 class Project
-  include Repertoire::Is:Faceted
+  include DataMapper::Is:Faceted
   is :faceted, :genre,
                :published,
 	  		       [ etc. ]
@@ -109,29 +109,53 @@ def counts(facet, search, filter={})
   display counts
 end
 
-def results(search, filter={}, page)
+def results(search, filter={})
   provides :html
   results = Project.facet_result(:refinements => filter, :fulltext.matches => search, :order => [:title])
   display results
 end
-
-in view.... (index.html.erb)
-
-<% throw_content :jquery do %>
-  $("#summary").summary({});
-  $("#feature_facet").facet('feature', '/projects/counts/feature', { 'title' : 'Features of Project' });
-  $("#results").results('/projects/results', {});
-<% end %>
-<div id="summary"></div>
-<div id="feature_facet" facet="foo"></div>
-<div id="results"></div>
 
 in routes...
 
 r.match('/:controller/counts/:facet').to(:action => 'counts')
 r.match('/:controller/results').to(:action => 'results')
 
-todo...   web service interfaces for use with visualization tools
+in view.... (index.html.erb):
+
+at this point, all of the back-end work is in place.  you've created indexes to the facets and web service 
+methods that allow ajax clients to pass back the current facet refinements and quickly retrieve both the facet 
+values and counts (for those refinements) or the complete result set (again given those refinements).  how you 
+implement your ajax views is up to you.  
+
+the facet count data is served via JSON on the URL defined by the routes and method signatures above.  for 
+example, if your controller is 'books', the facet you want counts for is 'genre', the base full-text query is 
+'Grapes' and your current facet refinements are { author='Steinbeck' }, you might use the following jquery ajax 
+call:
+
+$.getJSON("/books/counts/genre", { search: "Grapes", filter: { 'author': 'Steinbeck' } }, function(json) {
+  ... update DOM with the facet values and counts returned
+});
+
+and you might load the rendered results into an element with this jquery:
+
+$("#results").load("/books/results", { search: "Grapes", filter: { 'author': 'Steinbeck' } });
+
+for further information on writing jquery widgets, see http://www.learningjquery.com/2007/10/a-plugin-development-pattern
+and the source code for the ajax validation widget in repertoire-core.
+
+N.B.  the jquery code above not tested - verify that jquery still produces the right url format for Merb router
+to parse (it did in Merb 0.9 and jquery 1.3.2)
+
+	TODO. future improvement... we might want to write a standard set of jquery facet widgets so that you could do e.g.
+
+	<% throw_content :jquery do %>
+	  $("#summary").summary({});
+	  $("#feature_facet").facet('feature', '/projects/counts/feature', { 'title' : 'Features of Project' });
+	  $("#results").results('/projects/results', {});
+	<% end %>
+	<div id="summary"></div>
+	<div id="feature_facet" facet="foo"></div>
+	<div id="results"></div>
 
 
 ===== PostgreSQL extensions =====
