@@ -9,7 +9,7 @@ module DataMapper
 
       raise "Property #{facet} must be declared as a facet" unless self.facet?(facet)
 
-      adapter = query.repository.adapter
+      adapter = DataMapper.repository(:default).adapter
       
       refinements = query.delete(:refinements) || query.only(*@facets.keys)
       query.delete_if { |k, v| facet?(k) }
@@ -24,7 +24,7 @@ module DataMapper
     def facet_result(*args)
       query = args.last.kind_of?(Hash) ? args.pop : {}
 
-      adapter = query.repository.adapter
+      adapter = DataMapper.repository(:default).adapter
       
       refinements = query.delete(:refinements) || query.only(*@facets.keys)
       query.delete_if { |k, v| facet?(k) }
@@ -41,7 +41,7 @@ module DataMapper
     
     private
     def base(query)
-      adapter = query.repository.adapter
+      adapter = DataMapper.repository(:default).adapter
 
       # (2) run the query with the ordinary columns.  this is the base signature (as a string)
       query[:fields] = [:id]
