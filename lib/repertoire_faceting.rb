@@ -3,7 +3,6 @@ dir = Pathname(__FILE__).dirname.expand_path + 'repertoire_faceting'
 
 require dir + 'adapters' + 'postgres_adapter'
 require dir + 'faceting_functions'
-require dir + 'query'
 
 require dir + 'is-faceted'
 
@@ -18,10 +17,6 @@ module DataMapper
 
   class Collection
     include Repertoire::Faceting::Functions
-  end
-
-  class Query
-    include Repertoire::Faceting::Query
   end
   
   module Adapters

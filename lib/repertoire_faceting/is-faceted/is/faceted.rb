@@ -7,13 +7,12 @@ module DataMapper
         
         # parse facet declarations
         @facets  = args.last.kind_of?(Hash) ? args.pop : {}
-        args.each { |facet| @facets[facet] = facet }
+        args.each { |facet| @facets[facet] = String }
         @facets = @facets.to_mash
-
-        # TODO. declare facet count models here
 
         @facets.keys
       end
+
         
       module ClassMethods
         def facets
@@ -22,6 +21,19 @@ module DataMapper
         
         def facet?(property_name)
           @facets.key?(property_name)
+        end
+        
+        def nested_facet?(property_name)
+          facet?(property_name) && facet_expr(property_name).respond_to?(:each)
+        end
+        
+        def facet_type(facet, level=nil)
+          # currently sub-expression holds type of facet column (like a DataMapper declaration)
+          if level.nil?
+            @facets[facet]
+          else
+            @facets[facet][level-1] || String
+          end
         end
         
         def facet_expr(facet)

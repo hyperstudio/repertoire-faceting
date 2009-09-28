@@ -5,7 +5,7 @@ an actual Postgres instance (not sqlite).  To create the appropriate database,
 2. create and configure testing database:
      createdb -Upostgres repertoire_testing
      createlang -Upostgres plpgsql repertoire_testing
-     psql -Upostgres repertoire_testing -f /opt/local/share/postgresql83/contrib/signature.sql
+     psql -Upostgres repertoire_testing -f /opt/local/share/postgresql84/contrib/signature.sql
 3. upload the testing data
      psql -Upostgres repertoire_testing -f spec/nobelists.sql 
 4. run the specs

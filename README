@@ -24,14 +24,14 @@ API for faceted browsing within PostgreSQL, with extensions for Merb
 
   - If your project shares the database with others (as in Repertoire), it's best to install by hand.
 
-  psql -Upostgres <your database> -f /opt/local/share/postgresql83/contrib/signature.sql
+  psql -Upostgres <your database> -f /opt/local/share/postgresql84/contrib/signature.sql
 
   Note that the sql extensions are global to your entire database, since they land in the public schema.
 
   - If your project owns the entire database, you can use a migration:
 
 		migration 1, :install_signature do
-		  sharedir = /SHAREDIR = (.*)/.match(`pg_config`)[1]			# e.g. "/opt/local/share/postgresql83"
+		  sharedir = /SHAREDIR = (.*)/.match(`pg_config`)[1]			# e.g. "/opt/local/share/postgresql84"
   
 		  up do
 		    execute File.read("#{sharedir}/contrib/signature.sql")
@@ -73,30 +73,32 @@ have to wait until DataMapper can reliably transform expressions like Project.al
 
 *In your model*
 
-= declare facets for later use
+= declaring facets works much as in DataMapper:
 
 class Project
-  include DataMapper::Is::Faceted
-  is :faceted, :genre,
-               :published,
+  is :faceted, :genre,                                      # assumes String
+               :published => Integer                        # explicit type
+               :birthdate => [ Integer, Integer, Integer ]  # nested facet
 	  		       [ etc. ]
 end
 
-[ note this merely names the facets - definitions belong in a database migration. ]
+[ your facets don't have to be DataMapper properties!  they can be any SQL computed value ]
+[ N.B. this merely names the facets - definitions belong in a database migration. ]
 
 *In your controller*
 
-= to do a facet value count [ facet indices are used automatically ]
+= to do a facet value count [ facet indices are used automatically where available ]
 
-Film.facet_count(:location, :genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:location, :count] )
+Film.facet_count(:location, :genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:location, :count.desc] )
 
 # provides facet to count, facet filter selections, a base query, and order for the facet value counts
+# you can also specify :minimum, :offset, and :limit
 
-= to do a facet result count [ also allows pagination ]
+= to do a facet result count
 
-Film.all(:genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:title, :author])
+Film.all(:genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:title, :author], :offset => 0, :limit => 20)
 
-== { note that all nested facet values are passed back and forth as arrays }
+[ note that nested facet values are provided as arrays ]
 
 
 ===== Merb extensions =====
@@ -105,13 +107,13 @@ in controller...
 
 def counts(facet, search, filter={})
   provides :json
-  counts = Project.facet_count(facet, :refinements => filter, :fulltext.matches => search, :order => [:count])
+  counts = Project.facet_count(facet, :refinements => filter, :conditions => ["_fulltext @@ to_tsquery(?)", search])
   display counts
 end
 
 def results(search, filter={})
   provides :html
-  results = Project.facet_result(:refinements => filter, :fulltext.matches => search, :order => [:title])
+  results = Project.facet_result(:refinements => filter, :conditions => ["_fulltext @@ to_tsquery(?)", search])
   display results
 end
 
