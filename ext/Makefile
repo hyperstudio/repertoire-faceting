@@ -10,7 +10,8 @@
  
 MODULES = signature
 DATA_built = signature.sql uninstall_signature.sql
-DOCS = README.signature
+# DOCS = README.signature                           # TODO. postgres 8.3 & 8.4 look for doc files in different places;
+                                                    #       temporarily commented out until we have migrated
  
 SHLIB_LINK = $(BE_DLLLIBS)
  

@@ -1,4 +1,18 @@
+updated for postgres 8.4
+  had to add comparison operators for signature since 8.4 requires them for UNION operator
+updated for DataMapper 0.10.1
+
 NEXT:
+
+- facet_result() should be like all except it
+  (1) pulls out any facets with values and uses facet indices to access them
+  (2) executes the query immediately (so cannot be chained)
+- facet_count() works like result except it specifies a facet whose values to count, and order, limit, etc refer to value, count pairs
+
+
+
+- write complete set of specs
+- write example facet widget
 
 -- make order by count if none given
 
@@ -166,3 +180,697 @@ SELECT facet.region, count(base.signature & filter.signature & facet.signature) 
     (SELECT signature FROM _project_feature_facet WHERE feature = 'browse' UNION
      SELECT signature FROM _project_pi_facet      WHERE pi = 'Fendt')) AS filter
   WHERE count > 0 ORDER BY count DESC, facet.region ASC;
+
+
+	
+
+nobelists = YAML::load( File.open( './spec/nobelists.yml' ) )
+nobelists.each do |n|
+nobelist = Nobelist.create(n)
+puts nobelist.name
+end
+
+
+---
+-           id: 1
+            name: Burton Richter
+            birthdate: March 22, 1931
+            birth_country: United States of America
+            birth_state: New York
+            birth_city: New York City
+            discipline: Physics
+            shared: yes
+            last_name: Richter
+            nobel_year: 1976
+            co_winner: Samuel C.C. Ting
+            relationship_detail: MIT S.B. 1952, Ph.D. 1956
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1976/richter_thumb.jpg
+-           id: 2
+            name: George A. Akerlof
+            birthdate: June 17, 1940
+            birth_country: United States of America
+            birth_state: Connecticut
+            birth_city: New Haven
+            discipline: Economics
+            shared: yes
+            last_name: Akerlof
+            nobel_year: 2001
+            relationship_detail: MIT Ph.D. 1966
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/2001/akerlof_thumb.jpg
+-           id: 3
+            name: William Shockley
+            birthdate: February 13, 1910
+            birth_country: England
+            birth_city: London
+            discipline: Physics
+            shared: yes
+            last_name: Shockley
+            nobel_year: 1956
+            deceased: yes
+            relationship_detail: MIT Ph.D. 1936 (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1956/shockley_thumb.jpg
+-           id: 4
+            name: Daniel C. Tsui
+            birthdate: February 28, 1939
+            birth_country: People's Republic of China
+            birth_state: Henan
+            discipline: Physics
+            shared: yes
+            last_name: Tsui
+            nobel_year: 1998
+            co_winner: Horst L. St\u00F6rmer, Robert B. Laughlin
+            relationship_detail: MIT researcher at MIT Magnet Lab
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1998/tsui_thumb.jpg
+-           id: 5
+            name: Elias J. Corey Jr.
+            birth_country: United States of America
+            birth_state: Massachusetts
+            birth_city: Methuen
+            birthdate: July 12, 1928
+            discipline: Chemistry
+            shared: no
+            last_name: Corey
+            nobel_year: 1990
+            relationship_detail: MIT S.B. 1948, Ph.D. 1951
+            imageURL: http://nobelprize.org/nobel_prizes/chemistry/laureates/1990/corey_thumb.jpg
+-           id: 6
+            name: Horst L. Störmer
+            birthdate: April 6, 1949
+            birth_country: Germany
+            birth_city: Frankfurt
+            discipline: Physics
+            shared: yes
+            last_name: Störmer
+            nobel_year: 1998
+            co_winner: Robert B. Laughlin, Daniel C. Tsui
+            relationship_detail: MIT researcher at MIT Magnet Lab
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1998/stormer_thumb.jpg
+-           id: 7
+            name: Edward M. Purcell
+            birthdate: August 30, 1912
+            birth_country: United States of America
+            birth_state: Illinois
+            birth_city: Taylorville
+            discipline: Physics
+            shared: yes
+            last_name: Purcell
+            nobel_year: 1952
+            deceased: yes
+            relationship_detail: Staff, MIT Radiation Laboratory WWII (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1952/purcell_thumb.jpg
+-           id: 8
+            name: Phillip A. Sharp
+            birthdate: June 6, 1944
+            birth_country: United States of America
+            birth_state: Kentucky
+            birth_city: McKinneysburg
+            discipline: Medicine/Physiology
+            shared: yes
+            last_name: Sharp
+            nobel_year: 1993
+            relationship_detail: MIT Institute Professor, Biology
+            imageURL: http://nobelprize.org/nobel_prizes/medicine/laureates/1993/sharp_thumb.jpg
+-           id: 9
+            name: Lawrence R. Klein
+            birthdate: September 14, 1920
+            birth_country: United States of America
+            birth_state: Nebraska
+            birth_city: Omaha
+            discipline: Economics
+            shared: no
+            last_name: Klein
+            nobel_year: 1980
+            relationship_detail: MIT Ph.D. 1944
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/1980/klein_thumb.jpg
+-           id: 10
+            name: Hans A. Bethe
+            birthdate: September 14, 1920
+            birth_country: Germany
+            birth_state: Alsace-Lorraine
+            birth_city: Strasbourg
+            birthdate: June 2, 1906
+            discipline: Physics
+            shared: no
+            last_name: Bethe
+            nobel_year: 1967
+            relationship_detail: MIT Radiation Laboratory WWII
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1967/bethe_thumb.jpg
+-           id: 11
+            name: Charles H. Townes
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Townes
+            nobel_year: 1964
+            relationship_detail: MIT Provost 1961-61
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1964/townes_thumb.jpg
+-           id: 12
+            name: K. Barry Sharpless
+            birthdate: April 28, 1941 
+            discipline: Chemistry
+            shared: yes
+            last_name: Sharpless
+            nobel_year: 2001
+            relationship_detail: MIT Professor of Chemistry 1970-77, 1980-90
+            imageURL: http://nobelprize.org/nobel_prizes/chemistry/laureates/2001/sharpless_thumb.jpg
+-           id: 13
+            name: Richard R. Schrock
+            url: http://web.mit.edu/newsoffice/2005/schrock.html
+            birthdate: January 4, 1945
+            discipline: Chemistry
+            shared: yes
+            last_name: Schrock
+            nobel_year: 2005
+            relationship_detail: MIT Professor of Chemistry
+            imageURL: http://nobelprize.org/nobel_prizes/chemistry/laureates/2005/schrock_thumb.jpg
+-           id: 14
+            name: Jerome I. Friedman
+            birthdate: March 28, 1930
+            discipline: Physics
+            shared: yes
+            last_name: Friedman
+            nobel_year: 1990
+            co_winner: Henry W. Kendall
+            relationship_detail: MIT Institute Professor, Physics
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1990/friedman_thumb.jpg
+-           id: 15
+            name: Richard P. Feynman
+            birthdate: May 11, 1918
+            discipline: Physics
+            shared: yes
+            last_name: Feynman
+            nobel_year: 1965
+            deceased: yes
+            co_winner: Julian Schwinger
+            relationship_detail: MIT S.B. 1939 (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1965/feynman_thumb.jpg
+-           id: 16
+            name: E. Donnall Thomas
+            birthdate: March 15, 1920
+            discipline: Medicine/Physiology
+            shared: yes
+            last_name: Thomas
+            nobel_year: 1990
+            relationship_detail: MIT postdoctoral researcher 1950
+            imageURL: http://nobelprize.org/nobel_prizes/medicine/laureates/1990/thomas_thumb.jpg
+-           id: 17
+            name: Jack Steinberger
+            birthdate: May 25, 1921
+            discipline: Physics
+            shared: yes
+            last_name: Steinberger
+            nobel_year: 1988
+            relationship_detail: MIT Radiation Laboratory 1943-45
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1988/steinberger_thumb.jpg
+-           id: 18
+            name: Har Gobind Khorana
+            birthdate: January 19, 1922
+            discipline: Medicine/Physiology
+            shared: yes
+            last_name: Khorana
+            nobel_year: 1968
+            relationship_detail: MIT Professor of Biology and Chemistry
+            imageURL: http://nobelprize.org/nobel_prizes/medicine/laureates/1968/khorana_thumb.jpg
+-           id: 19
+            name: Joseph E. Stiglitz
+            birthdate: February 9, 1943
+            discipline: Economics
+            shared: yes
+            last_name: Stiglitz
+            nobel_year: 2001
+            relationship_detail: MIT Ph.D. 1966
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/2001/stiglitz_thumb.jpg
+-           id: 20
+            name: Murray Gell-Mann
+            birthdate: September 15, 1929
+            discipline: Physics
+            shared: no
+            last_name: Gell-Mann
+            nobel_year: 1969
+            relationship_detail: MIT Ph.D. 1951
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1969/gell-mann_thumb.jpg
+-           id: 21
+            name: John Forbes Nash, Jr.
+            birthdate: 
+            discipline: Economics
+            shared: yes
+            last_name: Nash
+            nobel_year: 1994
+            relationship_detail: MIT Professor of Mathematics 1951-59
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/1994/nash_thumb.jpg
+-           id: 22
+            name: Salvador E. Luria
+            birthdate: 
+            discipline: Medicine/Physiology
+            shared: yes
+            last_name: Luria
+            nobel_year: 1969
+            deceased: yes
+            relationship_detail: MIT Professor of Biology (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/medicine/laureates/1969/luria_thumb.jpg
+-           id: 23
+            name: Steven Weinberg
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Weinberg
+            nobel_year: 1979
+            relationship_detail: Professor at MIT 1967-73
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1979/weinberg_thumb.jpg
+-           id: 24
+            name: Paul A. Samuelson
+            birthdate: 
+            discipline: Economics
+            shared: no
+            last_name: Samuelson
+            nobel_year: 1970
+            relationship_detail: MIT Institute Professor Emeritus, Economics
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/1970/samuelson_thumb.jpg
+-           id: 25
+            name: John Robert Schrieffer
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Schrieffer
+            nobel_year: 1972
+            relationship_detail: MIT S.B. 1953
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1972/schrieffer_thumb.jpg
+-           id: 26
+            name: Susumu Tonegawa
+            birthdate: 
+            discipline: Medicine/Physiology
+            shared: no
+            last_name: Tonegawa
+            nobel_year: 1987
+            relationship_detail: MIT Professor of Biology
+            imageURL: http://nobelprize.org/nobel_prizes/medicine/laureates/1987/tonegawa_thumb.jpg
+-           id: 27
+            name: David Baltimore
+            birthdate: 
+            discipline: Medicine/Physiology
+            shared: yes
+            last_name: Baltimore
+            nobel_year: 1975
+            relationship_detail: MIT postdoctoral researcher, MIT Professor of Biology 1968-90, 1994-97
+            imageURL: http://nobelprize.org/nobel_prizes/medicine/laureates/1975/baltimore_thumb.jpg
+-           id: 28
+            name: Edwin M. McMillan
+            birthdate: 
+            discipline: Chemistry
+            shared: yes
+            last_name: McMillan
+            nobel_year: 1951
+            deceased: yes
+            relationship_detail: Staff, MIT Radiation Laboratory 1940-41 (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/chemistry/laureates/1951/mcmillan_thumb.jpg
+-           id: 29
+            name: Myron S. Scholes
+            birthdate: 
+            discipline: Economics
+            shared: yes
+            last_name: Scholes
+            nobel_year: 1997
+            co_winner: Robert C. Merton
+            relationship_detail: MIT Professor of Management 1968-73
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/1997/scholes_thumb.jpg
+-           id: 30
+            name: Julian Schwinger
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Schwinger
+            nobel_year: 1965
+            deceased: yes
+            co_winner: Richard P. Feynman
+            relationship_detail: MIT Radiation Laboratory WWII (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1965/schwinger_thumb.jpg
+-           id: 31
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            nobel_year: 2001
+            name: Eric A. Cornell
+            last_name: Cornell
+            relationship_detail: MIT Ph.D. 1990
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/2001/cornell_thumb.jpg
+-           id: 32
+            name: Daniel L. McFadden
+            birthdate: 
+            discipline: Economics
+            shared: yes
+            last_name: McFadden
+            nobel_year: 2000
+            relationship_detail: MIT Professor of Economics 1978-91
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/2000/mcfadden_thumb.jpg
+-           id: 33
+            name: Wolfgang Ketterle
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Ketterle
+            nobel_year: 2001
+            relationship_detail: MIT Professor of Physics
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/2001/ketterle_thumb.jpg
+-           id: 34
+            name: Franco Modigliani
+            birthdate: 
+            discipline: Economics
+            shared: no
+            last_name: Modigliani
+            nobel_year: 1985
+            deceased: yes
+            relationship_detail: MIT Institute Professor Emeritus, Management, Economics (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/1985/modigliani_thumb.jpg
+-           id: 35
+            name: Carl E. Wieman
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Wieman
+            nobel_year: 2001
+            relationship_detail: MIT S.B. 1973
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/2001/wieman_thumb.jpg
+-           id: 36
+            name: Charles J. Pedersen
+            birthdate: 
+            discipline: Chemistry
+            shared: yes
+            last_name: Pedersen
+            nobel_year: 1987
+            deceased: yes
+            relationship_detail: MIT S.M. 1927 (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/chemistry/laureates/1987/pedersen_thumb.jpg
+-           id: 37
+            name: Eric S. Chivian
+            birthdate: 
+            discipline: Peace
+            shared: no
+            last_name: Chivian
+            nobel_year: 1985
+            relationship_detail: Retired MIT psychiatrist, Medical Department
+            imageURL: http://people.csail.mit.edu/dfhuynh/projects/nobelists/images/eric-chivian.png
+            imageCredit: http://mitworld.mit.edu/video/63/
+-           id: 38
+            name: Mario J. Molina
+            birthdate: 
+            discipline: Chemistry
+            shared: yes
+            last_name: Molina
+            nobel_year: 1995
+            relationship_detail: MIT Institute Professor, Earth, Atmospheric and Planetary Sciences/Chemistry, 1989-2004
+            imageURL: http://people.csail.mit.edu/dfhuynh/projects/nobelists/images/mario-j-molina.png
+            imageCredit: http://mitworld.mit.edu/video/63/
+-           id: 39
+            name: Robert Burns Woodward
+            birthdate: 
+            discipline: Chemistry
+            shared: no
+            last_name: Woodward
+            nobel_year: 1965
+            deceased: yes
+            relationship_detail: MIT S.B. 1936 (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/chemistry/laureates/1965/woodward_thumb.jpg
+-           id: 40
+            name: Robert B. Laughlin
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Laughlin
+            nobel_year: 1998
+            co_winner: Horst L. St\u00F6rmer, Daniel C. Tsui
+            relationship_detail: MIT Ph.D. 1979
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1998/laughlin_thumb.jpg
+-           id: 41
+            name: Andrew Fire
+            url: http://web.mit.edu/newsoffice/2006/fire.html
+            birthdate: 
+            discipline: Medicine/Physiology
+            shared: yes
+            last_name: Fire
+            nobel_year: 2006
+            relationship_detail: MIT Ph.D. 1983
+            imageURL: http://nobelprize.org/nobel_prizes/medicine/laureates/2006/fire_thumb.jpg
+-           id: 42
+            name: Robert M. Solow
+            birthdate: 
+            discipline: Economics
+            shared: no
+            last_name: Solow
+            nobel_year: 1987
+            relationship_detail: MIT Institute Professor, Economics
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/1987/solow_thumb.jpg
+-           id: 43
+            name: Robert S. Mulliken
+            birthdate: 
+            discipline: Chemistry
+            shared: no
+            last_name: Mulliken
+            nobel_year: 1966
+            deceased: yes
+            relationship_detail: MIT S.B. 1917 (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/chemistry/laureates/1966/mulliken_thumb.jpg
+-           id: 44
+            name: Kofi Annan
+            birthdate: 
+            discipline: Peace
+            nobel_year: 2001
+            shared: yes
+            relationship_detail: MIT S.M. 1972
+            last_name: Annan
+            imageURL: http://nobelprize.org/nobel_prizes/peace/laureates/2001/annan_thumb.jpg
+-           id: 45
+            name: Thomas R. Cech
+            birthdate: 
+            discipline: Chemistry
+            shared: yes
+            last_name: Cech
+            nobel_year: 1989
+            relationship_detail: MIT postdoctoral researcher 1975-76
+            imageURL: http://nobelprize.org/nobel_prizes/chemistry/laureates/1989/cech_thumb.jpg
+-           id: 46
+            name: Samuel C.C. Ting
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Ting
+            nobel_year: 1976
+            co_winner: Burton Richter
+            relationship_detail: MIT Professor of Physics
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1976/ting_thumb.jpg
+-           id: 47
+            name: Isidor Isaac Rabi
+            birthdate: 
+            discipline: Physics
+            shared: no
+            last_name: Rabi
+            nobel_year: 1944
+            deceased: yes
+            relationship_detail: Associate Director, MIT Radiation Laboratory 1940-45 (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1944/rabi_thumb.jpg
+-           id: 48
+            name: Luis W. Alvarez
+            birthdate: 
+            discipline: Physics
+            shared: no
+            last_name: Alvarez
+            nobel_year: 1968
+            deceased: yes
+            relationship_detail: Head, special systems, MIT Radiation Laboratory WWII (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1968/alvarez_thumb.jpg
+-           id: 49
+            name: Aaron Ciechanover
+            url: http://nobelprize.org/chemistry/laureates/2004/index.html
+            birthdate: 
+            discipline: Chemistry
+            shared: yes
+            last_name: Ciechanover
+            nobel_year: 2004
+            relationship_detail: MIT postdoctoral researcher 1981-84
+            imageURL: http://nobelprize.org/nobel_prizes/chemistry/laureates/2004/ciechanover_thumb.jpg
+-           id: 50
+            name: Clifford G. Shull
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Shull
+            nobel_year: 1994
+            deceased: yes
+            relationship_detail: MIT Professor Emeritus (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1994/shull_thumb.jpg
+-           id: 51
+            name: Norman F. Ramsey
+            birthdate: 
+            discipline: Physics
+            shared: no
+            last_name: Ramsey
+            nobel_year: 1989
+            relationship_detail: Leader, fundamental development group, MIT Radiation Laboratory 1940-42
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1989/ramsey_thumb.jpg
+-           id: 52
+            name: Geoffrey Wilkinson
+            birthdate: 
+            discipline: Chemistry
+            shared: yes
+            last_name: Wilkinson
+            nobel_year: 1973
+            deceased: yes
+            relationship_detail: MIT research associate, 1950 (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/chemistry/laureates/1973/wilkinson_thumb.jpg
+-           id: 53
+            name: Frank Wilczek
+            url: http://web.mit.edu/newsoffice/2004/nobel-wilczek.html
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Wilczek
+            nobel_year: 2004
+            relationship_detail: MIT Professor of Physics
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/2004/wilczek_thumb.jpg
+-           id: 54
+            name: Sidney Altman
+            birthdate: 
+            discipline: Chemistry
+            shared: yes
+            last_name: Altman
+            nobel_year: 1989
+            co_winner: Thomas R. Cech
+            relationship_detail: MIT S.B. 1960
+            imageURL: http://nobelprize.org/nobel_prizes/chemistry/laureates/1989/altman_thumb.jpg
+-           id: 55
+            name: Leland H. Hartwell
+            birthdate: 
+            discipline: Medicine/Physiology
+            shared: yes
+            last_name: Hartwell
+            nobel_year: 2001
+            relationship_detail: MIT Ph.D. 1964
+            imageURL: http://nobelprize.org/nobel_prizes/medicine/laureates/2001/hartwell_thumb.jpg
+-           id: 56
+            name: Henry W. Kendall
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Kendall
+            nobel_year: 1990
+            deceased: yes
+            co_winner: Jerome I. Friedman
+            relationship_detail: MIT S.B. 1948, Ph.D. 1951, Professor of Physics (deceased)
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1990/kendall_thumb.jpg
+-           id: 57
+            name: George Smoot
+            url: http://web.mit.edu/newsoffice/2006/smoot.html
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Smoot
+            nobel_year: 2006
+            deceased: no
+            relationship_detail: MIT S.B. 1996
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/2006/smoot_thumb.jpg
+-           id: 58
+            name: Robert J. Aumann
+            url: http://nobelprize.org/economics/laureates/2005/press.html
+            birthdate: 
+            discipline: Economics
+            shared: yes
+            last_name: Aumann
+            nobel_year: 2005
+            relationship_detail: MIT Ph.D. 1955
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/2005/aumann_thumb.jpg
+-           id: 59
+            name: Robert C. Merton
+            birthdate: 
+            discipline: Economics
+            shared: yes
+            last_name: Merton
+            nobel_year: 1997
+            co_winner: Myron S. Scholes
+            relationship_detail: MIT Professor of Management 1970-88, MIT Ph.D. 1970
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/1997/merton_thumb.jpg
+-           id: 60
+            name: Robert Engle
+            url: http://nobelprize.org/economics/laureates/2003/index.html
+            birthdate: 
+            discipline: Economics
+            shared: yes
+            last_name: Engle
+            nobel_year: 2003
+            relationship_detail: MIT Professor of Economics 1969-77
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/2003/engle_thumb.jpg
+-           id: 61
+            name: William D. Phillips
+            birthdate: 
+            discipline: Physics
+            shared: yes
+            last_name: Phillips
+            nobel_year: 1997
+            relationship_detail: MIT Ph.D. 1976
+            imageURL: http://nobelprize.org/nobel_prizes/physics/laureates/1997/phillips_thumb.jpg
+-           id: 62
+            name: H. Robert Horvitz
+            url: http://web.mit.edu/newsoffice/2002/horvitz-nobel.html
+            birthdate: 
+            discipline: Medicine/Physiology
+            shared: yes
+            last_name: Horvitz
+            nobel_year: 2002
+            relationship_detail: MIT Professor of Biology, MIT S.B. 1968
+            imageURL: http://nobelprize.org/nobel_prizes/medicine/laureates/2002/horvitz_thumb.jpg
+-           id: 63
+            name: Robert A. Mundell
+            birthdate: 
+            discipline: Economics
+            shared: no
+            last_name: Mundell
+            nobel_year: 1999
+            relationship_detail: MIT Ph.D. 1956
+            imageURL: http://nobelprize.org/nobel_prizes/economics/laureates/1999/mundell_thumb.jpg
+
+
+			
+      
+      
+    
+    
+      # TODO.  factor out common parts of facet_count and facet_result
+    
+      def facet_count(*args)
+        query = args.last.kind_of?(Hash) ? args.pop : {}
+        facet = args.first
+        adapter = repository.adapter
+
+        raise "Property #{facet} must be declared as a facet" unless self.facet?(facet)
+
+        # note: only conditions applies to base query; all others are to facet index query
+        refinements = query.delete(:refinements) || query.only(*@facets.keys)
+        query.delete_if { |k, v| facet?(k) }
+        minimum       = query.delete(:minimum)
+        order         = query.delete(:order)    # probably NOT a property (e.g. count)
+        query         = scoped_query(query)
+
+        base   = adapter.signature(query)
+        filter = filter(adapter, refinements)
+
+        adapter.facet_count(query.model, facet, minimum, order, query.limit, query.offset , base, filter)
+      end
+
+      def facet_result(*args)
+        query = args.last.kind_of?(Hash) ? args.pop : {}
+        adapter = repository.adapter
+      
+        refinements = query.delete(:refinements) || query.only(*@facets.keys)
+        query.delete_if { |k, v| facet?(k) }
+        order       = query.delete(:order)
+      
+        base = adapter.signature(scoped_query(query))
+        filter = filter(adapter, refinements)
+      
+        adapter.de_signature(self, base, filter, order)
+      end
+    
+      private
+      # (3) run a signature filter query with the facet columns, returning bitset as string
+      def filter(adapter, refinements)
+        refinements.empty? ? nil : adapter.filter(storage_name, refinements)
+      end
+    end

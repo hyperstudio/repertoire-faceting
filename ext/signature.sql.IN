@@ -1,14 +1,18 @@
 SET search_path TO 'public';
 
+-- basic i/o functions for signatures
+
 CREATE OR REPLACE FUNCTION sig_in(cstring)
-RETURNS signature
-AS 'signature.so', 'sig_in'
-LANGUAGE C STRICT;
+  RETURNS signature
+  AS 'signature.so', 'sig_in'
+  LANGUAGE C STRICT;
 
 CREATE OR REPLACE FUNCTION sig_out(signature)
-RETURNS cstring
-AS 'signature.so', 'sig_out'
-LANGUAGE C STRICT;
+  RETURNS cstring
+  AS 'signature.so', 'sig_out'
+  LANGUAGE C STRICT;
+
+-- signature postgresql type
 
 CREATE TYPE signature (
 	INTERNALLENGTH = VARIABLE,
@@ -16,6 +20,8 @@ CREATE TYPE signature (
 	OUTPUT = sig_out,
 	STORAGE = extended
 );
+
+-- functions for signatures
 
 CREATE OR REPLACE FUNCTION sig_resize( signature, INT )
   RETURNS signature
@@ -28,9 +34,9 @@ CREATE OR REPLACE FUNCTION sig_set( signature, INT, INT )
   LANGUAGE C STRICT IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION sig_set( signature, INT )
- RETURNS signature
- AS 'signature.so', 'sig_set'
- LANGUAGE C STRICT IMMUTABLE;
+  RETURNS signature
+  AS 'signature.so', 'sig_set'
+  LANGUAGE C STRICT IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION sig_get( signature, INT )
   RETURNS INT
@@ -48,19 +54,19 @@ CREATE OR REPLACE FUNCTION sig_min( signature )
 	LANGUAGE C STRICT IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION sig_and( signature, signature )
- RETURNS signature
- AS 'signature.so', 'sig_and'
- LANGUAGE C STRICT IMMUTABLE;	
+  RETURNS signature
+  AS 'signature.so', 'sig_and'
+  LANGUAGE C STRICT IMMUTABLE;	
 
 CREATE OR REPLACE FUNCTION sig_or( signature, signature )
-RETURNS signature
-AS 'signature.so', 'sig_or'
-LANGUAGE C STRICT IMMUTABLE;
+  RETURNS signature
+  AS 'signature.so', 'sig_or'
+  LANGUAGE C STRICT IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION sig_xor( signature )
- RETURNS signature
- AS 'signature.so', 'sig_xor'
- LANGUAGE C STRICT IMMUTABLE;
+  RETURNS signature
+  AS 'signature.so', 'sig_xor'
+  LANGUAGE C STRICT IMMUTABLE;
  
 CREATE OR REPLACE FUNCTION count( signature )
 	RETURNS INT
@@ -71,7 +77,37 @@ CREATE OR REPLACE FUNCTION contains( signature, INT )
   RETURNS BOOL
   AS 'signature.so', 'contains'
   LANGUAGE C STRICT IMMUTABLE;
+  
+CREATE OR REPLACE FUNCTION sig_cmp( signature, signature )
+  RETURNS INT
+  AS 'signature.so', 'sig_cmp'
+  LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION sig_lt( signature, signature )
+  RETURNS BOOL
+  AS 'signature.so', 'sig_lt'
+  LANGUAGE C STRICT IMMUTABLE;
  
+CREATE OR REPLACE FUNCTION sig_lte( signature, signature )
+  RETURNS BOOL
+  AS 'signature.so', 'sig_lte'
+  LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION sig_eq( signature, signature )
+  RETURNS BOOL
+  AS 'signature.so', 'sig_eq'
+  LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION sig_gt( signature, signature )
+  RETURNS BOOL
+  AS 'signature.so', 'sig_gt'
+  LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION sig_gte( signature, signature )
+  RETURNS BOOL
+  AS 'signature.so', 'sig_gte'
+  LANGUAGE C STRICT IMMUTABLE;
+
 -- operators for signatures
 
 CREATE OPERATOR & (
@@ -93,6 +129,48 @@ CREATE OPERATOR + (
     rightarg = int,
     procedure = sig_set
 );
+ 
+CREATE OPERATOR < (
+   leftarg = signature, rightarg = signature, procedure = sig_lt,
+   commutator = > , negator = >= ,
+   restrict = scalarltsel, join = scalarltjoinsel
+);
+
+CREATE OPERATOR <= (
+   leftarg = signature, rightarg = signature, procedure = sig_lte,
+   commutator = >= , negator = > ,
+   restrict = scalarltsel, join = scalarltjoinsel
+);
+
+CREATE OPERATOR = (
+   leftarg = signature, rightarg = signature, procedure = sig_eq,
+   commutator = = , negator = <> ,
+   restrict = eqsel, join = eqjoinsel
+);
+
+CREATE OPERATOR >= (
+   leftarg = signature, rightarg = signature, procedure = sig_gte,
+   commutator = <= , negator = < ,
+   restrict = scalargtsel, join = scalargtjoinsel
+);
+
+CREATE OPERATOR > (
+   leftarg = signature, rightarg = signature, procedure = sig_gt,
+   commutator = < , negator = <= ,
+   restrict = scalargtsel, join = scalargtjoinsel
+);
+
+-- btree index operator class for signatures
+
+CREATE OPERATOR CLASS signature_ops
+    DEFAULT FOR TYPE signature USING btree AS
+        OPERATOR        1       < ,
+        OPERATOR        2       <= ,
+        OPERATOR        3       = ,
+        OPERATOR        4       >= ,
+        OPERATOR        5       > ,
+        FUNCTION        1       sig_cmp(signature, signature);
+
 
 -- aggregate functions for faceting
 

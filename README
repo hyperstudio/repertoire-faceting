@@ -76,13 +76,13 @@ have to wait until DataMapper can reliably transform expressions like Project.al
 = declare facets for later use
 
 class Project
-  include DataMapper::Is:Faceted
+  include DataMapper::Is::Faceted
   is :faceted, :genre,
                :published,
 	  		       [ etc. ]
 end
 
-[ note this merely names the facets - definitions belong in a database migration ]
+[ note this merely names the facets - definitions belong in a database migration. ]
 
 *In your controller*
 
@@ -92,7 +92,7 @@ Film.facet_count(:location, :genre => 'tragedy', :published => [2008, 11], :titl
 
 # provides facet to count, facet filter selections, a base query, and order for the facet value counts
 
-= to do a facet result count [ should also allow pagination ]
+= to do a facet result count [ also allows pagination ]
 
 Film.all(:genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:title, :author])
 
@@ -231,34 +231,31 @@ WHERE count > 0 ORDER BY count DESC, feature ASC;
 = or, to get facet results (e.g.):
 
 SELECT * FROM project WHERE contains(base & filter, _packed_id) ...;
+
+= a variation: to get counts for a facet with nested values, aggregate the relevant signatures using 'collect':
+[ e.g. start_date might hold {1912,'February',30}, so this would get facet value counts for months in 1912 ]
+[      and the same modification made when filtering ]
+
+SELECT start_date, count FROM
+  (SELECT start_date[1:2], count(<base> & <filter> & collect(signature))
+   FROM _project_start_date_facet
+   GROUP BY start_date[1:2]) AS facet
+WHERE count > 0 ORDER BY count DESC, start_date ASC;
        
 = putting it all together - if you're querying directly using SQL, you'll probably use sub-selects to compute the base and filter
   signatures: 
   { this is a count query on the facet 'region', base query 'Bush', filter feature=browse&pi=Fendt, ordered by count descending }
 
-SELECT facet.region, count(base.signature & filter.signature & facet.signature)
-  FROM _projects_region_facet AS facet,
+SELECT facet.region, count(base.signature & filter.signature & facet.signature) FROM _projects_region_facet,
   (SELECT signature(_packed_id) FROM project WHERE fulltext @@ to_tsquery('Bush')) AS base,
   (SELECT filter(signature) AS signature FROM
-    (SELECT signature FROM _project_feature_facet WHERE feature = 'browse' UNION
+    (SELECT signature FROM _project_feature_facet WHERE feature = 'browse' 
+     UNION
      SELECT signature FROM _project_pi_facet      WHERE pi = 'Fendt')) AS filter
   WHERE count > 0 ORDER BY count DESC, facet.region ASC;
 
 = by using standard SQL WHERE and ORDER BY clauses, you can achieve most standard facet value configurations
   [ order by count, order by facet value, include/exclude zero values, etc. ]
-  
-= if you find the subselects distracting, you can also use the module's extended filter method, which
-  collects the results of a series of SQL statements, applies the filter aggregator to them, and passes
-  the result to the final statement as a variable named 'filter' { not implemented yet }:
-  
-SELECT filter($${
-  "SELECT signature(_packed_id) FROM project WHERE fulltext @@ to_tsquery('Bush')",             -- base query
-  "SELECT signature             FROM _project_feature_facet WHERE feature IN ('browse')",       -- filter...
-  "SELECT signature             FROM _project_pi_facet      WHERE pi IN ('Fendt', 'Crocker')",
-  "SELECT facet.feature, count(facet.signature & filter)                                        -- facet count
-   FROM _project_feature_facet AS facet
-   WHERE count > 0 ORDER BY count DESC, feature ASC" }$$
-)
   
 
 ===== PostgreSQL C data types =====
@@ -277,6 +274,14 @@ sig_min(a)       	  => { lowest 1 in a, a.length }
 sig_get(a, i)       => { ith bit of a, or 0 }
 sig_set(a, i, n)    => { sets ith bit of a to n }
 sig_resize(a, n)    => { resizes a to hold n bits }
+
+Bitwise signature operators:  &, |
+
+Bitwise aggregates:
+
+signature(int)      => assemble ints into a signature
+collect(signature)  => 'or' signature results together
+filter(signature)   => 'and' signature results together
 
 
 ===== Future extensions =====
