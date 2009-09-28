@@ -1,13 +1,31 @@
 # require code that must be loaded before the application
 dir = Pathname(__FILE__).dirname.expand_path + 'repertoire_faceting'
 
-# require dir + 'types' + 'array'
-require dir + 'adapters' + 'data_objects_adapter'
-require dir + 'faceting_methods'
-require dir + 'collection'
-require dir + 'model'
- 
+require dir + 'adapters' + 'postgres_adapter'
+require dir + 'faceting_functions'
+
 require dir + 'is-faceted'
+
+require DataMapper.root / 'lib' / 'dm-core' / 'adapters' / 'data_objects_adapter'
+gem 'do_postgres', '~>0.10.0'
+require 'do_postgres'
+
+module DataMapper
+  module Model
+    include Repertoire::Faceting::Functions
+  end
+
+  class Collection
+    include Repertoire::Faceting::Functions
+  end
+  
+  module Adapters
+    class PostgresAdapter < DataObjectsAdapter
+      include Repertoire::Faceting::PostgresAdapter
+    end
+  end
+end
+
 
 # make sure we're running inside Merb
 if defined?(Merb::Plugins)

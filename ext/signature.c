@@ -1,7 +1,7 @@
 #include "postgres.h"
 #include "fmgr.h"
 #include "funcapi.h"
-
+ 
 PG_MODULE_MAGIC;
 
 typedef struct
@@ -16,7 +16,7 @@ typedef struct
 
 #define IN_AGGR         (fcinfo->context && IsA(fcinfo->context, AggState))
 #define AGGR_GROW_SIZE 8192
-
+ 
 /*
  * fmgr interface macros
  */
@@ -45,6 +45,13 @@ Datum sig_on( PG_FUNCTION_ARGS );
 
 Datum contains( PG_FUNCTION_ARGS );
 Datum count( PG_FUNCTION_ARGS );
+
+Datum sig_cmp( PG_FUNCTION_ARGS );
+Datum sig_lt( PG_FUNCTION_ARGS );
+Datum sig_lte( PG_FUNCTION_ARGS );
+Datum sig_eq( PG_FUNCTION_ARGS );
+Datum sig_gt( PG_FUNCTION_ARGS );
+Datum sig_gte( PG_FUNCTION_ARGS );
 
 int COUNT_TABLE[] = {
   0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
@@ -110,11 +117,11 @@ sig_out( PG_FUNCTION_ARGS )
 {
 	Signature	*s = PG_GETARG_SIGNATURE_P(0);
 	char 		*result;
-	uint8       *bptr,
-				x;
-	char        *sptr;
-	int32       len,
-				i, j, k;
+	uint8   *bptr,
+				  x;
+	char    *sptr;
+	int32   len,
+				  i, j, k;
 	
 	len = s->len;
 	result = (char *) palloc(len + 1);
@@ -146,11 +153,11 @@ PG_FUNCTION_INFO_V1( sig_resize );
 Datum
 sig_resize( PG_FUNCTION_ARGS )
 {
-	Signature   *sig,
+	Signature *sig,
 		        *res;
 	int32 sigbytes,
 	      resbytes,
-		  reslen;
+		    reslen;
 	
 	sig = PG_GETARG_SIGNATURE_P(0);
 	sigbytes = VARSIZE(sig) - VARHDRSZ - SIGNATUREHDRSZ;
@@ -491,7 +498,7 @@ count( PG_FUNCTION_ARGS )
 	
 	sig = PG_GETARG_SIGNATURE_P(0);
 	sigbytes = VARSIZE(sig) - VARHDRSZ - SIGNATUREHDRSZ;
-	
+	 
 	count = 0;
 	for(i=0; i < sigbytes; i++) {
 		ch = sig->data[i];
@@ -501,4 +508,112 @@ count( PG_FUNCTION_ARGS )
 	PG_FREE_IF_COPY( sig, 0 );
 
 	PG_RETURN_INT32( count );
+}
+
+
+static int32
+signature_cmp_internal(Signature *sig1, Signature *sig2)
+{
+	int32 sig1bytes, 
+	      sig2bytes,
+	      result,
+				i,
+        maxbytes;
+	uint8 ch1, ch2;
+	
+	sig1bytes = (sig1->len + 7) / 8;
+	sig2bytes = (sig2->len + 7) / 8;
+  maxbytes = MAX(sig1bytes, sig2bytes);
+	
+  result = 0;
+  i = maxbytes;
+  while(result == 0 && i >= 0) {
+    ch1 = ch2 = 0;
+    if(i < sig1bytes) {
+      ch1 = sig1->data[i];
+    }
+    if(i < sig1bytes) {
+      ch2 = sig2->data[i];
+    }
+    if (ch1 > ch2) {
+      result = 1;
+    } else if (ch1 < ch2) {
+      result = -1;
+    }
+    i--;
+  }
+	
+  return result;
+}
+
+
+PG_FUNCTION_INFO_V1(sig_cmp);
+
+Datum
+sig_cmp(PG_FUNCTION_ARGS)
+{
+    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
+    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+
+    PG_RETURN_INT32(signature_cmp_internal(sig1, sig2));
+}
+
+
+PG_FUNCTION_INFO_V1(sig_lt);
+
+Datum
+sig_lt(PG_FUNCTION_ARGS)
+{
+    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
+    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+
+    PG_RETURN_BOOL(signature_cmp_internal(sig1, sig2) < 0);
+}
+
+
+PG_FUNCTION_INFO_V1(sig_lte);
+
+Datum
+sig_lte(PG_FUNCTION_ARGS)
+{
+    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
+    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+
+    PG_RETURN_BOOL(signature_cmp_internal(sig1, sig2) <= 0);
+}
+
+
+PG_FUNCTION_INFO_V1(sig_eq);
+
+Datum
+sig_eq(PG_FUNCTION_ARGS)
+{
+    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
+    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+
+    PG_RETURN_BOOL(signature_cmp_internal(sig1, sig2) == 0);
+}
+
+
+PG_FUNCTION_INFO_V1(sig_gte);
+
+Datum
+sig_gte(PG_FUNCTION_ARGS)
+{
+    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
+    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+
+    PG_RETURN_BOOL(signature_cmp_internal(sig1, sig2) >= 0);
+}
+
+
+PG_FUNCTION_INFO_V1(sig_gt);
+
+Datum
+sig_gt(PG_FUNCTION_ARGS)
+{
+    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
+    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+
+    PG_RETURN_BOOL(signature_cmp_internal(sig1, sig2) > 0);
 }
