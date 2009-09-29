@@ -119,8 +119,8 @@ end
 
 in routes...
 
-r.match('/:controller/counts/:facet').to(:action => 'counts')
-r.match('/:controller/results').to(:action => 'results')
+match('/:controller/counts/:facet').to(:action => 'counts')
+match('/:controller/results').to(:action => 'results')
 
 in view.... (index.html.erb):
 

@@ -10,4 +10,5 @@
    - example results
    - example css
 
+-- add facet query option to ignore blank facet values
 -- clean up sql generation in postgres adapter
