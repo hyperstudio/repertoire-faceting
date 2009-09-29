@@ -93,12 +93,11 @@ Film.facet_count(:location, :genre => 'tragedy', :published => [2008, 11], :titl
 
 # provides facet to count, facet filter selections, a base query, and order for the facet value counts
 # you can also specify :minimum, :offset, and :limit
+# nested facets are provided as arrays
 
-= to do a facet result count
+= to do a facet results query [ facet indices are used automatically where available ]
 
-Film.all(:genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:title, :author], :offset => 0, :limit => 20)
-
-[ note that nested facet values are provided as arrays ]
+Film.facet_results(:genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:title, :author], :offset => 0, :limit => 20)
 
 
 ===== Merb extensions =====
@@ -106,7 +105,7 @@ Film.all(:genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%'
 in controller...
 
 def counts(facet, search, filter={})
-  provides :json
+  provides :js
   counts = Project.facet_count(facet, :refinements => filter, :conditions => ["_fulltext @@ to_tsquery(?)", search])
   display counts
 end

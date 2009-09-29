@@ -2,10 +2,6 @@ module Repertoire
   module Faceting
     module PostgresAdapter
       
-      def schema_name
-        "public"
-      end
-      
       # execute a facet value count query
       def facet_count(facet, query, refinements, count_minimum, count_order, count_limit, count_offset, nested = false)
         # much-simplified adaptation of standard select statement
@@ -131,7 +127,6 @@ module Repertoire
         
         return statements.join(' UNION '), bind_values
       end
-      
       
       def facet_value_conditions(facet, values, nested)
         placeholders = values.map { '?' }

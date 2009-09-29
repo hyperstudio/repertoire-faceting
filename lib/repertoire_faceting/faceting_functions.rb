@@ -8,7 +8,6 @@ module Repertoire
         adapter = repository.adapter
 
         query, refinements = parse_refinements(query)
-        raise "No facet refinements provided" if refinements.empty?
 
         # run facet refinement query
         query  = scoped_query(query)

@@ -6,7 +6,7 @@ require dir + 'faceting_functions'
 
 require dir + 'is-faceted'
 
-require DataMapper.root / 'lib' / 'dm-core' / 'adapters' / 'data_objects_adapter'
+require DataMapper.root / 'lib' / 'dm-core' / 'adapters' / 'postgres_adapter'
 gem 'do_postgres', '~>0.10.0'
 require 'do_postgres'
 
@@ -20,7 +20,7 @@ module DataMapper
   end
   
   module Adapters
-    class PostgresAdapter < DataObjectsAdapter
+    class PostgresAdapter
       include Repertoire::Faceting::PostgresAdapter
     end
   end

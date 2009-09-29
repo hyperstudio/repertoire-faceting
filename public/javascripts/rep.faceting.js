@@ -8,9 +8,11 @@
 */
 
 // TODO
-// - sending facet refinements to server [1]
+// - search                              [-1] DONE
+// - results panel                       [0]  DONE
+// - sending facet refinements to server [1]  DONE
 // - deselecting on nesting summary      [2]
-// - number facets & null data values not selecting [3]
+// - number facets & null data values not selecting [3]  DONE
 // - clear all                           [4]
 // - spinner                             [5]
 // - nested facets need to show refinement DONE
@@ -63,6 +65,9 @@
 //   - whether facet requires a value always be selected
 //
 (function($) {
+  //
+  // facet count display and refinement widget
+  //
   $.fn.facet = function(facet, url, $$options) {
     // calculated defaults
     var calc_opts = {
@@ -76,9 +81,9 @@
       var $facet = $(this);
       var $context = context($facet);
       // element specific options
-      var o = $.meta ? $.extend({}, $settings, $form.data()) : $settings;
+      var o = $.meta ? $.extend({}, $settings, $facet.data()) : $settings;
       // register to listen to refinement change events
-      $context.bind('facet_refinements.change', function(e, data) {
+      $context.bind('facet_refinements.change', function() {
         update($facet, o);
       });
       // register to listen to user clicks on facet values
@@ -97,18 +102,26 @@
     });
   };
   
+  //
+  // results display widget (no functionality other than update on refinement changes)
+  //
   $.fn.results = function(url, $$options) {
-    var $settings = $.extend({}, fn.result.defaults, $$options);
+    var $settings = $.extend({}, $.fn.results.defaults, $$options);
     return this.each(function() {
       var $results = $(this);
-      var $context = context($facet);
+      var $context = context($results);
       // element specific options
-      var o = $.meta ? $.extend({}, $settings, $form.data()) : $settings;
+      var o = $.meta ? $.extend({}, $settings, $results.data()) : $settings;
       // register to listen to refinement change events
-      $context.bind('facet_refinements.change', function(e, data) {
-        // TODO
-      });
+      $context.bind('facet_refinements.change', function() {
+        update($results);
+      });  
+      update($results);
     });
+
+    function update($results) {
+      $results.load(url, to_query_string($.fn.facet.data($results)));
+    }
   };
   
   //
@@ -158,7 +171,7 @@
   $.fn.facet.data = function($this) {
     return {
       filter: refinements($this),
-      search: ''
+      search: $("#search").val()
     };
   };
   
@@ -172,11 +185,25 @@
     error:         'Could not load'             /* message when ajax request dropped */
   };
   
+  $.fn.results.defaults = {
+    /* no configuration yet */
+  };
+  
   //
   // support functions
   //
   // TODO. encapsulate state, so that $this, facet, url, etc always available
   //
+  
+  function update_results($this, opts) {
+    var defaults = {
+      url:  opts.url,
+      type: 'GET',
+  	  dataType: 'html',
+    };
+    
+    $.ajax($.extend({}, defaults, callbacks));
+  }
   
   //
   // update facet value counts and repaint the view
