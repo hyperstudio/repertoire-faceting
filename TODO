@@ -1,14 +1,4 @@
--- select "and" or "or" within facet value refinements
+-- select "and" or "or" within facet value refinements  DONE 
 -- migrations using facet declarations
--- example ajax widgets
-   - event to tell other components to update
-   - read facet counts from provided url
-     - deselect all
-     - nested facets
-   - store current refinements in top-level element
-   - on click handler to change refinements
-   - example results
-   - example css
-
--- add facet query option to ignore blank facet values
+-- add facet query option to ignore blank facet values DONE
 -- clean up sql generation in postgres adapter

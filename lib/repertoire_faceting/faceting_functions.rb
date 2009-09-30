@@ -6,12 +6,13 @@ module Repertoire
       def facet_results(*args)
         query = args.last.kind_of?(Hash) ? args.pop : {}
         adapter = repository.adapter
-
+        
         query, refinements = parse_refinements(query)
+        logic              = default_logic(query.delete(:logic) || {})
 
         # run facet refinement query
         query  = scoped_query(query)
-        items  = adapter.facet_results(query, refinements)
+        items  = adapter.facet_results(query, refinements, logic)
         result = query.model.load(items, query)
         
         return result
@@ -21,7 +22,6 @@ module Repertoire
       def facet_count(*args)
         query   = args.last.kind_of?(Hash) ? args.pop : {}
         facet   = args.first.to_s
-        nested  = nested_facet?(facet)
         adapter = repository.adapter
 
         raise "Property #{facet} must be declared as a facet" unless self.facet?(facet)
@@ -31,14 +31,17 @@ module Repertoire
         
         # parse facet-count specific arguments
         query, refinements = parse_refinements(query)
+        logic              = default_logic(query.delete(:logic) || {})
         minimum            = query.delete(:minimum) || 1
+        type               = query.delete(:type) || String
+        nullable           = query.delete(:nullable) != false
         order              = query.delete(:order) || [:count.desc, facet.to_sym.asc]
         limit              = query.delete(:limit)
         offset             = query.delete(:offset) || 0
         
         # run facet count query
         base_query  = scoped_query(query)
-        result = adapter.facet_count(facet, base_query, refinements, minimum, order, limit, offset, nested)
+        result = adapter.facet_count(facet, base_query, refinements, minimum, order, limit, offset, logic, nullable, type)
         
         return result
       end
@@ -48,11 +51,18 @@ module Repertoire
         "_#{storage_name}_#{facet}_facet"
       end
       
+      # name of column used to construct signatures
       def signature_id_column
         "_packed_id"
       end
       
       private
+      # use facet declarations as defaults overridden by argument logic
+      def default_logic(logic)
+        facet_expr.merge(logic.to_mash)
+      end
+      
+      # normalize refinements into a hash of arrays
       def parse_refinements(query)
         # extract facet refinements from query
         refinements = query.delete(:refinements) || query.to_mash.only(*facets)

@@ -73,17 +73,17 @@ have to wait until DataMapper can reliably transform expressions like Project.al
 
 *In your model*
 
-= declaring facets works much as in DataMapper:
+= declaring facets:
 
 class Project
-  is :faceted, :genre,                                      # assumes String
-               :published => Integer                        # explicit type
-               :birthdate => [ Integer, Integer, Integer ]  # nested facet
+  is :faceted, :genre,
+               :published => :nested,            # default :logic for this facet
+               :birthdate => :nested
 	  		       [ etc. ]
 end
 
-[ your facets don't have to be DataMapper properties!  they can be any SQL computed value ]
-[ N.B. this merely names the facets - definitions belong in a database migration. ]
+[ N.B. your facets don't have to be DataMapper properties!  they can be any SQL computed value. this merely names the facets -
+definitions belong in a database migration. ]
 
 *In your controller*
 
@@ -91,13 +91,16 @@ end
 
 Film.facet_count(:location, :genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:location, :count.desc] )
 
-# provides facet to count, facet filter selections, a base query, and order for the facet value counts
-# you can also specify :minimum, :offset, and :limit
-# nested facets are provided as arrays
+# provides facet to count, facet filter selections, a base query, and order for the facet value counts.  you can also specify 
+# :minimum, :offset, :limit, :type, and :nullable.  see the specs for usage
 
 = to do a facet results query [ facet indices are used automatically where available ]
 
 Film.facet_results(:genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:title, :author], :offset => 0, :limit => 20)
+
+# to alter the way that a facet is refined, provide :logic (options are :or, :and, :nested; default is :and)
+Film.facet_results(:genre => ['tragedy', 'comedy'], :published => [2008, 11], 
+                   :logic => { :genre => :or, :published => :nested })
 
 
 ===== Merb extensions =====

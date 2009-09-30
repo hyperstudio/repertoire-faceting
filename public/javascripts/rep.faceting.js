@@ -8,13 +8,21 @@
 */
 
 // TODO
+// - make event delegates pluggable and DRY them out
+
+// - disallow null in nesting            [-2]  DONE
 // - search                              [-1] DONE
 // - results panel                       [0]  DONE
 // - sending facet refinements to server [1]  DONE
-// - deselecting on nesting summary      [2]
+// - deselecting on nesting summary      [2]  DONE
 // - number facets & null data values not selecting [3]  DONE
+// - weird behavior for multi-valued facets [3.5]
 // - clear all                           [4]
 // - spinner                             [5]
+// - support for metadata plugin         [5.5]
+// - code clean up                       [6]
+// - scalability example                 [7]
+// - documentation                       [8]
 // - nested facets need to show refinement DONE
 // - event handlers for clicking on a facet  DONE
 // - changing refinements show trigger event  DONE
@@ -26,7 +34,7 @@
 // Usage:
 //
 // Create a surrounding div with the class 'facet_refinement_context', to define the scope of the current query.
-// Within it, invoke facet() to declare divs that display counts and allows refinement, per-facet.  Likewise, invoke
+// Within it, invoke facet() to declare divs that display counts and allow refinement, per-facet.  Likewise, invoke
 // results() to declare a div that displays the results of the faceted query.
 //
 // Basic Example:
@@ -70,13 +78,13 @@
   //
   $.fn.facet = function(facet, url, $$options) {
     // calculated defaults
-    var calc_opts = {
+    var calc_defaults = {
       title: capitalize(facet),
       facet: facet,
       url: url
     }
-    // plugin defaults + options
-    var $settings = $.extend({}, $.fn.facet.defaults, calc_opts, $$options);
+    // plugin defaults + calculated defaults + options
+    var $settings = $.extend({}, $.fn.facet.defaults, calc_defaults, $$options);
     return this.each(function() {
       var $facet = $(this);
       var $context = context($facet);
@@ -86,20 +94,72 @@
       $context.bind('facet_refinements.change', function() {
         update($facet, o);
       });
+      
+      // TODO.  move this logic into something pluggable
+      
       // register to listen to user clicks on facet values
       $facet.delegate('click', o.value_selector, function () {
         // extract facet value that was clicked
         var value = $(this).attr('data');
-        var filter = refinements($facet);
+        var filter = refinements($facet, o.facet);
         if (!value) throw "Value element does not have data attribute";
-        console.log('toggling ' + o.facet + ':' + value);
-        toggle(filter, o.facet, value);
-        refinements($facet, filter);
+        toggle(filter, value);
+        trigger_refinements_changed($facet);
+      	return false;
+      });
+      $facet.delegate('click', '.nesting_context', function() {
+        var level = $(this).attr('level');
+        var filter = refinements($facet, o.facet);
+        if (!level) throw "Nesting context element does not have level attribute";
+        filter.splice(level);
+        trigger_refinements_changed($facet);
       	return false;
       });
       // initialize with data
       update($facet, o);
     });
+    
+    //
+    // update facet value counts and repaint the view
+    //
+    function update($this, opts) {
+      console.log('Updating ' + opts.facet + ': ' + refinements($this, opts.facet));
+      
+      $this.addClass(opts.spinner);
+      fetch_counts(opts, {
+        data:    to_query_string($.fn.facet.data($this)),
+        success: function(counts) {
+          $this.removeClass(opts.spinner);
+          render($this, counts, opts);
+        },
+        error:   function() {
+          $this.html(opts.error);
+        }
+      });
+    }
+
+    //
+    // fetch facet value counts and pass to success callback
+    //
+    function fetch_counts(opts, callbacks) {
+      var defaults = {
+        url:  opts.url,
+        type: 'GET',
+    	  dataType: 'json',
+      	beforeSend: function(xhr) { xhr.setRequestHeader("Accept", "application/json") } /* JQuery uses wrong content type header */
+      };
+
+      $.ajax($.extend({}, defaults, callbacks));
+    }
+
+    //
+    // repaint the facet in DOM
+    //
+    function render($this, counts, opts) {
+      var filter = refinements($this, opts.facet);
+      var markup = $.fn.facet.format_facet(counts, filter, opts);
+      $this.html(markup);
+    }
   };
   
   //
@@ -125,7 +185,7 @@
   };
   
   //
-  // format an entire facet & all its value counts.
+  // format an entire facet, any controls, & its value counts
   //
   // if you redeclare: value_selector defaults must be changed according to your markup
   //                   this element must have an attribute 'data' that holds the actual facet value
@@ -135,17 +195,20 @@
 		var lis = $.map(counts, function(e) {
 			var value    = e[0];
 			var count    = e[1];
-  		var sel      = selected(refinements, opts.facet, value);
+  		var sel      = selected(refinements, value);
   		return $.fn.facet.format_facet_value(value, count, sel, opts);
 	  });
 	
 	  // format facet container
 	  var markup = '<ul class="facet"><div class="title">' + opts.title + '</div>';
+	  var nest_elems = '';
 	  if (opts.nested) {
+	    // TODO.  factor nesting code out
 	    markup = markup + '<div class="nesting">';
-	    if (refinements[opts.facet])
-	      markup = markup + refinements[opts.facet].join(opts.nesting_delim);
-	    markup = markup + '</div>';
+	    nest_elems = $.map(refinements, function(v, i) {
+	      return '<span class="nesting_context selected" level="' + i + '">' + v + '</span>';
+	    });
+	    markup = markup + nest_elems.join(opts.nesting_delim) + '</div>';
 	  }
 	  markup = markup + '<div class="values">' + lis.join('') + '</div></ul>';
 	  
@@ -160,6 +223,9 @@
   //
   $.fn.facet.format_facet_value = function(value, count, selected, opts) {
     var label = value || '...';
+    // TODO.  move this logic elsewhere... separate formatter for nested?
+    if (opts.nested && !value) return
+    
   	return '<li class="' + (selected ? 'value selected' : 'value') + '" data="' + value + '">' +
            '<div class="count">' + count + '</div>' + 
            '<div class="label">' + label + '</div></li>';
@@ -190,89 +256,54 @@
   };
   
   //
-  // support functions
-  //
-  // TODO. encapsulate state, so that $this, facet, url, etc always available
+  // support functions available to both widgets
   //
   
-  function update_results($this, opts) {
-    var defaults = {
-      url:  opts.url,
-      type: 'GET',
-  	  dataType: 'html',
-    };
+  //
+  // return this current refinement state, for a single facet or all facets
+  //
+  function refinements($this, facet) {
+    var $context = context($this);
+    var filter = $context.data("facet_refinements");
     
-    $.ajax($.extend({}, defaults, callbacks));
-  }
-  
-  //
-  // update facet value counts and repaint the view
-  //
-  function update($this, opts) {
-    console.log(opts.facet + ' updating counts');
-    console.log(to_query_string($.fn.facet.data($this)));
+    // set up refinements for all facets on first access
+    if (!filter) {
+      filter = {};
+  		$context.data('facet_refinements', filter);
+    }
+    
+    // return entire set, or set up specific facet
+    if (!facet) {
+      return filter;
+    } else {
+      // set up refinements for this facet
+      if (!filter[facet])
+        filter[facet] = [];
 
-    $this.addClass(opts.spinner);
-    fetch_counts(opts, {
-      data:    to_query_string($.fn.facet.data($this)),
-      success: function(counts) {
-        $this.removeClass(opts.spinner);
-        render($this, counts, opts);
-      },
-      error:   function() {
-        $this.html(opts.error);
-      }
-    });
+      return filter[facet];
+    }
   }
   
   //
-  // fetch facet value counts and pass to success callback
+  // clear a facet's refinements, or the entire set
   //
-  function fetch_counts(opts, callbacks) {
-    var defaults = {
-      url:  opts.url,
-      type: 'GET',
-  	  dataType: 'json',
-    	beforeSend: function(xhr) { xhr.setRequestHeader("Accept", "application/json") } /* JQuery uses wrong content type header */
-    };
+  function clear_refinements($this, facet) {
+    var $context = context($this);
     
-    $.ajax($.extend({}, defaults, callbacks));
+    if (!facet)
+      $context.data('facet_refinements', {});
+    else
+      refinements($this, facet).length = 0;
   }
   
   //
-  // repaint the facet in DOM
+  // trigger a 'facet refinements changed' event to reload this faceting context
   //
-  function render($this, counts, opts) {
-    var filter = refinements($this);
-    var markup = $.fn.facet.format_facet(counts, filter, opts);
-    $this.html(markup);
-    // install event handlers here
+  function trigger_refinements_changed($this) {
+    var $context = context($this);
+	  $context.trigger('facet_refinements.change');
   }
   
-  //
-  // return this collection of facets' refinement state
-  // pass in new refinement to update and trigger a change event
-  //
-  function refinements($this, data) {
-    var $context = context($this);    
-    var refinements = $context.data("facet_refinements");
-    
-    // set to empty on first access
-    if ( !refinements && !data ) {
-      refinements = {};
-  		$context.data('facet_refinements', refinements);
-  	}
-    
-    // update and fire event if necessary  
-		if ( data !== undefined ) {
-		  $context.data('facet_refinements', data);
-		  $context.trigger('facet_refinements.change');
-		  refinements = data;
-	  }
-	  
-	  // return current state
-	  return refinements;
-  }
   
   //
   // return the element that binds together this collection of facets' context
@@ -282,33 +313,22 @@
   }
   
   //
-  // utility functions
-  //
-  
-  //
   // return true/false depending if a value is selected
   //
-  function selected(refinements, facet, value) {
-    if (!refinements[facet])
-      return false;
-    else
-      return ($.inArray(value, refinements[facet]) > -1)
-    end;
+  function selected(refinements, value) {
+    return ($.inArray(value, refinements) > -1)
   }
   
   //
-  // toggles whether facet value is selected in refinements
+  // toggles whether facet value is selected
   //
-  function toggle(refinements, facet, value) {
-    if (!refinements[facet])
-      refinements[facet] = [];
-      
-    var index = $.inArray(value, refinements[facet]);
+  function toggle(refinements, value) {
+    var index = $.inArray(value, refinements);
     
     if (index == -1)
-      refinements[facet].push(value);
+      refinements.push(value);
     else
-      refinements[facet].splice(index,1);
+      refinements.splice(index,1);
     
     return refinements;
   }
@@ -322,8 +342,8 @@
   
   
   //
-  // This is an exact implementation of Merb's query string generator.  While there is some similarity to jquery's default behavior,
-  //   implemented here for stability and completeness.
+  // An exact implementation of Merb's query string generator.
+  // While there is some similarity to jquery's default behavior, implemented here for stability across versions.
   //
   //   An example:
   //
@@ -333,7 +353,6 @@
   function to_query_string(value, prefix) {
     if (!prefix) 
       prefix = '';
-
     if (value instanceof Array) {
       var vs = []
       jQuery.each(value, function(i, v) {
