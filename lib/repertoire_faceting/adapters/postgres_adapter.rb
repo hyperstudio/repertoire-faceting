@@ -86,10 +86,10 @@ module Repertoire
         statement = []
         order.each do |field|
           statement << case field
-          when :count.desc then              "count DESC"
-          when :count.asc, :count then       "count ASC" 
-          when facet_sym.desc then           "#{facet} DESC"
-          when facet_sym.asc, facet_sym then "#{facet} ASC"
+          when :count.desc then                     "count DESC"
+          when :count.asc, :count, 'count' then     "count ASC" 
+          when facet_sym.desc then                  "#{facet} DESC"
+          when facet_sym.asc, facet_sym, facet then "#{facet} ASC"
           else raise "Unkown order: #{order}"
           end
         end        

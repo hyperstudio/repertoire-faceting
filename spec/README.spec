@@ -9,3 +9,5 @@ an actual Postgres instance (not sqlite).  To create the appropriate database,
 3. upload the testing data
      psql -Upostgres repertoire_testing -f spec/nobelists.sql 
 4. run the specs
+
+There is an alternate data set for stress testing that follows the same procedure (citizens.sql & scalability_spec.rb).

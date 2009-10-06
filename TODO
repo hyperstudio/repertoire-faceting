@@ -1,4 +1,3 @@
--- select "and" or "or" within facet value refinements  DONE 
--- migrations using facet declarations
--- add facet query option to ignore blank facet values DONE
+-- migrations using DM facet declarations
 -- clean up sql generation in postgres adapter
+-- determine exact memory requirements of postgres scalability example

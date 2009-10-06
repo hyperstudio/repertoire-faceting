@@ -1,4 +1,4 @@
-API for faceted browsing within PostgreSQL, with extensions for Merb
+API for faceted browsing within PostgreSQL, with extensions for Merb and jquery ajax widgets
 
 ===== Strategy =====
 
@@ -124,42 +124,28 @@ in routes...
 match('/:controller/counts/:facet').to(:action => 'counts')
 match('/:controller/results').to(:action => 'results')
 
-in view.... (index.html.erb):
+in view.... (index.html.erb):  (make sure to load rep.faceting.js in your header)
 
-at this point, all of the back-end work is in place.  you've created indexes to the facets and web service 
-methods that allow ajax clients to pass back the current facet refinements and quickly retrieve both the facet 
-values and counts (for those refinements) or the complete result set (again given those refinements).  how you 
-implement your ajax views is up to you.  
+<script language='javascript'>
+$().ready(function() { 
+   $('#plays').facet_context();
+   $('.facet').facet();
+   $('.nested_facet').nested_facet();
+   $('#results').results();
+ });
+</script>
+ ...
+<div id='plays'>
+    <div id='genre' class='facet'></div>
+    <div id='published' class='nested_facet'></div>
+    <div id='results' class='facet'></div>
+</div>
 
-the facet count data is served via JSON on the URL defined by the routes and method signatures above.  for 
-example, if your controller is 'books', the facet you want counts for is 'genre', the base full-text query is 
-'Grapes' and your current facet refinements are { author='Steinbeck' }, you might use the following jquery ajax 
-call:
+The facet count data is served via JSON from the URL defined by the routes and method signatures above.  The webservice URL
+is derived from the element ids (e.g. '/plays/counts/genre' above), or set via the 'url' option.
 
-$.getJSON("/books/counts/genre", { search: "Grapes", filter: { 'author': 'Steinbeck' } }, function(json) {
-  ... update DOM with the facet values and counts returned
-});
-
-and you might load the rendered results into an element with this jquery:
-
-$("#results").load("/books/results", { search: "Grapes", filter: { 'author': 'Steinbeck' } });
-
-for further information on writing jquery widgets, see http://www.learningjquery.com/2007/10/a-plugin-development-pattern
-and the source code for the ajax validation widget in repertoire-core.
-
-N.B.  the jquery code above not tested - verify that jquery still produces the right url format for Merb router
-to parse (it did in Merb 0.9 and jquery 1.3.2)
-
-	TODO. future improvement... we might want to write a standard set of jquery facet widgets so that you could do e.g.
-
-	<% throw_content :jquery do %>
-	  $("#summary").summary({});
-	  $("#feature_facet").facet('feature', '/projects/counts/feature', { 'title' : 'Features of Project' });
-	  $("#results").results('/projects/results', {});
-	<% end %>
-	<div id="summary"></div>
-	<div id="feature_facet" facet="foo"></div>
-	<div id="results"></div>
+For a complete description of how to use the ajax widgets, their options, and how to write new widgets that extend the base
+functionality, see the in-line documentation in rep.faceting.js and its associated FAQ.
 
 
 ===== PostgreSQL extensions =====

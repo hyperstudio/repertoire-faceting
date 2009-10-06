@@ -1,11 +1,12 @@
 --
--- Testing data for faceting
+-- Testing data for faceting : MIT Nobel prize winners example
 --
 
 CREATE TABLE nobelists (
     id serial PRIMARY KEY,
     name text NOT NULL,
     birthdate timestamp without time zone,
+    deathdate timestamp without time zone,
     birth_country text,
     birth_state text,
     birth_city text,
@@ -31,71 +32,70 @@ CREATE TABLE affiliations (
 ---
 --- TEST DATA
 ---
-
-COPY nobelists (id, name, birthdate, birth_country, birth_state, birth_city, url, discipline, shared, last_name, nobel_year, deceased, co_winner, image_url, image_credit) FROM stdin;
-11	Charles H. Townes	\N	\N	\N	\N	\N	Physics	t	Townes	1964	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1964/townes_thumb.jpg	\N
-1	Burton Richter	1931-03-22 00:00:00	United States of America	New York	New York City	\N	Physics	t	Richter	1976	\N	Samuel C.C. Ting	http://nobelprize.org/nobel_prizes/physics/laureates/1976/richter_thumb.jpg	\N
-2	George A. Akerlof	1940-06-17 00:00:00	United States of America	Connecticut	New Haven	\N	Economics	t	Akerlof	2001	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2001/akerlof_thumb.jpg	\N
-3	William Shockley	1910-02-13 00:00:00	England	\N	London	\N	Physics	t	Shockley	1956	t	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1956/shockley_thumb.jpg	\N
-4	Daniel C. Tsui	1939-02-28 00:00:00	People's Republic of China	Henan	\N	\N	Physics	t	Tsui	1998	\N	Horst L. Störmer, Robert B. Laughlin	http://nobelprize.org/nobel_prizes/physics/laureates/1998/tsui_thumb.jpg	\N
-5	Elias J. Corey Jr.	1928-07-12 00:00:00	United States of America	Massachusetts	Methuen	\N	Chemistry	f	Corey	1990	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1990/corey_thumb.jpg	\N
-6	Horst L. Störmer	1949-04-06 00:00:00	Germany	\N	Frankfurt	\N	Physics	t	Störmer	1998	\N	Robert B. Laughlin, Daniel C. Tsui	http://nobelprize.org/nobel_prizes/physics/laureates/1998/stormer_thumb.jpg	\N
-7	Edward M. Purcell	1912-08-30 00:00:00	United States of America	Illinois	Taylorville	\N	Physics	t	Purcell	1952	t	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1952/purcell_thumb.jpg	\N
-8	Phillip A. Sharp	1944-06-06 00:00:00	United States of America	Kentucky	McKinneysburg	\N	Medicine/Physiology	t	Sharp	1993	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1993/sharp_thumb.jpg	\N
-44	Kofi Annan	\N	\N	\N	\N	\N	Peace	t	Annan	2001	\N	\N	http://nobelprize.org/nobel_prizes/peace/laureates/2001/annan_thumb.jpg	\N
-9	Lawrence R. Klein	1920-09-14 00:00:00	United States of America	Nebraska	Omaha	\N	Economics	f	Klein	1980	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1980/klein_thumb.jpg	\N
-10	Hans A. Bethe	1906-06-02 00:00:00	Germany	Alsace-Lorraine	Strasbourg	\N	Physics	f	Bethe	1967	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1967/bethe_thumb.jpg	\N
-12	K. Barry Sharpless	1941-04-28 00:00:00	\N	\N	\N	\N	Chemistry	t	Sharpless	2001	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/2001/sharpless_thumb.jpg	\N
-13	Richard R. Schrock	1945-01-04 00:00:00	\N	\N	\N	http://web.mit.edu/newsoffice/2005/schrock.html	Chemistry	t	Schrock	2005	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/2005/schrock_thumb.jpg	\N
-14	Jerome I. Friedman	1930-03-28 00:00:00	\N	\N	\N	\N	Physics	t	Friedman	1990	\N	Henry W. Kendall	http://nobelprize.org/nobel_prizes/physics/laureates/1990/friedman_thumb.jpg	\N
-15	Richard P. Feynman	1918-05-11 00:00:00	\N	\N	\N	\N	Physics	t	Feynman	1965	t	Julian Schwinger	http://nobelprize.org/nobel_prizes/physics/laureates/1965/feynman_thumb.jpg	\N
-16	E. Donnall Thomas	1920-03-15 00:00:00	\N	\N	\N	\N	Medicine/Physiology	t	Thomas	1990	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1990/thomas_thumb.jpg	\N
-17	Jack Steinberger	1921-05-25 00:00:00	\N	\N	\N	\N	Physics	t	Steinberger	1988	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1988/steinberger_thumb.jpg	\N
-18	Har Gobind Khorana	1922-01-19 00:00:00	\N	\N	\N	\N	Medicine/Physiology	t	Khorana	1968	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1968/khorana_thumb.jpg	\N
-19	Joseph E. Stiglitz	1943-02-09 00:00:00	\N	\N	\N	\N	Economics	t	Stiglitz	2001	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2001/stiglitz_thumb.jpg	\N
-20	Murray Gell-Mann	1929-09-15 00:00:00	\N	\N	\N	\N	Physics	f	Gell-Mann	1969	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1969/gell-mann_thumb.jpg	\N
-21	John Forbes Nash, Jr.	\N	\N	\N	\N	\N	Economics	t	Nash	1994	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1994/nash_thumb.jpg	\N
-22	Salvador E. Luria	\N	\N	\N	\N	\N	Medicine/Physiology	t	Luria	1969	t	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1969/luria_thumb.jpg	\N
-23	Steven Weinberg	\N	\N	\N	\N	\N	Physics	t	Weinberg	1979	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1979/weinberg_thumb.jpg	\N
-24	Paul A. Samuelson	\N	\N	\N	\N	\N	Economics	f	Samuelson	1970	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1970/samuelson_thumb.jpg	\N
-25	John Robert Schrieffer	\N	\N	\N	\N	\N	Physics	t	Schrieffer	1972	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1972/schrieffer_thumb.jpg	\N
-26	Susumu Tonegawa	\N	\N	\N	\N	\N	Medicine/Physiology	f	Tonegawa	1987	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1987/tonegawa_thumb.jpg	\N
-27	David Baltimore	\N	\N	\N	\N	\N	Medicine/Physiology	t	Baltimore	1975	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1975/baltimore_thumb.jpg	\N
-28	Edwin M. McMillan	\N	\N	\N	\N	\N	Chemistry	t	McMillan	1951	t	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1951/mcmillan_thumb.jpg	\N
-29	Myron S. Scholes	\N	\N	\N	\N	\N	Economics	t	Scholes	1997	\N	Robert C. Merton	http://nobelprize.org/nobel_prizes/economics/laureates/1997/scholes_thumb.jpg	\N
-30	Julian Schwinger	\N	\N	\N	\N	\N	Physics	t	Schwinger	1965	t	Richard P. Feynman	http://nobelprize.org/nobel_prizes/physics/laureates/1965/schwinger_thumb.jpg	\N
-31	Eric A. Cornell	\N	\N	\N	\N	\N	Physics	t	Cornell	2001	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2001/cornell_thumb.jpg	\N
-32	Daniel L. McFadden	\N	\N	\N	\N	\N	Economics	t	McFadden	2000	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2000/mcfadden_thumb.jpg	\N
-33	Wolfgang Ketterle	\N	\N	\N	\N	\N	Physics	t	Ketterle	2001	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2001/ketterle_thumb.jpg	\N
-34	Franco Modigliani	\N	\N	\N	\N	\N	Economics	f	Modigliani	1985	t	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1985/modigliani_thumb.jpg	\N
-35	Carl E. Wieman	\N	\N	\N	\N	\N	Physics	t	Wieman	2001	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2001/wieman_thumb.jpg	\N
-36	Charles J. Pedersen	\N	\N	\N	\N	\N	Chemistry	t	Pedersen	1987	t	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1987/pedersen_thumb.jpg	\N
-37	Eric S. Chivian	\N	\N	\N	\N	\N	Peace	f	Chivian	1985	\N	\N	http://people.csail.mit.edu/dfhuynh/projects/nobelists/images/eric-chivian.png	http://mitworld.mit.edu/video/63/
-38	Mario J. Molina	\N	\N	\N	\N	\N	Chemistry	t	Molina	1995	\N	\N	http://people.csail.mit.edu/dfhuynh/projects/nobelists/images/mario-j-molina.png	http://mitworld.mit.edu/video/63/
-39	Robert Burns Woodward	\N	\N	\N	\N	\N	Chemistry	f	Woodward	1965	t	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1965/woodward_thumb.jpg	\N
-40	Robert B. Laughlin	\N	\N	\N	\N	\N	Physics	t	Laughlin	1998	\N	Horst L. Störmer, Daniel C. Tsui	http://nobelprize.org/nobel_prizes/physics/laureates/1998/laughlin_thumb.jpg	\N
-41	Andrew Fire	\N	\N	\N	\N	http://web.mit.edu/newsoffice/2006/fire.html	Medicine/Physiology	t	Fire	2006	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/2006/fire_thumb.jpg	\N
-42	Robert M. Solow	\N	\N	\N	\N	\N	Economics	f	Solow	1987	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1987/solow_thumb.jpg	\N
-43	Robert S. Mulliken	\N	\N	\N	\N	\N	Chemistry	f	Mulliken	1966	t	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1966/mulliken_thumb.jpg	\N
-45	Thomas R. Cech	\N	\N	\N	\N	\N	Chemistry	t	Cech	1989	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1989/cech_thumb.jpg	\N
-46	Samuel C.C. Ting	\N	\N	\N	\N	\N	Physics	t	Ting	1976	\N	Burton Richter	http://nobelprize.org/nobel_prizes/physics/laureates/1976/ting_thumb.jpg	\N
-47	Isidor Isaac Rabi	\N	\N	\N	\N	\N	Physics	f	Rabi	1944	t	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1944/rabi_thumb.jpg	\N
-48	Luis W. Alvarez	\N	\N	\N	\N	\N	Physics	f	Alvarez	1968	t	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1968/alvarez_thumb.jpg	\N
-49	Aaron Ciechanover	\N	\N	\N	\N	http://nobelprize.org/chemistry/laureates/2004/index.html	Chemistry	t	Ciechanover	2004	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/2004/ciechanover_thumb.jpg	\N
-50	Clifford G. Shull	\N	\N	\N	\N	\N	Physics	t	Shull	1994	t	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1994/shull_thumb.jpg	\N
-51	Norman F. Ramsey	\N	\N	\N	\N	\N	Physics	f	Ramsey	1989	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1989/ramsey_thumb.jpg	\N
-52	Geoffrey Wilkinson	\N	\N	\N	\N	\N	Chemistry	t	Wilkinson	1973	t	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1973/wilkinson_thumb.jpg	\N
-53	Frank Wilczek	\N	\N	\N	\N	http://web.mit.edu/newsoffice/2004/nobel-wilczek.html	Physics	t	Wilczek	2004	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2004/wilczek_thumb.jpg	\N
-54	Sidney Altman	\N	\N	\N	\N	\N	Chemistry	t	Altman	1989	\N	Thomas R. Cech	http://nobelprize.org/nobel_prizes/chemistry/laureates/1989/altman_thumb.jpg	\N
-55	Leland H. Hartwell	\N	\N	\N	\N	\N	Medicine/Physiology	t	Hartwell	2001	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/2001/hartwell_thumb.jpg	\N
-56	Henry W. Kendall	\N	\N	\N	\N	\N	Physics	t	Kendall	1990	t	Jerome I. Friedman	http://nobelprize.org/nobel_prizes/physics/laureates/1990/kendall_thumb.jpg	\N
-57	George Smoot	\N	\N	\N	\N	http://web.mit.edu/newsoffice/2006/smoot.html	Physics	t	Smoot	2006	f	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2006/smoot_thumb.jpg	\N
-58	Robert J. Aumann	\N	\N	\N	\N	http://nobelprize.org/economics/laureates/2005/press.html	Economics	t	Aumann	2005	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2005/aumann_thumb.jpg	\N
-59	Robert C. Merton	\N	\N	\N	\N	\N	Economics	t	Merton	1997	\N	Myron S. Scholes	http://nobelprize.org/nobel_prizes/economics/laureates/1997/merton_thumb.jpg	\N
-60	Robert Engle	\N	\N	\N	\N	http://nobelprize.org/economics/laureates/2003/index.html	Economics	t	Engle	2003	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2003/engle_thumb.jpg	\N
-61	William D. Phillips	\N	\N	\N	\N	\N	Physics	t	Phillips	1997	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1997/phillips_thumb.jpg	\N
-62	H. Robert Horvitz	\N	\N	\N	\N	http://web.mit.edu/newsoffice/2002/horvitz-nobel.html	Medicine/Physiology	t	Horvitz	2002	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/2002/horvitz_thumb.jpg	\N
-63	Robert A. Mundell	\N	\N	\N	\N	\N	Economics	f	Mundell	1999	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1999/mundell_thumb.jpg	\N
+COPY nobelists (id, name, birthdate, deathdate, birth_country, birth_state, birth_city, url, discipline, shared, last_name, nobel_year, deceased, co_winner, image_url, image_credit) FROM stdin;
+7	Edward M. Purcell	1912-08-30 00:00:00	1997-03-07 00:00:00	United States of America	Illinois	Taylorville	\N	Physics	t	Purcell	1952	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1952/purcell_thumb.jpg	\N
+3	William Shockley	1910-02-13 00:00:00	1989-08-12 00:00:00	England	\N	London	\N	Physics	t	Shockley	1956	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1956/shockley_thumb.jpg	\N
+11	Charles H. Townes	1915-07-28 00:00:00	\N	United States of America	South Carolina	Greenville	\N	Physics	t	Townes	1964	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1964/townes_thumb.jpg	\N
+15	Richard P. Feynman	1918-05-11 00:00:00	1988-02-15 00:00:00	United States of America	New York	Queens	\N	Physics	t	Feynman	1965	\N	Julian Schwinger	http://nobelprize.org/nobel_prizes/physics/laureates/1965/feynman_thumb.jpg	\N
+10	Hans A. Bethe	1906-06-02 00:00:00	2005-03-06 00:00:00	Germany	Alsace-Lorraine	Strasbourg	\N	Physics	f	Bethe	1967	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1967/bethe_thumb.jpg	\N
+18	Har Gobind Khorana	1922-01-19 00:00:00	\N	British India	Punjab	Multan	\N	Medicine/Physiology	t	Khorana	1968	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1968/khorana_thumb.jpg	\N
+17	Jack Steinberger	1921-05-25 00:00:00	\N	Germany	\N	Bad Kissingen	\N	Physics	t	Steinberger	1988	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1988/steinberger_thumb.jpg	\N
+21	John Forbes Nash, Jr.	1928-06-13 00:00:00	\N	United States of America	West Virginia	Bluefield	\N	Economics	t	Nash	1994	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1994/nash_thumb.jpg	\N
+12	K. Barry Sharpless	1941-04-28 00:00:00	\N	United States of America	Pennsylvania	Philadelphia	\N	Chemistry	t	Sharpless	2001	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/2001/sharpless_thumb.jpg	\N
+1	Burton Richter	1931-03-22 00:00:00	\N	United States of America	New York	New York City	\N	Physics	t	Richter	1976	\N	Samuel C.C. Ting	http://nobelprize.org/nobel_prizes/physics/laureates/1976/richter_thumb.jpg	\N
+4	Daniel C. Tsui	1939-02-28 00:00:00	\N	People's Republic of China	Henan	\N	\N	Physics	t	Tsui	1998	\N	Horst L. Störmer, Robert B. Laughlin	http://nobelprize.org/nobel_prizes/physics/laureates/1998/tsui_thumb.jpg	\N
+5	Elias J. Corey Jr.	1928-07-12 00:00:00	\N	United States of America	Massachusetts	Methuen	\N	Chemistry	f	Corey	1990	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1990/corey_thumb.jpg	\N
+6	Horst L. Störmer	1949-04-06 00:00:00	\N	Germany	\N	Frankfurt	\N	Physics	t	Störmer	1998	\N	Robert B. Laughlin, Daniel C. Tsui	http://nobelprize.org/nobel_prizes/physics/laureates/1998/stormer_thumb.jpg	\N
+8	Phillip A. Sharp	1944-06-06 00:00:00	\N	United States of America	Kentucky	McKinneysburg	\N	Medicine/Physiology	t	Sharp	1993	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1993/sharp_thumb.jpg	\N
+9	Lawrence R. Klein	1920-09-14 00:00:00	\N	United States of America	Nebraska	Omaha	\N	Economics	f	Klein	1980	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1980/klein_thumb.jpg	\N
+16	E. Donnall Thomas	1920-03-15 00:00:00	\N	\N	\N	\N	\N	Medicine/Physiology	t	Thomas	1990	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1990/thomas_thumb.jpg	\N
+28	Edwin M. McMillan	1907-09-18 00:00:00	1991-09-07 00:00:00	United State of America	California	Redondo Beach	\N	Chemistry	t	McMillan	1951	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1951/mcmillan_thumb.jpg	\N
+24	Paul A. Samuelson	1915-05-15 00:00:00	\N	United States of America	Indiana	Gary	\N	Economics	f	Samuelson	1970	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1970/samuelson_thumb.jpg	\N
+39	Robert Burns Woodward	1917-04-10 00:00:00	1979-07-08 00:00:00	United States of America	Massachusetts	Cambridge	\N	Chemistry	f	Woodward	1965	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1965/woodward_thumb.jpg	\N
+52	Geoffrey Wilkinson	1921-07-14 00:00:00	1996-09-26 00:00:00	England	\N	Springside	\N	Chemistry	t	Wilkinson	1973	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1973/wilkinson_thumb.jpg	\N
+43	Robert S. Mulliken	1896-06-07 00:00:00	1986-10-31 00:00:00	United States of America	Virginia	Arlington	\N	Chemistry	f	Mulliken	1966	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1966/mulliken_thumb.jpg	\N
+42	Robert M. Solow	1924-08-23 00:00:00	\N	United States of America	New York	Brooklyn	\N	Economics	f	Solow	1987	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1987/solow_thumb.jpg	\N
+22	Salvador E. Luria	1912-08-13 00:00:00	1991-02-06 00:00:00	United States of America	Massachusetts	Lexington	\N	Medicine/Physiology	t	Luria	1969	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1969/luria_thumb.jpg	\N
+27	David Baltimore	1938-03-07 00:00:00	\N	United States of America	New York	New York City	\N	Medicine/Physiology	t	Baltimore	1975	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1975/baltimore_thumb.jpg	\N
+23	Steven Weinberg	1933-05-03 00:00:00	\N	United States of America	New York	New York City	\N	Physics	t	Weinberg	1979	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1979/weinberg_thumb.jpg	\N
+46	Samuel C.C. Ting	1936-01-27 00:00:00	\N	United States of America	Ann Arbor	Michigan	\N	Physics	t	Ting	1976	\N	Burton Richter	http://nobelprize.org/nobel_prizes/physics/laureates/1976/ting_thumb.jpg	\N
+34	Franco Modigliani	1918-06-18 00:00:00	2003-09-25 00:00:00	Italy	\N	Rome	\N	Economics	f	Modigliani	1985	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1985/modigliani_thumb.jpg	\N
+26	Susumu Tonegawa	1939-09-06 00:00:00	\N	Japan	\N	Nagoya	\N	Medicine/Physiology	f	Tonegawa	1987	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1987/tonegawa_thumb.jpg	\N
+51	Norman F. Ramsey	1915-08-27 00:00:00	\N	United States of America	District of Columbia	Washington	\N	Physics	f	Ramsey	1989	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1989/ramsey_thumb.jpg	\N
+45	Thomas R. Cech	1947-12-08 00:00:00	\N	United States of America	Illinois	Chicago	\N	Chemistry	t	Cech	1989	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1989/cech_thumb.jpg	\N
+29	Myron S. Scholes	1941-07-01 00:00:00	\N	Canada	Ontario	Timmons	\N	Economics	t	Scholes	1997	\N	Robert C. Merton	http://nobelprize.org/nobel_prizes/economics/laureates/1997/scholes_thumb.jpg	\N
+54	Sidney Altman	1939-05-07 00:00:00	\N	Canada	Quebec	Montreal	\N	Chemistry	t	Altman	1989	\N	Thomas R. Cech	http://nobelprize.org/nobel_prizes/chemistry/laureates/1989/altman_thumb.jpg	\N
+50	Clifford G. Shull	1915-09-23 00:00:00	\N	United States of America	Pennsylvania	Pittsburgh	\N	Physics	t	Shull	1994	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1994/shull_thumb.jpg	\N
+56	Henry W. Kendall	1926-12-09 00:00:00	1999-02-15 00:00:00	United States of America	Florida	Wakulla State Park	\N	Physics	t	Kendall	1990	\N	Jerome I. Friedman	http://nobelprize.org/nobel_prizes/physics/laureates/1990/kendall_thumb.jpg	\N
+38	Mario J. Molina	1943-03-19 00:00:00	\N	Mexico	\N	Mexico City	\N	Chemistry	t	Molina	1995	\N	\N	http://people.csail.mit.edu/dfhuynh/projects/nobelists/images/mario-j-molina.png	http://mitworld.mit.edu/video/63/
+59	Robert C. Merton	1944-07-31 00:00:00	\N	United States of America	New York	New York City	\N	Economics	t	Merton	1997	\N	Myron S. Scholes	http://nobelprize.org/nobel_prizes/economics/laureates/1997/merton_thumb.jpg	\N
+40	Robert B. Laughlin	1950-11-01 00:00:00	\N	United States of America	California	Visalia	\N	Physics	t	Laughlin	1998	\N	Horst L. Störmer, Daniel C. Tsui	http://nobelprize.org/nobel_prizes/physics/laureates/1998/laughlin_thumb.jpg	\N
+61	William D. Phillips	1948-11-05 00:00:00	\N	United States of America	Pennsylvania	Wilkes-Barre	\N	Physics	t	Phillips	1997	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1997/phillips_thumb.jpg	\N
+63	Robert A. Mundell	1932-10-24 00:00:00	\N	Canada	Ontario	Kingston	\N	Economics	f	Mundell	1999	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1999/mundell_thumb.jpg	\N
+49	Aaron Ciechanover	1947-10-01 00:00:00	\N	British Mandate of Palestine	\N	Haifa	http://nobelprize.org/chemistry/laureates/2004/index.html	Chemistry	t	Ciechanover	2004	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/2004/ciechanover_thumb.jpg	\N
+32	Daniel L. McFadden	1937-07-29 00:00:00	\N	United States of America	North Carolina	Raleigh	\N	Economics	t	McFadden	2000	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2000/mcfadden_thumb.jpg	\N
+31	Eric A. Cornell	1961-12-19 00:00:00	\N	United States of America	California	Palo Alto	\N	Physics	t	Cornell	2001	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2001/cornell_thumb.jpg	\N
+55	Leland H. Hartwell	1939-10-30 00:00:00	\N	United States of America	California	Los Angeles	\N	Medicine/Physiology	t	Hartwell	2001	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/2001/hartwell_thumb.jpg	\N
+53	Frank Wilczek	1951-05-15 00:00:00	\N	United States of America	New York	Mineola	http://web.mit.edu/newsoffice/2004/nobel-wilczek.html	Physics	t	Wilczek	2004	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2004/wilczek_thumb.jpg	\N
+58	Robert J. Aumann	1930-06-08 00:00:00	\N	Germany	\N	Frankfurt Am Main	http://nobelprize.org/economics/laureates/2005/press.html	Economics	t	Aumann	2005	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2005/aumann_thumb.jpg	\N
+36	Charles J. Pedersen	1904-10-03 00:00:00	1989-10-26 00:00:00	Korea	\N	Busan	\N	Chemistry	t	Pedersen	1987	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1987/pedersen_thumb.jpg	\N
+41	Andrew Fire	1959-04-27 00:00:00	\N	United States of America	California	Palo Alto	http://web.mit.edu/newsoffice/2006/fire.html	Medicine/Physiology	t	Fire	2006	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/2006/fire_thumb.jpg	\N
+57	George Smoot	1945-02-20 00:00:00	\N	United States of America	Florida	Yukon	http://web.mit.edu/newsoffice/2006/smoot.html	Physics	t	Smoot	2006	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2006/smoot_thumb.jpg	\N
+47	Isidor Isaac Rabi	\N	\N	\N	\N	\N	\N	Physics	f	Rabi	1944	t	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1944/rabi_thumb.jpg	\N
+30	Julian Schwinger	\N	\N	\N	\N	\N	\N	Physics	t	Schwinger	1965	t	Richard P. Feynman	http://nobelprize.org/nobel_prizes/physics/laureates/1965/schwinger_thumb.jpg	\N
+48	Luis W. Alvarez	\N	\N	\N	\N	\N	\N	Physics	f	Alvarez	1968	t	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1968/alvarez_thumb.jpg	\N
+20	Murray Gell-Mann	1929-09-15 00:00:00	\N	\N	\N	\N	\N	Physics	f	Gell-Mann	1969	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1969/gell-mann_thumb.jpg	\N
+25	John Robert Schrieffer	\N	\N	\N	\N	\N	\N	Physics	t	Schrieffer	1972	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1972/schrieffer_thumb.jpg	\N
+37	Eric S. Chivian	\N	\N	\N	\N	\N	\N	Peace	f	Chivian	1985	\N	\N	http://people.csail.mit.edu/dfhuynh/projects/nobelists/images/eric-chivian.png	http://mitworld.mit.edu/video/63/
+14	Jerome I. Friedman	1930-03-28 00:00:00	\N	\N	\N	\N	\N	Physics	t	Friedman	1990	\N	Henry W. Kendall	http://nobelprize.org/nobel_prizes/physics/laureates/1990/friedman_thumb.jpg	\N
+2	George A. Akerlof	1940-06-17 00:00:00	\N	United States of America	Connecticut	New Haven	\N	Economics	t	Akerlof	2001	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2001/akerlof_thumb.jpg	\N
+44	Kofi Annan	\N	\N	\N	\N	\N	\N	Peace	t	Annan	2001	\N	\N	http://nobelprize.org/nobel_prizes/peace/laureates/2001/annan_thumb.jpg	\N
+19	Joseph E. Stiglitz	1943-02-09 00:00:00	\N	\N	\N	\N	\N	Economics	t	Stiglitz	2001	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2001/stiglitz_thumb.jpg	\N
+33	Wolfgang Ketterle	\N	\N	\N	\N	\N	\N	Physics	t	Ketterle	2001	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2001/ketterle_thumb.jpg	\N
+35	Carl E. Wieman	\N	\N	\N	\N	\N	\N	Physics	t	Wieman	2001	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2001/wieman_thumb.jpg	\N
+62	H. Robert Horvitz	\N	\N	\N	\N	\N	http://web.mit.edu/newsoffice/2002/horvitz-nobel.html	Medicine/Physiology	t	Horvitz	2002	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/2002/horvitz_thumb.jpg	\N
+60	Robert Engle	\N	\N	\N	\N	\N	http://nobelprize.org/economics/laureates/2003/index.html	Economics	t	Engle	2003	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2003/engle_thumb.jpg	\N
+13	Richard R. Schrock	1945-01-04 00:00:00	\N	\N	\N	\N	http://web.mit.edu/newsoffice/2005/schrock.html	Chemistry	t	Schrock	2005	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/2005/schrock_thumb.jpg	\N
 \.
 
 
@@ -187,11 +187,14 @@ SELECT recreate_table('_nobelists_nobel_year_facet',
 SELECT recreate_table('_nobelists_discipline_facet', 
  											'SELECT discipline, signature(_packed_id) FROM nobelists GROUP BY discipline');
 
+-- computed facet values
+SELECT recreate_table('_nobelists_birthdate_facet', 
+ 											'SELECT birthdate, signature(_packed_id) FROM (SELECT (EXTRACT(year FROM birthdate)::integer / 10::integer) * 10 AS birthdate, _packed_id from nobelists) AS computed GROUP by birthdate');
+											
+
 -- nested, computed facet values  											
 SELECT recreate_table('_nobelists_birth_place_facet', 
  											'SELECT ARRAY[ birth_country, birth_state, birth_city ] AS birth_place, signature(_packed_id) FROM nobelists GROUP BY birth_country, birth_state, birth_city');
-SELECT recreate_table('_nobelists_birthdate_facet', 
- 											'SELECT ARRAY[ EXTRACT(year FROM birthdate), EXTRACT(month FROM birthdate), EXTRACT(day FROM birthdate) ] AS birthdate, signature(_packed_id) FROM nobelists GROUP BY birthdate');
  											
 -- facet values in linked table (multivalued)
 SELECT recreate_table('_nobelists_degree_facet', 

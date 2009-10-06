@@ -1,1 +1,14 @@
-../../facet-testing/public/stylesheets/rep.faceting.css
+/* facet count classes */
+
+.rep .facet { width:240px; border: 1px solid #CCC; color: #000099; margin-bottom: 0.2em; margin-top: 0.2em;}
+.rep .facet .title { font-size:10pt; border-bottom: 1px solid #CCC; background: #F4F4F4; color: black; padding: 0.3em; margin: 0; }
+.rep .facet .title .controls { float: right; }
+.rep .facet .title .controls span { cursor: pointer; margin-left: 5px; color: gray;}
+.rep .facet .nesting { padding: 0.3em; }
+.rep .facet .values { font-size: 9pt; padding: 0.3em; margin: 0; height: 10em; overflow: auto;}
+.rep .facet .selected { color: #aaaadd; }
+.rep .facet .values .value { padding-top: 0.1em; padding-bottom: 0.1em; width:95%;}
+.rep .facet .values .value .count { position: relative; left: 0; width: 2.0em; text-align: right; padding-right:5px; color: #aaaadd; float:left; }
+.rep .facet .values .value .label { position: relative; left: 0.5em;}
+.rep .facet .values .value .label:hover,
+.rep .facet .nesting_level:hover { cursor: pointer; text-decoration: underline; }

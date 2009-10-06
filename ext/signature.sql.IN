@@ -227,3 +227,13 @@ BEGIN
   RESET client_min_messages;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION signature_wastage(tbl TEXT, col TEXT) RETURNS REAL AS $$
+DECLARE
+  histogram signature;
+BEGIN
+  EXECUTE 'SELECT signature(' || quote_ident(col) || ') FROM ' || quote_ident(tbl)
+          INTO histogram;
+  RETURN 1.0 - (count(histogram)::REAL / sig_length(histogram)::REAL);
+END;
+$$ LANGUAGE plpgsql;
