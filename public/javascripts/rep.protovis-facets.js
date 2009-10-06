@@ -9,7 +9,7 @@
 * N.B. These examples build on the widget framework - consult the API documentation.
 *      They are included for illustrative purposes only, not as finished products.
 *
-* N.B. Javascript 1.8 expression closures from the Protovis examples have been left,
+* N.B. Javascript 1.8 expression closures from the Protovis examples have been left out,
 *      since Safari doesn't support them.
 */
 
@@ -95,7 +95,6 @@
 	// Options: As for facet value count widget, plus
 	//   - height
 	//   - width
-	//   - thickness
 	//
 	repertoire.bar_facet = function($facet, options) {
 		var self = repertoire.facet($facet, options);

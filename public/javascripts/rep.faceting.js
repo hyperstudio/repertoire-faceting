@@ -67,8 +67,8 @@
 	// and exposes plugin defaults.
 	//
 	// Usage:
-	//    $.fn.my_widget = my_widget.plugin({ minimum: 10, etc. });
-	//    < client code can override widget-wide defaults with $.fn.my_widget.defaults.foo = 'bar' >
+	//    $.fn.my_widget = repertoire.plugin(my_widget);
+	//    $.fn.my_widget.defaults = { /* widget option defaults */ };
 	//
 	repertoire.plugin = function(self) {
 	  var fn = function(options) {
@@ -128,7 +128,7 @@
 	    self.reload();
 	  });
 		
-		// register a collection of handlers
+		// register a collection of event handlers
 		function register_handlers(handlers) {
 		  $.each(handlers, function(selector, handler) {
 		    // register each handler
@@ -181,7 +181,7 @@
 			self.update(state, function(data) {
 			  var $markup = self.render(data);
 			  
-    		// inject any custom markup (the default)
+    		// inject any custom markup
     		if (options.injectors !== undefined)
   			  process_injectors($markup, options.injectors, data);
 			  
@@ -215,15 +215,15 @@
     //   var $template_fn = self.render;            // idiom to access super.render()
     //   self.render = function(data) {
     //     $markup = $template_fn(data);            // get template from superclass
-    //     return $markup.append('Hello world!');   // inject widget's markup into it
+    //     return $markup.append('Hello world!');   // inject this widget's markup into it
     //   }
     //
 		self.render = function(data) {
-			return $('<div class="rep"/>');               // namespace for all other faceting css
+			return $('<div class="rep"/>');               // namespace for all other faceting css is 'rep'
 		};
 		
 		//
-		// Issue an ajax HTTP GET to fetch data from a webservice
+		// Utility method to issue an ajax HTTP GET to fetch data from a webservice
 		//
 		//   state:    params to send as http query line
 		//   url:      url of webservice to access
@@ -250,7 +250,7 @@
     };
 		
 		//
-		// locate and return this widget's refinement context (a dom element)
+		// Locate and return this widget's refinement context (a dom element)
 		//
 		self.context = function() {
 			if (!$context) {
@@ -260,14 +260,14 @@
 		};
     
 	  //
-	  // return an identifier for the context, or undefined
+	  // Return an identifier for the context, or undefined
 	  // 
 	  self.context_name = function() {
 			return options.context || self.context().attr('id');
 		};
 				
 		//
-		// return the state for the entire faceting context (group of widgets)
+		// Return the state for the entire faceting context (group of widgets)
 		//
 		self.state = function() {
 			var $context = self.context();
@@ -337,7 +337,7 @@
 	  };
     
 		//
-		// Format a webservice url, using options.url if possible
+		// Format a webservice url, preferring options.url if possible
 		//
 		self.default_url = function(default_parts) {
 			return options.url || (default_parts.join('/'));
@@ -400,7 +400,7 @@
 		}
 		
 		//
-		// Register a handler for jquery events on this widget.  Provide an event selector and a standard jquery event
+		// Register a handler for dom events on this widget.  Call with an event selector and a standard jquery event
 		// handler function, e.g.
 		//
 		//    self.handler('click.toggle_value!.rep .facet .value', function() { ... });
@@ -482,7 +482,7 @@
 	// Results plugin
 	$.fn.results = repertoire.plugin(repertoire.results);
 	$.fn.results.defaults = {
-    /* no default configuration yet */
+    /* no default options yet */
 	};
 	
 	
@@ -497,6 +497,7 @@
 	//
 	//     As for core faceting widget, plus
 	//     - facet: name of this facet (otherwise defaults to element's id)
+	//     - title: title to display at top of widget (defaults to element's title)
 	//     None are required.
 	//
 	repertoire.facet = function($facet, options) {
