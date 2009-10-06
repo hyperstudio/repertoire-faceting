@@ -81,20 +81,20 @@ COPY nobelists (id, name, birthdate, deathdate, birth_country, birth_state, birt
 36	Charles J. Pedersen	1904-10-03 00:00:00	1989-10-26 00:00:00	Korea	\N	Busan	\N	Chemistry	t	Pedersen	1987	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1987/pedersen_thumb.jpg	\N
 41	Andrew Fire	1959-04-27 00:00:00	\N	United States of America	California	Palo Alto	http://web.mit.edu/newsoffice/2006/fire.html	Medicine/Physiology	t	Fire	2006	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/2006/fire_thumb.jpg	\N
 57	George Smoot	1945-02-20 00:00:00	\N	United States of America	Florida	Yukon	http://web.mit.edu/newsoffice/2006/smoot.html	Physics	t	Smoot	2006	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2006/smoot_thumb.jpg	\N
-47	Isidor Isaac Rabi	\N	\N	\N	\N	\N	\N	Physics	f	Rabi	1944	t	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1944/rabi_thumb.jpg	\N
-30	Julian Schwinger	\N	\N	\N	\N	\N	\N	Physics	t	Schwinger	1965	t	Richard P. Feynman	http://nobelprize.org/nobel_prizes/physics/laureates/1965/schwinger_thumb.jpg	\N
-48	Luis W. Alvarez	\N	\N	\N	\N	\N	\N	Physics	f	Alvarez	1968	t	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1968/alvarez_thumb.jpg	\N
+47	Isidor Isaac Rabi	1898-07-29 00:00:00	1988-01-11 00:00:00	\N	\N	\N	\N	Physics	f	Rabi	1944	t	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1944/rabi_thumb.jpg	\N
+30	Julian Schwinger	1918-02-12 00:00:00	1994-07-16 00:00:00	\N	\N	\N	\N	Physics	t	Schwinger	1965	t	Richard P. Feynman	http://nobelprize.org/nobel_prizes/physics/laureates/1965/schwinger_thumb.jpg	\N
+48	Luis W. Alvarez	1913-06-13 00:00:00	1988-09-01 00:00:00	\N	\N	\N	\N	Physics	f	Alvarez	1968	t	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1968/alvarez_thumb.jpg	\N
 20	Murray Gell-Mann	1929-09-15 00:00:00	\N	\N	\N	\N	\N	Physics	f	Gell-Mann	1969	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1969/gell-mann_thumb.jpg	\N
-25	John Robert Schrieffer	\N	\N	\N	\N	\N	\N	Physics	t	Schrieffer	1972	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1972/schrieffer_thumb.jpg	\N
+25	John Robert Schrieffer	1931-05-31 00:00:00	\N	\N	\N	\N	\N	Physics	t	Schrieffer	1972	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1972/schrieffer_thumb.jpg	\N
 37	Eric S. Chivian	\N	\N	\N	\N	\N	\N	Peace	f	Chivian	1985	\N	\N	http://people.csail.mit.edu/dfhuynh/projects/nobelists/images/eric-chivian.png	http://mitworld.mit.edu/video/63/
 14	Jerome I. Friedman	1930-03-28 00:00:00	\N	\N	\N	\N	\N	Physics	t	Friedman	1990	\N	Henry W. Kendall	http://nobelprize.org/nobel_prizes/physics/laureates/1990/friedman_thumb.jpg	\N
 2	George A. Akerlof	1940-06-17 00:00:00	\N	United States of America	Connecticut	New Haven	\N	Economics	t	Akerlof	2001	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2001/akerlof_thumb.jpg	\N
-44	Kofi Annan	\N	\N	\N	\N	\N	\N	Peace	t	Annan	2001	\N	\N	http://nobelprize.org/nobel_prizes/peace/laureates/2001/annan_thumb.jpg	\N
+44	Kofi Annan	1938-05-08 00:00:00	\N	\N	\N	\N	\N	Peace	t	Annan	2001	\N	\N	http://nobelprize.org/nobel_prizes/peace/laureates/2001/annan_thumb.jpg	\N
 19	Joseph E. Stiglitz	1943-02-09 00:00:00	\N	\N	\N	\N	\N	Economics	t	Stiglitz	2001	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2001/stiglitz_thumb.jpg	\N
-33	Wolfgang Ketterle	\N	\N	\N	\N	\N	\N	Physics	t	Ketterle	2001	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2001/ketterle_thumb.jpg	\N
-35	Carl E. Wieman	\N	\N	\N	\N	\N	\N	Physics	t	Wieman	2001	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2001/wieman_thumb.jpg	\N
-62	H. Robert Horvitz	\N	\N	\N	\N	\N	http://web.mit.edu/newsoffice/2002/horvitz-nobel.html	Medicine/Physiology	t	Horvitz	2002	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/2002/horvitz_thumb.jpg	\N
-60	Robert Engle	\N	\N	\N	\N	\N	http://nobelprize.org/economics/laureates/2003/index.html	Economics	t	Engle	2003	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2003/engle_thumb.jpg	\N
+33	Wolfgang Ketterle	1957-10-21 00:00:00	\N	\N	\N	\N	\N	Physics	t	Ketterle	2001	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2001/ketterle_thumb.jpg	\N
+35	Carl E. Wieman	1951-03-26 00:00:00	\N	\N	\N	\N	\N	Physics	t	Wieman	2001	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/2001/wieman_thumb.jpg	\N
+62	H. Robert Horvitz	1947-05-08 00:00:00	\N	\N	\N	\N	http://web.mit.edu/newsoffice/2002/horvitz-nobel.html	Medicine/Physiology	t	Horvitz	2002	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/2002/horvitz_thumb.jpg	\N
+60	Robert Engle	1942-11-10 00:00:00	\N	\N	\N	\N	http://nobelprize.org/economics/laureates/2003/index.html	Economics	t	Engle	2003	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/2003/engle_thumb.jpg	\N
 13	Richard R. Schrock	1945-01-04 00:00:00	\N	\N	\N	\N	http://web.mit.edu/newsoffice/2005/schrock.html	Chemistry	t	Schrock	2005	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/2005/schrock_thumb.jpg	\N
 \.
 

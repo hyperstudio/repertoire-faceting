@@ -47,7 +47,7 @@
           r = w / 2,
           t = options.thickness,
           a = pv.Scale.linear(0, pv.sum(counts, function(d) { return d[1] }))
-                      .range(0, 2 * Math.PI);
+                      .range(0, 2 * Math.PI * 49/50);
 
       var vis = new pv.Panel()
           .canvas(values_canvas)

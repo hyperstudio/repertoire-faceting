@@ -157,9 +157,13 @@
 		
 		// inject custom markup into widget
 		function process_injectors($markup, injectors, data) {
+		  // workaround for jquery find not matching top element
+		  $wrapped = $("<div/>").append($markup);
+
 		  $.each(injectors, function(selector, injector) {
-		    var $elems = $markup.find(selector);
-		    injector.apply($elems, [self, data]);
+		    var $elems = $wrapped.find(selector);
+		    if ($elems.length > 0)
+  		    injector.apply($elems, [self, data]);
 		  });
 		}
 		
@@ -449,6 +453,7 @@
 	//   $('#my_results').results(<options>)
 	//
 	// Options:  As for basic faceting widgets
+	//           - type:  return type for ajax query
 	//           None are required.
 	//
 	repertoire.results = function($results, options) {
@@ -464,7 +469,7 @@
 			// default url is '<context>/results'
 			var url = self.default_url(['', self.context_name(), 'results']);
 			// package up the faceting state and send back to results rendering service
-			self.fetch(state, url, 'html', callback);
+			self.fetch(state, url, options.type, callback);
 		}
 		
 		//
@@ -472,7 +477,13 @@
 		//
 		var $template_fn = self.render;
 		self.render = function(data) {
-		  return $template_fn().append(data);
+  	  var $markup = $template_fn();
+		  
+		  // if html returned, use it; otherwise defer to a custom injector
+		  if (options.type == 'html')
+        $markup.append(data);		  
+
+		  return $markup;
 		}
 		
 		// end of results factory function
@@ -482,7 +493,7 @@
 	// Results plugin
 	$.fn.results = repertoire.plugin(repertoire.results);
 	$.fn.results.defaults = {
-    /* no default options yet */
+	  type: 'html'          /* jquery ajax type: html, json, xml */
 	};
 	
 	
