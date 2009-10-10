@@ -34,7 +34,7 @@
 * <div id='plays'>
 *    <div id='genre' class='facet'></div>
 *    <div id='play' class='facet'></div>
-*    <div id='results' class='facet'></div>
+*    <div id='results'></div>
 * </div>
 *
 * See the README and FAQ for more information.

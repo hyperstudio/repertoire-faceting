@@ -7872,8 +7872,7 @@ $$ LANGUAGE plpgsql;
 
 DROP INDEX IF EXISTS citizens_fulltext_ndx;  -- to speed up row creation
 
--- SELECT populate(500000);  									 -- this will take about 20-30 minutes
-SELECT populate(10000);												-- works without altering unix shmmem
+SELECT populate(1000000);  									 -- this will take about 20-30 minutes
 
 CREATE INDEX citizens_fulltext_ndx ON citizens USING gin(_fulltext);
 
@@ -7885,8 +7884,8 @@ SELECT renumber_table('citizens', '_packed_id');
 SELECT recreate_table('_citizens_gender_facet', 'SELECT gender, signature(_packed_id) FROM citizens GROUP BY gender');
 SELECT recreate_table('_citizens_occupation_facet', 'SELECT occupation, signature(_packed_id) FROM citizens GROUP BY occupation');
 SELECT recreate_table('_citizens_birth_place_facet', 'SELECT ARRAY [ birth_state, birth_city ] AS birth_place, signature(_packed_id) FROM citizens GROUP BY ARRAY [ birth_state, birth_city ]');
-SELECT recreate_table('_citizens_birthdate_facet', 'SELECT ARRAY[ EXTRACT(year FROM birthdate), EXTRACT(month FROM birthdate), EXTRACT(day FROM birthdate) ] AS birthdate, signature(_packed_id) FROM citizens GROUP BY birthdate');
+SELECT recreate_table('_citizens_birthdate_facet', 'SELECT birthdate, signature(_packed_id) FROM (SELECT (EXTRACT(year FROM birthdate)::integer / 10::integer) * 10 AS birthdate, _packed_id from citizens) AS computed GROUP by birthdate');
 
-CREATE INDEX _citizens_gender_facet_ndx ON _citizens_gender_facet(gender);
-CREATE INDEX _citizens_birth_place_facet_ndx ON _citizens_birth_place_facet(birth_place);
-CREATE INDEX _citizens_birthdate_facet_ndx ON _citizens_birthdate_facet(birthdate);
+CREATE INDEX citizens_last_name_ndx on citizens(last_name);
+
+VACUUM ANALYZE;

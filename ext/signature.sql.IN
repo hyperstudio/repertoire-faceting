@@ -1,5 +1,7 @@
 SET search_path TO 'public';
 
+CREATE TYPE signature;
+
 -- basic i/o functions for signatures
 
 CREATE OR REPLACE FUNCTION sig_in(cstring)

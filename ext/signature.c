@@ -72,6 +72,7 @@ int COUNT_TABLE[] = {
   4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
 };
 
+
 PG_FUNCTION_INFO_V1( sig_in );
 
 Datum
@@ -240,16 +241,13 @@ Datum
 sig_get( PG_FUNCTION_ARGS )
 {
 	Signature *sig;
-	int32 sigbytes,
-	      index,
+	int32 index,
 	      byte_offset,
 				bit_offset,
 				c,
 				bit;
 	
 	sig = PG_GETARG_SIGNATURE_P(0);
-	sigbytes = VARSIZE(sig) - VARHDRSZ - SIGNATUREHDRSZ;
-	
 	index = PG_GETARG_INT32(1);
 	
 	if (index > sig->len) {
@@ -516,24 +514,35 @@ signature_cmp_internal(Signature *sig1, Signature *sig2)
 {
 	int32 sig1bytes, 
 	      sig2bytes,
+	      sig1bits, 
+      	sig2bits,
 	      result,
 				i,
         maxbytes;
 	uint8 ch1, ch2;
 	
-	sig1bytes = (sig1->len + 7) / 8;
-	sig2bytes = (sig2->len + 7) / 8;
+  sig1bytes = sig1->len / 8;
+  sig1bits  = sig1->len % 8;
+  
+  sig2bytes = sig2->len / 8;
+  sig2bits  = sig2->len % 8;
+  
   maxbytes = MAX(sig1bytes, sig2bytes);
 	
-  result = 0;
   i = maxbytes;
   while(result == 0 && i >= 0) {
     ch1 = ch2 = 0;
     if(i < sig1bytes) {
       ch1 = sig1->data[i];
+      if(i+1 == sig1bytes) {
+        ch1 &= 0xFF >> sig1bits;
+      }
     }
-    if(i < sig1bytes) {
+    if(i < sig2bytes) {
       ch2 = sig2->data[i];
+      if(i+1 == sig2bytes) {
+        ch2 &= 0xFF >> sig2bits;
+      }
     }
     if (ch1 > ch2) {
       result = 1;
@@ -552,10 +561,16 @@ PG_FUNCTION_INFO_V1(sig_cmp);
 Datum
 sig_cmp(PG_FUNCTION_ARGS)
 {
-    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
-    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+  Signature   *sig1 = (Signature *) PG_GETARG_POINTER(0);
+  Signature   *sig2 = (Signature *) PG_GETARG_POINTER(1);
+	int32		    result;
 
-    PG_RETURN_INT32(signature_cmp_internal(sig1, sig2));
+	result = signature_cmp_internal(sig1, sig2);
+	
+	PG_FREE_IF_COPY(sig1, 0);
+	PG_FREE_IF_COPY(sig2, 1);
+
+  PG_RETURN_BOOL(result);
 }
 
 
@@ -564,10 +579,16 @@ PG_FUNCTION_INFO_V1(sig_lt);
 Datum
 sig_lt(PG_FUNCTION_ARGS)
 {
-    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
-    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+  Signature   *sig1 = (Signature *) PG_GETARG_POINTER(0);
+  Signature   *sig2 = (Signature *) PG_GETARG_POINTER(1);
+	bool		    result;
 
-    PG_RETURN_BOOL(signature_cmp_internal(sig1, sig2) < 0);
+	result = signature_cmp_internal(sig1, sig2) < 0;
+	
+	PG_FREE_IF_COPY(sig1, 0);
+	PG_FREE_IF_COPY(sig2, 1);
+
+  PG_RETURN_BOOL(result);
 }
 
 
@@ -576,10 +597,16 @@ PG_FUNCTION_INFO_V1(sig_lte);
 Datum
 sig_lte(PG_FUNCTION_ARGS)
 {
-    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
-    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+  Signature   *sig1 = (Signature *) PG_GETARG_POINTER(0);
+  Signature   *sig2 = (Signature *) PG_GETARG_POINTER(1);
+	bool		    result;
 
-    PG_RETURN_BOOL(signature_cmp_internal(sig1, sig2) <= 0);
+	result = signature_cmp_internal(sig1, sig2) <= 0;
+	
+	PG_FREE_IF_COPY(sig1, 0);
+	PG_FREE_IF_COPY(sig2, 1);
+
+  PG_RETURN_BOOL(result);
 }
 
 
@@ -588,10 +615,16 @@ PG_FUNCTION_INFO_V1(sig_eq);
 Datum
 sig_eq(PG_FUNCTION_ARGS)
 {
-    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
-    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+  Signature   *sig1 = (Signature *) PG_GETARG_POINTER(0);
+  Signature   *sig2 = (Signature *) PG_GETARG_POINTER(1);
+	bool		    result;
 
-    PG_RETURN_BOOL(signature_cmp_internal(sig1, sig2) == 0);
+	result = signature_cmp_internal(sig1, sig2) == 0;
+	
+	PG_FREE_IF_COPY(sig1, 0);
+	PG_FREE_IF_COPY(sig2, 1);
+
+  PG_RETURN_BOOL(result);
 }
 
 
@@ -600,10 +633,16 @@ PG_FUNCTION_INFO_V1(sig_gte);
 Datum
 sig_gte(PG_FUNCTION_ARGS)
 {
-    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
-    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+  Signature   *sig1 = (Signature *) PG_GETARG_POINTER(0);
+  Signature   *sig2 = (Signature *) PG_GETARG_POINTER(1);
+	bool		    result;
 
-    PG_RETURN_BOOL(signature_cmp_internal(sig1, sig2) >= 0);
+	result = signature_cmp_internal(sig1, sig2) >= 0;
+	
+	PG_FREE_IF_COPY(sig1, 0);
+	PG_FREE_IF_COPY(sig2, 1);
+
+  PG_RETURN_BOOL(result);
 }
 
 
@@ -612,8 +651,14 @@ PG_FUNCTION_INFO_V1(sig_gt);
 Datum
 sig_gt(PG_FUNCTION_ARGS)
 {
-    Signature    *sig1 = (Signature *) PG_GETARG_POINTER(0);
-    Signature    *sig2 = (Signature *) PG_GETARG_POINTER(1);
+  Signature   *sig1 = (Signature *) PG_GETARG_POINTER(0);
+  Signature   *sig2 = (Signature *) PG_GETARG_POINTER(1);
+	bool		    result;
 
-    PG_RETURN_BOOL(signature_cmp_internal(sig1, sig2) > 0);
+	result = signature_cmp_internal(sig1, sig2) > 0;
+	
+	PG_FREE_IF_COPY(sig1, 0);
+	PG_FREE_IF_COPY(sig2, 1);
+
+  PG_RETURN_BOOL(result);
 }

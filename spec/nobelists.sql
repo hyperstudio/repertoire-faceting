@@ -191,7 +191,6 @@ SELECT recreate_table('_nobelists_discipline_facet',
 SELECT recreate_table('_nobelists_birthdate_facet', 
  											'SELECT birthdate, signature(_packed_id) FROM (SELECT (EXTRACT(year FROM birthdate)::integer / 10::integer) * 10 AS birthdate, _packed_id from nobelists) AS computed GROUP by birthdate');
 											
-
 -- nested, computed facet values  											
 SELECT recreate_table('_nobelists_birth_place_facet', 
  											'SELECT ARRAY[ birth_country, birth_state, birth_city ] AS birth_place, signature(_packed_id) FROM nobelists GROUP BY birth_country, birth_state, birth_city');
