@@ -58,7 +58,7 @@ COPY nobelists (id, name, birthdate, deathdate, birth_country, birth_state, birt
 22	Salvador E. Luria	1912-08-13 00:00:00	1991-02-06 00:00:00	United States of America	Massachusetts	Lexington	\N	Medicine/Physiology	t	Luria	1969	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1969/luria_thumb.jpg	\N
 27	David Baltimore	1938-03-07 00:00:00	\N	United States of America	New York	New York City	\N	Medicine/Physiology	t	Baltimore	1975	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1975/baltimore_thumb.jpg	\N
 23	Steven Weinberg	1933-05-03 00:00:00	\N	United States of America	New York	New York City	\N	Physics	t	Weinberg	1979	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1979/weinberg_thumb.jpg	\N
-46	Samuel C.C. Ting	1936-01-27 00:00:00	\N	United States of America	Ann Arbor	Michigan	\N	Physics	t	Ting	1976	\N	Burton Richter	http://nobelprize.org/nobel_prizes/physics/laureates/1976/ting_thumb.jpg	\N
+46	Samuel C.C. Ting	1936-01-27 00:00:00	\N	United States of America	Michigan	Ann Arbor	\N	Physics	t	Ting	1976	\N	Burton Richter	http://nobelprize.org/nobel_prizes/physics/laureates/1976/ting_thumb.jpg	\N
 34	Franco Modigliani	1918-06-18 00:00:00	2003-09-25 00:00:00	Italy	\N	Rome	\N	Economics	f	Modigliani	1985	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1985/modigliani_thumb.jpg	\N
 26	Susumu Tonegawa	1939-09-06 00:00:00	\N	Japan	\N	Nagoya	\N	Medicine/Physiology	f	Tonegawa	1987	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1987/tonegawa_thumb.jpg	\N
 51	Norman F. Ramsey	1915-08-27 00:00:00	\N	United States of America	District of Columbia	Washington	\N	Physics	f	Ramsey	1989	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1989/ramsey_thumb.jpg	\N
@@ -194,6 +194,7 @@ SELECT recreate_table('_nobelists_birthdate_facet',
 -- nested, computed facet values  											
 SELECT recreate_table('_nobelists_birth_place_facet', 
  											'SELECT ARRAY[ birth_country, birth_state, birth_city ] AS birth_place, signature(_packed_id) FROM nobelists GROUP BY birth_country, birth_state, birth_city');
+SELECT expand_nesting('_nobelists_birth_place_facet', 'birth_place');
  											
 -- facet values in linked table (multivalued)
 SELECT recreate_table('_nobelists_degree_facet', 

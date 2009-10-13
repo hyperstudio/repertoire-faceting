@@ -6,7 +6,7 @@ PG_MODULE_MAGIC;
 
 typedef struct
 {
-	int32   vl_len_; 
+	int32   vl_len_;
 	uint32  len;
 	uint8   data[1];
 }	Signature;
@@ -44,6 +44,7 @@ Datum sig_xor( PG_FUNCTION_ARGS );
 Datum sig_on( PG_FUNCTION_ARGS );
 
 Datum contains( PG_FUNCTION_ARGS );
+Datum members( PG_FUNCTION_ARGS );
 Datum count( PG_FUNCTION_ARGS );
 
 Datum sig_cmp( PG_FUNCTION_ARGS );
@@ -52,6 +53,8 @@ Datum sig_lte( PG_FUNCTION_ARGS );
 Datum sig_eq( PG_FUNCTION_ARGS );
 Datum sig_gt( PG_FUNCTION_ARGS );
 Datum sig_gte( PG_FUNCTION_ARGS );
+
+Datum sig_hash( PG_FUNCTION_ARGS );
 
 int COUNT_TABLE[] = {
   0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
@@ -253,15 +256,15 @@ sig_get( PG_FUNCTION_ARGS )
 	if (index > sig->len) {
 		bit = 0;
 	} else {
-  		byte_offset = index / 8;
-	  	bit_offset  = index % 8;
-	
-	  	c = sig->data[byte_offset];
-	    if (c & (0x80 >> bit_offset)) {
-	      bit = 1;
-	    } else {
-	      bit = 0;
-	    }
+		byte_offset = index / 8;
+  	bit_offset  = index % 8;
+
+  	c = sig->data[byte_offset];
+    if (c & (0x80 >> bit_offset)) {
+      bit = 1;
+    } else {
+      bit = 0;
+    }
 	}
 	
 	PG_FREE_IF_COPY(sig, 0);
@@ -291,20 +294,87 @@ contains( PG_FUNCTION_ARGS )
 	if (index > sig->len) {
 		bit = 0;
 	} else {
-  		byte_offset = index / 8;
-	  	bit_offset  = index % 8;
-	
-	  	c = sig->data[byte_offset];
-	    if (c & (0x80 >> bit_offset)) {
-	      bit = 1;
-	    } else {
-	      bit = 0;
-	    }
+		byte_offset = index / 8;
+  	bit_offset  = index % 8;
+
+  	c = sig->data[byte_offset];
+    if (c & (0x80 >> bit_offset)) {
+      bit = 1;
+    } else {
+      bit = 0;
+    }
 	}
 	
 	PG_FREE_IF_COPY(sig, 0);
 	
 	PG_RETURN_BOOL( bit == 1 );
+}
+
+
+PG_FUNCTION_INFO_V1( members );
+
+typedef struct
+{
+	Signature *sig;
+  int32 index;
+} members_fctx;
+
+Datum 
+members( PG_FUNCTION_ARGS )
+{   
+	FuncCallContext *funcctx;
+  members_fctx *fctx;
+  MemoryContext oldcontext;
+  
+  int32 result;
+	
+  // based on set-returning examples in postgresql source's contrib/tablefunc directory
+
+  // executed on first entry to function
+	if ( SRF_IS_FIRSTCALL() ) {
+    Signature *sig;
+    
+		funcctx = SRF_FIRSTCALL_INIT();
+		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
+		funcctx->max_calls = PG_GETARG_UINT32(0);
+		
+		// save signature, position state across calls
+  	sig = PG_GETARG_SIGNATURE_P(0);
+		fctx = (members_fctx *) palloc(sizeof(members_fctx));
+		fctx->sig = sig;
+    fctx->index = 0;
+
+		funcctx->user_fctx = fctx;
+		MemoryContextSwitchTo(oldcontext);
+	}
+
+  // executed every entry to function
+	funcctx = SRF_PERCALL_SETUP();
+	fctx = funcctx->user_fctx;
+  
+  // return position of next non-zero bit
+  result = -1;
+  while( result < 0 && (fctx->index < fctx->sig->len) ) {
+    int32 byte_offset,
+          bit_offset,
+          c;
+    
+    byte_offset = fctx->index / 8;
+    bit_offset  = fctx->index % 8;
+
+  	c = fctx->sig->data[byte_offset];
+  	if (c & (0x80 >> bit_offset)) {
+      result = fctx->index;
+    }
+    
+    fctx->index++;
+  }
+  
+  // return result
+  if( result >= 0 )
+		SRF_RETURN_NEXT(funcctx, Int32GetDatum(result));
+	else
+		SRF_RETURN_DONE(funcctx); // pgsql documentation claims no palloc mgmt necessary
 }
 
 
@@ -461,20 +531,20 @@ sig_xor( PG_FUNCTION_ARGS )
 	uint8	x;
 	
 	sig = PG_GETARG_SIGNATURE_P(0);
-	bytes = VARSIZE(sig) - VARHDRSZ - SIGNATUREHDRSZ;
-	bits = sig->len % 8;
+  bytes = sig->len / 8;
+	bits  = sig->len % 8;
 	
-	res = (Signature *) palloc0( bytes + VARHDRSZ + SIGNATUREHDRSZ );
-	SET_VARSIZE(res, bytes + VARHDRSZ + SIGNATUREHDRSZ );
+	res = (Signature *) palloc0( bytes + 1 + VARHDRSZ + SIGNATUREHDRSZ );
+	SET_VARSIZE(res, bytes + 1 + VARHDRSZ + SIGNATUREHDRSZ );
 	res->len = sig->len;
 	
-	for(i=0; i<bytes; i++) {
+	for(i=0; i<=bytes; i++) {
 		res->data[i] = ~(sig->data[i]);
 	}
 	
 	if (bits > 0) {
 		x = 0xFF >> bits;
-		res->data[bytes-1] &= ~x;
+		res->data[bytes] &= ~x;
 	}
 	
 	PG_FREE_IF_COPY(sig, 0);
@@ -519,29 +589,32 @@ signature_cmp_internal(Signature *sig1, Signature *sig2)
 	      result,
 				i,
         maxbytes;
-	uint8 ch1, ch2;
+	uint8 ch1, ch2,
+	      x;
 	
   sig1bytes = sig1->len / 8;
   sig1bits  = sig1->len % 8;
   
   sig2bytes = sig2->len / 8;
   sig2bits  = sig2->len % 8;
-  
+    
   maxbytes = MAX(sig1bytes, sig2bytes);
 	
-  i = maxbytes;
-  while(result == 0 && i >= 0) {
+  result = i = 0;
+  while(result == 0 && i <= maxbytes) {
     ch1 = ch2 = 0;
-    if(i < sig1bytes) {
+    if(i <= sig1bytes) {
       ch1 = sig1->data[i];
-      if(i+1 == sig1bytes) {
-        ch1 &= 0xFF >> sig1bits;
+      if(i == sig1bytes && sig1bits > 0) {
+        x = 0xFF >> sig1bits;
+        ch1 &= ~x;
       }
     }
-    if(i < sig2bytes) {
+    if(i <= sig2bytes) {
       ch2 = sig2->data[i];
-      if(i+1 == sig2bytes) {
-        ch2 &= 0xFF >> sig2bits;
+      if(i == sig2bytes && sig2bits > 0) {
+        x = 0xFF >> sig2bits;
+        ch2 &= ~x;
       }
     }
     if (ch1 > ch2) {
@@ -549,7 +622,7 @@ signature_cmp_internal(Signature *sig1, Signature *sig2)
     } else if (ch1 < ch2) {
       result = -1;
     }
-    i--;
+    i++;
   }
 	
   return result;
@@ -570,7 +643,7 @@ sig_cmp(PG_FUNCTION_ARGS)
 	PG_FREE_IF_COPY(sig1, 0);
 	PG_FREE_IF_COPY(sig2, 1);
 
-  PG_RETURN_BOOL(result);
+  PG_RETURN_INT32(result);
 }
 
 

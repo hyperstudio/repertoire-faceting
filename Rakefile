@@ -5,7 +5,7 @@ require 'merb-core'
 require 'merb-core/tasks/merb'
 
 GEM_NAME = "repertoire_faceting"
-GEM_VERSION = "0.3.2"
+GEM_VERSION = "0.3.3"
 AUTHOR = "Christopher York"
 EMAIL = "yorkc@mit.edu"
 HOMEPAGE = "http://hyperstudio.mit.edu/repertoire"

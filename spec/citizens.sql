@@ -3,8 +3,9 @@
 --
 -- File creates a large database of fictional U.S. citizens with statistically-appropriate names and geography
 --
--- N.B.  Creating the demo database will take approximately 30 mins.  Your postgres server must be tuned for a large shared memory
---       or it may drop connections - see the database documentation.
+-- N.B.  Creating the demo database will take approximately 30 mins.  Your postgres server should be tuned for a large shared memory
+--       -- see the postgresql wiki at http://www.postgresqldocs.org/wiki/Tuning_Your_PostgreSQL_Server .  (However, the
+--       demo will run without tuning.)
 -- 
 --
 
@@ -7883,7 +7884,7 @@ CREATE INDEX citizens_fulltext_ndx ON citizens USING gin(_fulltext);
 SELECT renumber_table('citizens', '_packed_id');
 SELECT recreate_table('_citizens_gender_facet', 'SELECT gender, signature(_packed_id) FROM citizens GROUP BY gender');
 SELECT recreate_table('_citizens_occupation_facet', 'SELECT occupation, signature(_packed_id) FROM citizens GROUP BY occupation');
-SELECT recreate_table('_citizens_birth_place_facet', 'SELECT ARRAY [ birth_state, birth_city ] AS birth_place, signature(_packed_id) FROM citizens GROUP BY ARRAY [ birth_state, birth_city ]');
+SELECT recreate_table('_citizens_birth_place_facet', 'SELECT ARRAY [ birth_state, birth_city ] AS birth_place, signature(_packed_id) FROM citizens GROUP BY ARRAY [ birth_state, birth_city ]'); SELECT expand_nesting('_citizens_birth_place_facet', 'birth_place');
 SELECT recreate_table('_citizens_birthdate_facet', 'SELECT birthdate, signature(_packed_id) FROM (SELECT (EXTRACT(year FROM birthdate)::integer / 10::integer) * 10 AS birthdate, _packed_id from citizens) AS computed GROUP by birthdate');
 
 CREATE INDEX citizens_last_name_ndx on citizens(last_name);

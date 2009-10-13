@@ -154,3 +154,8 @@ A. Up to about 500,000 items, supposing 6-8 simultaneous facets with domains any
    the size of most commonly available datasets.  See the citizens example in the specs directory & example faceting app.
    
    It has been tested with up to 1,000,000 items, but this requires unix configuration to give Postgresql lots of shared memory.
+
+
+Q. My nested facet widget is empty!
+
+A. Did you remember to call expand_nesting(<facet index table>, <facet name>) after creating your index?

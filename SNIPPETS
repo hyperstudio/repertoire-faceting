@@ -197,3 +197,49 @@ end
         refinements.empty? ? nil : adapter.filter(storage_name, refinements)
       end
     end
+
+
+
+-- extra functions for hash operator class (but for some reason postgres' hash_any fn core dumps.  params not right?
+-- no big advantage, since will rarely be merging more than 10 signatures with UNION
+
+--CREATE OR REPLACE FUNCTION sig_hash( signature )
+--  RETURNS int4
+--  AS 'signature.so', 'sig_hash'
+--  LANGUAGE C STRICT IMMUTABLE;	
+
+--CREATE OPERATOR CLASS signature_ops
+--DEFAULT FOR TYPE signature USING hash AS
+--    OPERATOR    1   = ,
+--    FUNCTION    1   sig_hash(signature);
+
+
+/*
+PG_FUNCTION_INFO_V1(sig_hash);
+
+Datum
+sig_hash(PG_FUNCTION_ARGS)
+{
+	Signature *sig = (Signature *) PG_GETARG_POINTER(0);
+	int32     sig_bytes,
+            sig_bits;
+  uint8     x;
+	Datum		  result;
+	
+  sig_bytes = sig->len / 8;
+  sig_bits  = sig->len % 8;
+  
+  // clear unused bits to ensure hash equality
+  if (sig_bits > 0) {
+  	x = 0xFF >> sig_bits;
+  	sig->data[sig_bytes] &= ~x;
+  }
+
+	result = hash_any((unsigned char *) sig->data, sig_bytes + 1);
+
+	// Avoid leaking memory for toasted inputs
+	PG_FREE_IF_COPY(sig, 0);
+
+	PG_RETURN_DATUM(result);
+}
+*/

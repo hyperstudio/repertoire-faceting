@@ -1,28 +1,11 @@
+DESIRED FEATURES / IMPROVEMENTS.
+
 -- migrations using DM facet declarations
--- clean up sql generation in postgres adapter
--- determine exact memory requirements of postgres scalability example
+-- clean up sql generation in postgres adapter  DONE
+-- determine exact memory requirements of postgres scalability example  DONE
+-- optimise queries up to 1,000,000 scalability target DONE
 
-
-POTENTIAL OPTIMISATIONS:
-
-!! USER INDEXING ON THE COLUMN ITEM RESULTS ARE ORDERED ON IMPROVES PERFORMANCE FROM 620ms to 111ms FOR FULL SEARCH (WHEN BASE IS FULLTEXT QUERY)
-
-TOP GAIN:
--- when base query is empty, don't include it in facet counts (750ms / million)
--- expand nesting in the signature table rather than at query-time 
-   [ would allow indices over deeply nested facets & no aggregation, simplify queries at expense of additional index step for user ]
-
--- to get around the two connection limit, bundle all of the facets' count requests into a single ajax call that's dispatched by the
-   faceting context
-	* fetch() acts as a queue: in update(), widgets can see the other pending requests and then merge with one of them.  if no new
-	  ajax calls received for e.g. 5ms, then existing ones are sent in order
-	* in ruby, a wrapper called multiplex can iterate over a list and bundle up json results to send back
-	* fetch receives the results, finds the callback for each, and fires it with its data packet
-	
-LOWER GAIN:
--- cache base query in all cases (750ms / million first hit - except fulltext queries drop from 750ms to 5.225 at 3 queries in a row)
--- cache base & filter once across all facets' counts in a context ( 765ms / million with several refinements, subject to same as above)
--- avoid all instances of UNION (it sorts)
-
-USER EXPERIENCE:
--- provide a graphical spinner to improve perception of query response
+-- modify widgets to multiplex ajax calls to work around 2 call limit in many browsers
+   [ design: fetch() queues ajax calls; update() implementations request queue and merge current webservice call with
+             ones already in the queue.  on controller side, receive multiple facet names, iterate, and bundle.  fetch()
+             then unbundles the results can dispatches them to appropriate callbacks ]

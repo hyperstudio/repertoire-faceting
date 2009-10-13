@@ -9,20 +9,34 @@ module Repertoire
         model         = query.model
         conditions    = query.conditions
         nesting_level = refinement_nesting_level(facet, refinements, logic)
-
+        
         base_signature_statement, bind_values = base_signature_statement(query, refinements, logic)
-        facet_statement = facet_statement(model, facet, refinements, logic)
-        conditions = []
-        conditions << "count >= #{count_minimum}"        if count_minimum > 0
-        conditions << "#{quote_name(facet)} IS NOT NULL" if !nullable
+        refinements_statement, bind_values    = refinements_statement(model, refinements, logic, bind_values)
         
         nesting_point = nesting_level ? "[#{nesting_level}]" : ""
         
-        statement = "SELECT #{quote_name(facet)}, count FROM ("
-        statement << "SELECT #{quote_name(facet)}#{nesting_point}, count(facet.signature & base.signature)"
-        statement << " FROM #{facet_statement} AS facet, #{base_signature_statement} AS base"
+        signature_expr = ["facet.signature"]
+        signature_expr << "base.signature"   unless base_signature_statement.empty?
+        signature_expr << "filter.signature" unless refinements_statement.empty?
+        
+        inner_conditions = []
+        if nesting_level
+          inner_conditions << "array_length(#{quote_name(facet)}, 1) = ?"
+          bind_values      << nesting_level
+        end
+        
+        outer_conditions = []
+        outer_conditions << "count >= #{count_minimum}"        if count_minimum > 0
+        outer_conditions << "#{quote_name(facet)} IS NOT NULL" if !nullable
+        
+        statement =  "SELECT #{quote_name(facet)}, count FROM ("
+        statement << "SELECT #{quote_name(facet)}#{nesting_point}, count(#{signature_expr.join(' & ')})"
+        statement << " FROM #{quote_name(model.facet_storage_name(facet))} AS facet"
+        statement << ", (#{base_signature_statement}) AS base"        unless base_signature_statement.empty?
+        statement << ", (#{refinements_statement}) AS filter"         unless refinements_statement.empty?
+        statement << " WHERE #{inner_conditions}"                     unless inner_conditions.empty?
         statement << ") AS facet_counts"
-        statement << " WHERE #{conditions.join(' AND ')}" unless conditions.empty?
+        statement << " WHERE #{outer_conditions.join(' AND ')}"       unless outer_conditions.empty?
         statement << " ORDER BY #{facet_count_order_statement(facet, count_order)}"
 
         read_array_from_sql([type, Integer], statement, bind_values)
@@ -47,10 +61,24 @@ module Repertoire
         qualify    = false
 
         base_signature_statement, bind_values = base_signature_statement(query, refinements, logic)
+        refinements_statement, bind_values    = refinements_statement(model, refinements, logic, bind_values)
+        
+        signature_expr = []
+        signature_expr << "base.signature"   unless base_signature_statement.empty?
+        signature_expr << "filter.signature" unless refinements_statement.empty?
+        
+        faceted_expr = []
+        faceted_expr << "(#{base_signature_statement}) AS base"   unless base_signature_statement.empty?
+        faceted_expr << "(#{refinements_statement}) AS filter"    unless refinements_statement.empty?
         
         statement = "SELECT #{columns_statement(fields, qualify)}"
-        statement << " FROM #{quote_name(model.storage_name(name))}, (#{base_signature_statement}) AS facet_results"
-        statement << " WHERE contains(facet_results.signature, #{quote_name(model.signature_id_column)})"
+        statement << " FROM #{quote_name(model.storage_name(name))}"
+        unless signature_expr.empty?
+          statement << ", (SELECT members(#{signature_expr.join(' & ')}) FROM "
+          statement << faceted_expr.join(', ')
+          statement << ") AS faceted"
+          statement << " WHERE #{quote_name(model.storage_name(name))}.#{quote_name(model.signature_id_column)} = faceted.members"
+        end
         statement << " ORDER BY #{order_statement(order_by, qualify)}"   if order_by && order_by.any?
 
         add_limit_offset!(statement, limit, offset, bind_values)
@@ -58,20 +86,7 @@ module Repertoire
         read_hash_from_sql(fields, statement, bind_values)
       end
         
-      private  
-      
-      def facet_statement(model, facet, refinements, logic)
-        if logic[facet] == :nested
-          nesting_level = refinement_nesting_level(facet, refinements, logic)
-          nesting_range = "[1:#{nesting_level}]"
-          
-          expr = "(SELECT #{quote_name(facet)}#{ nesting_range } AS #{quote_name(facet)}, collect(signature) AS signature"
-          expr << " FROM #{quote_name(model.facet_storage_name(facet))}"
-          expr << " GROUP BY #{quote_name(facet)}#{ nesting_range })"
-        else # and- or or- style facet
-          expr = quote_name(model.facet_storage_name(facet))
-        end
-      end
+      private
       
       def refinement_nesting_level(facet, refinements, logic)
         case
@@ -102,17 +117,12 @@ module Repertoire
         qualify     = false
 
         conditions_statement, bind_values = conditions_statement(conditions, qualify)
-        refinements_statement, bind_values = refinements_statement(model, refinements, logic, bind_values)
       
-        statement =  "(SELECT filter(signature) AS signature FROM ("
-        statement << "SELECT signature(#{quote_name(model.signature_id_column)}) FROM #{quote_name(model.storage_name(name))}"
+        statement = ""
         unless conditions_statement.blank?
+          statement << "SELECT signature(#{quote_name(model.signature_id_column)}) FROM #{quote_name(model.storage_name(name))}"
           statement << " WHERE #{conditions_statement}"
         end
-        unless refinements_statement.blank?
-          statement << " UNION #{refinements_statement}"
-        end
-        statement << ") AS filter)"
 
         return statement, bind_values
       end
@@ -135,20 +145,19 @@ module Repertoire
           bind_values += values
         end
         
-        return statements.join(' UNION '), bind_values
+        filtered_stmt = ""
+        filtered_stmt << "SELECT filter(signature) AS signature FROM (#{statements.join(' UNION ')}) AS filter_elems" unless statements.empty?
+        
+        return filtered_stmt, bind_values
       end
       
       def facet_value_conditions(facet, values, logic)
         placeholders = values.map { '?' }
-        statement = []
-        if logic[facet] == :nested
-          values.each_with_index do |v, i|
-            statement << " #{quote_name(facet.to_s)}[#{i+1}] = ?"
-          end
-        else
-          statement << " #{quote_name(facet.to_s)} IN (#{placeholders.join(', ')})"
+        statement = case logic[facet]
+          when :nested then " #{quote_name(facet.to_s)} = ARRAY [ #{placeholders.join(', ')} ]"
+          else              " #{quote_name(facet.to_s)} IN (#{placeholders.join(', ')})"
         end
-        statement.join(' AND ')
+        return statement
       end
       
       def read_hash_from_sql(fields, statement, bind_values)

@@ -78,7 +78,12 @@ CREATE OR REPLACE FUNCTION count( signature )
 CREATE OR REPLACE FUNCTION contains( signature, INT )
   RETURNS BOOL
   AS 'signature.so', 'contains'
-  LANGUAGE C STRICT IMMUTABLE;
+  LANGUAGE C STRICT IMMUTABLE;	
+	
+CREATE OR REPLACE FUNCTION members( signature )
+RETURNS SETOF INT
+AS 'signature.so', 'members'
+LANGUAGE C STRICT IMMUTABLE;
   
 CREATE OR REPLACE FUNCTION sig_cmp( signature, signature )
   RETURNS INT
@@ -162,7 +167,7 @@ CREATE OPERATOR > (
    restrict = scalargtsel, join = scalargtjoinsel
 );
 
--- btree index operator class for signatures
+-- index operator classes for signatures
 
 CREATE OPERATOR CLASS signature_ops
     DEFAULT FOR TYPE signature USING btree AS
@@ -172,7 +177,6 @@ CREATE OPERATOR CLASS signature_ops
         OPERATOR        4       >= ,
         OPERATOR        5       > ,
         FUNCTION        1       sig_cmp(signature, signature);
-
 
 -- aggregate functions for faceting
 
@@ -197,30 +201,8 @@ CREATE AGGREGATE filter( signature )
 
 -- utility functions for maintaining facet indices
 
-CREATE OR REPLACE FUNCTION renumber_table(tbl TEXT, col TEXT) RETURNS VOID AS $$
-DECLARE
-  seq TEXT;
-BEGIN
-  seq = tbl || '_' || col || '_seq';
-
-  -- Set up numbered column if it doesn't already exist
-  SET client_min_messages = 'WARNING';
-  BEGIN
-    EXECUTE 'CREATE SEQUENCE ' || quote_ident(seq) || ' MINVALUE 0 ';
-    EXECUTE 'ALTER TABLE ' || quote_ident(tbl) || ' ADD COLUMN ' || quote_ident(col) || ' INT4 DEFAULT nextval(''' || quote_ident(seq) || ''')';
-    EXECUTE 'ALTER SEQUENCE ' || quote_ident(seq) || ' OWNED BY ' || quote_ident(tbl) || '.' || quote_ident(col);
-  EXCEPTION
-    WHEN duplicate_table THEN NULL;
-    WHEN duplicate_column THEN NULL;
-  END;
-  RESET client_min_messages;
-
-  --  Update numbered column
-  EXECUTE 'ALTER SEQUENCE ' || quote_ident(tbl || '_' || col || '_seq') || ' RESTART 0';
-  EXECUTE 'UPDATE ' || quote_ident(tbl) || ' SET ' || quote_ident(col) || ' = DEFAULT';
-END;
-$$ LANGUAGE plpgsql;
-
+-- Utility function to drop and recreate a table, given an sql select statement
+--
 CREATE OR REPLACE FUNCTION recreate_table(tbl TEXT, select_expr TEXT) RETURNS VOID AS $$
 BEGIN
   SET client_min_messages = warning;
@@ -230,6 +212,57 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+-- Utility function to add or update a packed id column on a table
+--
+
+CREATE OR REPLACE FUNCTION renumber_table(tbl TEXT, col TEXT) RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN renumber_table(tbl, col, 0.15);
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION renumber_table(tbl TEXT, col TEXT, threshold REAL) RETURNS BOOLEAN AS $$
+DECLARE
+  seq TEXT;
+  wastage REAL;
+  renumber BOOLEAN;
+BEGIN
+  seq = tbl || '_' || col || '_seq';
+
+  -- Drop numbered column if it already exists
+  SET client_min_messages = 'WARNING';
+  BEGIN
+    IF signature_wastage(tbl, col) <= threshold THEN
+      renumber := false;
+    ELSE
+      renumber := true;
+      EXECUTE 'DROP INDEX IF EXISTS ' || quote_ident(tbl || '_' || col || '_ndx');
+      EXECUTE 'ALTER TABLE ' || quote_ident(tbl) || ' DROP COLUMN ' || quote_ident(col);
+      EXECUTE 'DROP SEQUENCE IF EXISTS ' || quote_ident(seq);
+    END IF;
+  EXCEPTION
+    WHEN undefined_column THEN renumber := true;
+  END;
+  RESET client_min_messages;
+
+  --  Create numbered column & its index
+  IF renumber THEN
+    EXECUTE 'CREATE SEQUENCE ' || quote_ident(seq) || ' MINVALUE 0 ';
+    EXECUTE 'ALTER TABLE ' || quote_ident(tbl) || ' ADD COLUMN ' || quote_ident(col) || ' INT4 DEFAULT nextval(''' || quote_ident(seq) || ''')';
+    EXECUTE 'ALTER SEQUENCE ' || quote_ident(seq) || ' OWNED BY ' || quote_ident(tbl) || '.' || quote_ident(col);
+    EXECUTE 'CREATE INDEX ' || quote_ident(tbl || '_' || col || '_ndx') || ' ON ' || quote_ident(tbl) || '(' || col || ')';
+  END IF;
+
+  RETURN renumber;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Utility function to measure how many elements in a loosely-packed id column are wasted
+--   returns a float between 0 (no waste) and 1.0 (all waste)
+--
 CREATE OR REPLACE FUNCTION signature_wastage(tbl TEXT, col TEXT) RETURNS REAL AS $$
 DECLARE
   histogram signature;
@@ -237,5 +270,43 @@ BEGIN
   EXECUTE 'SELECT signature(' || quote_ident(col) || ') FROM ' || quote_ident(tbl)
           INTO histogram;
   RETURN 1.0 - (count(histogram)::REAL / sig_length(histogram)::REAL);
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Utility function to expand nesting in facet indices
+--
+--  Initially a acet index will include only leaves of 
+--  nesting tree.  This function adds all interior nodes
+--  with their respective aggregate signatures, and adds a
+--  postgresql index to the nested facet value.
+--
+-- e.g. given the facet values
+--   '{USA,Florida}'  '10'
+--   '{USA,Iowa}'     '01'
+--
+-- the function inserts
+--   '{USA}'          '11'
+--
+-- N.B. expand_nesting may only be called once on a table
+--      it refuses to add internal node duplicates
+--
+CREATE OR REPLACE FUNCTION expand_nesting(tbl TEXT, col TEXT) RETURNS VOID AS $$
+DECLARE
+  len INTEGER;
+BEGIN
+  -- add unique index on facet value column
+  EXECUTE 'CREATE UNIQUE INDEX ' || tbl || '_' || col || '_ndx  ON ' || quote_ident(tbl) || '(' || quote_ident(col) || ')';
+  -- compute maximum nesting length for facet values
+  EXECUTE 'SELECT max(array_length(' || quote_ident(col) || ', 1)) FROM ' || quote_ident(tbl)
+    INTO len;
+  -- expand each level
+  FOR i IN REVERSE (len-1)..1 LOOP
+    EXECUTE 'INSERT INTO ' || quote_ident(tbl) || '(' || quote_ident(col) || ', signature)'
+	  || ' SELECT ' || quote_ident(col) || '[1:' || i || '], collect(signature)'
+	  || ' FROM ' || quote_ident(tbl)
+	  || ' WHERE array_length(' || quote_ident(col) || ', 1) > ' || i
+	  || ' GROUP BY ' || quote_ident(col) || '[1:' || i || ']';
+  END LOOP;
 END;
 $$ LANGUAGE plpgsql;

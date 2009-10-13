@@ -102,7 +102,7 @@ describe "Repertoire faceting" do
       results = Nobelist.facet_results(:degree => ['Ph.D.', 'S.B.'], :logic => {:degree => :or})
       results.size.should == 24
     end
-    
+
   end
 
   describe "facet value counts" do
@@ -156,7 +156,7 @@ describe "Repertoire faceting" do
       counts = Nobelist.facet_count('nobel_year', :birth_state => 'Kentucky', :refinements => query)
       counts.should == expected
     end  
-  
+    
     it "should allow drill-down in nested facet values" do
       expected = [["United States of America", 31], [nil, 15], ["Germany", 4], ["Canada", 3], ["England", 2], ["British India", 1], 
                   ["British Mandate of Palestine", 1], ["Italy", 1], ["Japan", 1], ["Korea", 1], ["Mexico", 1], 
@@ -165,8 +165,8 @@ describe "Repertoire faceting" do
       counts.should == expected
 
       expected = [["New York", 7], ["California", 4], ["Massachusetts", 3], ["Pennsylvania", 3], ["Florida", 2], ["Illinois", 2], 
-                  ["Ann Arbor", 1], ["Connecticut", 1], ["District of Columbia", 1], ["Indiana", 1], ["Kentucky", 1], ["Nebraska", 1], 
-                  ["North Carolina", 1], ["South Carolina", 1], ["Virginia", 1], ["West Virginia", 1]]
+                  ["Connecticut", 1], ["District of Columbia", 1], ["Indiana", 1], ["Kentucky", 1], ["Michigan", 1], 
+                  ["Nebraska", 1], ["North Carolina", 1], ["South Carolina", 1], ["Virginia", 1], ["West Virginia", 1]]
       counts = Nobelist.facet_count(:birth_place, :birth_place => [ 'United States of America' ])
       counts.should == expected
     
@@ -174,14 +174,14 @@ describe "Repertoire faceting" do
       counts = Nobelist.facet_count(:birth_place, :birth_place => [ 'United States of America', 'New York' ])
       counts.should == expected
     
-      expected = [[nil, 4]]           # logically correct: means there are 4 matching items, but all are blank at nesting level 4
+      expected = []
       counts = Nobelist.facet_count(:birth_place, :birth_place => [ 'United States of America', 'New York', 'New York City' ])
       counts.should == expected
     end
-    
+
     it "should allow drill-down in nested facet values using refinements in a variable" do
       query = {:birth_place => [ 'United States of America', 'New York', 'New York City' ] }
-      expected = [[nil, 4]]                
+      expected = []                
       counts = Nobelist.facet_count(:birth_place, :refinements => query)
       counts.should == expected
     end
@@ -207,7 +207,6 @@ describe "Repertoire faceting" do
   	  counts = Nobelist.facet_count(:degree, :nullable => false)
   	  counts.should == expected
   	end
-
   end
 
 end

@@ -190,11 +190,13 @@ INSERT INTO crontab(notice, role, task, interval)
        'FROM project JOIN project_features ON (project_id = project.id) JOIN features ON (feature_id = features.id) ' ||
        'GROUP BY features.name');
 
-[ Finally, to index nested facets collect the values into an array ]
+[ Finally, to index nested facets collect the values into an array.  Then call expand_nesting to post-process the facet index.
+  (This adds entries for interior nodes in the nesting tree.) ]
 
 ... SELECT recreate_table('_project_start_facet',
        'SELECT ARRAY[ EXTRACT(year FROM date), EXTRACT(month FROM date), EXTRACT(day FROM date) ] AS start, signature(_packed_id) ' || 
        'FROM project GROUP BY date');
+    SELECT expand_nesting('_project_start_facet', 'start');
 
 
 == Faceted Navigation ==
@@ -220,16 +222,17 @@ WHERE count > 0 ORDER BY count DESC, feature ASC;
 
 = or, to get facet results (e.g.):
 
-SELECT * FROM project WHERE contains(base & filter, _packed_id) ...;
+SELECT * FROM project WHERE contains(base & filter, _packed_id) ...;          -- option 1: contains(signature, int) -> boolean
+SELECT * FROM project, members(base & filter) WHERE _packed_id = members ...; -- option 2: members(signature) -> set of int
 
-= a variation: to get counts for a facet with nested values, aggregate the relevant signatures using 'collect':
-[ e.g. start_date might hold {1912,'February',30}, so this would get facet value counts for months in 1912 ]
-[      and the same modification made when filtering ]
+[ of these, the second will generally be faster since it allows Postgres to do a merge join rather than a nested loop ]
+
+= a variation: to get counts for a facet with nested values, send in an array
 
 SELECT start_date, count FROM
-  (SELECT start_date[1:2], count(<base> & <filter> & collect(signature))
+  (SELECT start_date, count(<base> & <filter> & signature)
    FROM _project_start_date_facet
-   GROUP BY start_date[1:2]) AS facet
+   WHERE start_date[1:2] = ARRAY [ '1993', '12' ]) AS facet
 WHERE count > 0 ORDER BY count DESC, start_date ASC;
        
 = putting it all together - if you're querying directly using SQL, you'll probably use sub-selects to compute the base and filter
