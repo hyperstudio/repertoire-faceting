@@ -41,10 +41,11 @@
 *
 * TODO. can the css for this module be namespaced?
 */
+
+// claim a single global namespace, 'repertoire'
+repertoire = {};
+
 (function($) {
-  
-  // claim a single global namespace, 'repertoire'
-  repertoire = {};
   
   //
   // Register an element as the faceting context,
@@ -73,7 +74,7 @@
   repertoire.plugin = function(self) {
     var fn = function(options) {
       return this.each(function() {
-        var settings = $.extend({}, fn.defaults, html_options($(this)), options);
+        var settings = $.extend({}, repertoire.defaults, fn.defaults, html_options($(this)), options);
         self($(this), settings).initialize();
       });
     };
@@ -87,6 +88,15 @@
         title: $elem.attr('title')
       };
     }
+  };
+  
+  // Global defaults inherited by all widgets
+  //
+  // Options:
+  //   path_prefix - prefix to add before all generated urls
+  //
+  repertoire.defaults = {
+    path_prefix: ''
   };
   
   //
@@ -105,13 +115,13 @@
   //
   // Options on all subclassed widgets:
   //
-  //   url        - provide a url to over-ride the widget's default
-  //   context    - name of faceting context (otherwise defaults to context element's id)
-  //   spinner    - css class to add to widget during ajax loads
-  //   error      - text to display if ajax load fails
-  //   injectors  - additional jquery markup to inject into widget (see FAQ)
-  //   handlers   - additional jquery event handlers to add to widget (see FAQ)
-  //   pre_update - additional pre-processing for params sent to webservice (see FAQ)
+  //   url         - provide a url to over-ride the widget's default
+  //   context     - name of faceting context (otherwise defaults to context element's id)
+  //   spinner     - css class to add to widget during ajax loads
+  //   error       - text to display if ajax load fails
+  //   injectors   - additional jquery markup to inject into widget (see FAQ)
+  //   handlers    - additional jquery event handlers to add to widget (see FAQ)
+  //   pre_update  - additional pre-processing for params sent to webservice (see FAQ)
   //
   // Sub-classes are required to over-ride two methods: self.update() and self.render().
   // See the documentation for these methods for more details.
@@ -201,7 +211,7 @@
     // or use self.fetch for a generic webservice, e.g.
     //
     // self.update = function(state, callback) {
-    //   var url = self.default_url(['', 'projects', 'results']);
+    //   var url = self.default_url(['projects', 'results']);
     //   self.fetch(state, url, 'html', callback);
     // }
     //
@@ -345,7 +355,11 @@
     // Format a webservice url, preferring options.url if possible
     //
     self.default_url = function(default_parts) {
-      return options.url || (default_parts.join('/'));
+      var path_prefix = options.path_prefix || '';
+      var parts = default_parts.slice();
+      
+      parts.unshift(path_prefix);
+      return options.url || parts.join('/');
     };
     
     //
@@ -468,7 +482,7 @@
     //
     self.update = function(state, callback) {
       // default url is '<context>/results'
-      var url = self.default_url(['', self.context_name(), 'results']);
+      var url = self.default_url([self.context_name(), 'results']);
       // package up the faceting state and send back to results rendering service
       self.fetch(state, url, options.type, callback);
     }
@@ -546,7 +560,7 @@
     //
     self.update = function(state, callback) {
       // default url is '<context>/results'
-      var url = self.default_url(['', self.context_name(), 'counts', self.facet_name()]);
+      var url = self.default_url([self.context_name(), 'counts', self.facet_name()]);
       // package up the faceting state and send back to results rendering service
       self.fetch(state, url, 'json', callback);
     };
