@@ -13,5 +13,5 @@
 .rep .facet .values .value .label { position: relative; left: 0.5em;}
 .rep .facet .values .value .label:hover,
 .rep .facet .nesting_level:hover  { cursor: pointer; text-decoration: underline; }
-.loading .spinner                 { background: url(images/spinner_sm.gif) no-repeat left center; float:right; min-height:15px; min-width:15px;}
+.loading .spinner                 { background: url(../images/repertoire-faceting/spinner_sm.gif) no-repeat left center; float:right; min-height:15px; min-width:15px;}
 .loading .mask                    { background: rgba(255, 255, 255, 0.6); position:absolute; top:0; left:0; width: 100%; height: 100%; }

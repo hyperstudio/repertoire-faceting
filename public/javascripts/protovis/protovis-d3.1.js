@@ -325,20 +325,20 @@ Date.prototype.format = function(format) {
   return format.replace(/%[a-zA-Z0-9]/g, function(s) {
       switch (s) {
         case '%a': return [
-            "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+            "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
           ][d.getDay()];
         case '%A': return [
             "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
-            "Saturday",
+            "Saturday"
           ][d.getDay()];
         case '%h':
         case '%b': return [
             "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-            "Oct", "Nov", "Dec",
+            "Oct", "Nov", "Dec"
           ][d.getMonth()];
         case '%B': return [
             "January", "February", "March", "April", "May", "June", "July",
-            "August", "September", "October", "November", "December",
+            "August", "September", "October", "November", "December"
           ][d.getMonth()];
         case '%c': return d.toLocaleString();
         case '%C': return pad(Math.floor(d.getFullYear() / 100) % 100);
@@ -439,8 +439,7 @@ try {
  * @returns {string} a conformant JavaScript 1.6 source code.
  */
   pv.parse = function(js) { // hacky regex support
-    var re = new RegExp("function(\\s+\\w+)?\\([^)]*\\)\\s*", "mg"), m, i = 0;
-    var s = "";
+    var re = new RegExp("function(\\s+\\w+)?\\([^)]*\\)\\s*", "mg"), m, d, i = 0, s = "";
     while (m = re.exec(js)) {
       var j = m.index + m[0].length;
       if (js.charAt(j--) != '{') {
@@ -1080,7 +1079,7 @@ pv.version = {
    * @type number
    * @constant
    */
-  minor: 0
+  minor: 1
 };
 
 /**
@@ -1196,16 +1195,23 @@ pv.logCeil = function(x, b) {
  * @param {number} value the value to be searched for.
  * @returns the index of the search value, if it is contained in the array;
  * otherwise, (-(<i>insertion point</i>) - 1).
+ * @param {function} [f] an optional key function.
  */
-pv.search = function(array, value) {
+pv.search = function(array, value, f) {
+  if (!f) f = pv.identity;
   var low = 0, high = array.length - 1;
   while (low <= high) {
-    var mid = (low + high) >> 1, midValue = array[mid];
+    var mid = (low + high) >> 1, midValue = f(array[mid]);
     if (midValue < value) low = mid + 1;
     else if (midValue > value) high = mid - 1;
     else return mid;
   }
   return -low - 1;
+};
+
+pv.search.index = function(array, value, f) {
+  var i = pv.search(array, value, f);
+  return (i < 0) ? (-i - 1) : i;
 };
 /**
  * Returns a {@link pv.Tree} operator for the specified array. This is a
@@ -1924,7 +1930,7 @@ pv.Scale.interpolator = function(start, end) {
  * @returns {pv.Scale.linear} a linear scale.
  */
 pv.Scale.linear = function() {
-  var d = [0, 1], r = [0, 1], i = [pv.identity];
+  var d = [0, 1], r = [0, 1], i = [pv.identity], precision = 0;
 
   /** @private */
   function scale(x) {
@@ -2074,7 +2080,21 @@ pv.Scale.linear = function() {
     else if (span / step < 5) step /= 2;
     var start = Math.ceil(min / step) * step,
         end = Math.floor(max / step) * step;
+    precision = Math.max(0, -Math.floor(pv.log(step, 10) + .01));
     return pv.range(start, end + step, step);
+  };
+
+  /**
+   * Formats the specified tick value using the appropriate precision, based on
+   * the step interval between tick marks.
+   *
+   * @function
+   * @name pv.Scale.linear.prototype.tickFormat
+   * @param {number} t a tick value.
+   * @return {string} a formatted tick value.
+   */
+  scale.tickFormat = function(t) {
+    return t.toFixed(precision);
   };
 
   /**
@@ -2323,7 +2343,7 @@ pv.Scale.log = function() {
    * range as an array of numbers or colors.
    *
    * @function
-   * @name pv.Scale.log.prototype.range
+   * @name pv.Scale.log.prototype.invert
    * @param {...} range... range values.
    * @returns {pv.Scale.log} <tt>this</tt>, or the current range.
    */
@@ -2332,7 +2352,7 @@ pv.Scale.log = function() {
     if (j < 0) j = -j - 2;
     j = Math.max(0, Math.min(i.length - 1, j));
     var t = l[j] + (y - r[j]) / (r[j + 1] - r[j]) * (l[j + 1] - l[j]);
-    return (t < 0) ? -Math.pow(b, -t) : Math.pow(b, t);
+    return (d[j] < 0) ? -Math.pow(b, -t) : Math.pow(b, t);
   };
 
   /**
@@ -2345,11 +2365,13 @@ pv.Scale.log = function() {
    * @returns {number[]} an array input domain values to use as ticks.
    */
   scale.ticks = function() {
+    // TODO: support multiple domains
     var start = Math.floor(l[0]),
         end = Math.ceil(l[1]),
         ticks = [];
     for (var i = start; i < end; i++) {
       var x = Math.pow(b, i);
+      if (d[0] < 0) x = -x;
       for (var j = 1; j < b; j++) {
         ticks.push(x * j);
       }
@@ -2358,6 +2380,19 @@ pv.Scale.log = function() {
     if (ticks[0] < d[0]) ticks.shift();
     if (ticks[ticks.length - 1] > d[1]) ticks.pop();
     return ticks;
+  };
+
+  /**
+   * Formats the specified tick value using the appropriate precision, assuming
+   * base 10.
+   *
+   * @function
+   * @name pv.Scale.log.prototype.tickFormat
+   * @param {number} t a tick value.
+   * @return {string} a formatted tick value.
+   */
+  scale.tickFormat = function(t) {
+    return t.toPrecision(1);
   };
 
   /**
@@ -2376,6 +2411,7 @@ pv.Scale.log = function() {
    * @returns {pv.Scale.log} <tt>this</tt>.
    */
   scale.nice = function() {
+    // TODO: support multiple domains
     d = [pv.logFloor(d[0], b), pv.logCeil(d[1], b)];
     l = d.map(log);
     return this;
@@ -2526,7 +2562,7 @@ pv.Scale.ordinal = function() {
   scale.domain = function(array, f) {
     if (arguments.length) {
       array = (array instanceof Array)
-          ? ((arguments.length > 1) ? array.map(f) : array)
+          ? ((arguments.length > 1) ? map(array, f) : array)
           : Array.prototype.slice.call(arguments);
 
       /* Filter the specified ordinals to their unique values. */
@@ -2575,7 +2611,7 @@ pv.Scale.ordinal = function() {
   scale.range = function(array, f) {
     if (arguments.length) {
       r = (array instanceof Array)
-          ? ((arguments.length > 1) ? array.map(f) : array)
+          ? ((arguments.length > 1) ? map(array, f) : array)
           : Array.prototype.slice.call(arguments);
       if (typeof r[0] == "string") r = r.map(pv.color);
       return this;
@@ -3467,7 +3503,7 @@ pv.SvgScene.updateAll = function(scenes) {
     }
     scenes = reversed;
   }
-  this[scenes.type](scenes);
+  this.removeSiblings(this[scenes.type](scenes));
 };
 
 /**
@@ -3478,6 +3514,31 @@ pv.SvgScene.updateAll = function(scenes) {
  */
 pv.SvgScene.create = function(type) {
   return document.createElementNS(pv.ns.svg, type);
+};
+
+/**
+ * Expects the element <i>e</i> to be the specified type. If the element does
+ * not exist, a new one is created. If the element does exist but is the wrong
+ * type, it is replaced with the specified element.
+ *
+ * @param type {string} an SVG element type, such as "rect".
+ * @return a new SVG element.
+ */
+pv.SvgScene.expect = function(type, e) {
+  if (!e) return this.create(type);
+  if (e.tagName == "a") e = e.firstChild;
+  if (e.tagName == type) return e;
+  var n = this.create(type);
+  e.parentNode.replaceChild(n, e);
+  return n;
+};
+
+/** TODO */
+pv.SvgScene.append = function(e, scenes, index) {
+  e.$scene = {scenes:scenes, index:index};
+  e = this.title(e, scenes[index]);
+  if (!e.parentNode) scenes.$g.appendChild(e);
+  return e.nextSibling;
 };
 
 /**
@@ -3501,98 +3562,43 @@ pv.SvgScene.title = function(e, s) {
       a.appendChild(e);
     }
     a.setAttributeNS(pv.ns.xlink, "title", t);
-  } else if (a) {
-    a.removeAttributeNS(pv.ns.xlink, "title");
-  } else {
-    a = e;
+    return a;
   }
-  return a;
+  if (a) a.parentNode.replaceChild(e, a);
+  return e;
 };
-
-/** TODO */
-pv.SvgScene.parentNode = function(scenes) {
-  return scenes.parent[scenes.parentIndex].scene.g;
-};
-
-/** TODO */
-pv.SvgScene.cache = function(s, type, name) {
-  if (!s.scene) return (s.scene = {})[name] = this.create(type);
-  var e = s.scene[name];
-  if (e) {
-    while (e.lastChild) e.removeChild(e.lastChild);
-    return e;
-  }
-  return s.scene[name] = this.create(type);
-};
-
-/** TODO */
-pv.SvgScene.group = function(scenes) {
-  var g = this.cache(scenes, "g", "g");
-  if (!g.parentNode) this.parentNode(scenes).appendChild(g);
-  return g;
-};
-
-/** TODO */
-pv.SvgScene.listen = function(e, scenes, index) {
-  e.$scene = {scenes:scenes, index:index};
-};
-
-var pv_SvgScene_mouseover;
 
 /** TODO */
 pv.SvgScene.dispatch = function(e) {
-  var t;
-
-  /*
-   * Firefox doesn't track the mouseout target very well, so here we do some
-   * bookkeeping to ensure that when a mouseover event triggers, the previous
-   * mouseover target gets a mouseout event.
-   */
-  if (pv_SvgScene_mouseover) {
-    t = pv_SvgScene_mouseover;
-    if (e.type == "mouseover") {
-      t.scenes.mark.dispatch("mouseout", t.scenes, t.index);
-      t = e.target.$scene;
-    } else if (e.type == "mouseout") {
-      pv_SvgScene_mouseover = null;
-    }
-  } else {
-    t = e.target.$scene;
-  }
-
+  var t = e.target.$scene;
   if (t) {
-    if (e.type == "mouseover") pv_SvgScene_mouseover = t;
     t.scenes.mark.dispatch(e.type, t.scenes, t.index);
     e.preventDefault();
   }
 };
-// TODO different stroke behavior for area segment?
-// TODO when segmented changes, need insertBefore not appendChild
+
+/** TODO */
+pv.SvgScene.removeSiblings = function(e) {
+  while (e) {
+    var n = e.nextSibling;
+    e.parentNode.removeChild(e);
+    e = n;
+  }
+};
+// TODO strokeStyle for areaSegment?
 
 pv.SvgScene.area = function(scenes) {
-
-  /*
-   * Rather than using the default group element, since we know areas only
-   * contain a single polygon element, use that instead. However, since we won't
-   * be appending children to the group element, instead assume it will be
-   * invisible by default.
-   */
-  var area = this.cache(scenes, "polygon", "area"), g = scenes.scene.g;
-  area.setAttribute("display", "none");
-  if (g) g.setAttribute("display", "none");
+  var e = scenes.$g.firstChild;
+  if (!scenes.length) return e;
+  var s = scenes[0];
 
   /* segmented */
-  if (!scenes.length) return;
-  var s = scenes[0];
-  if (s.segmented) {
-    this.areaSegment(scenes);
-    return;
-  }
+  if (s.segmented) return this.areaSegment(scenes);
 
   /* visible */
-  if (!s.visible) return;
+  if (!s.visible) return e;
   var fill = pv.color(s.fillStyle), stroke = pv.color(s.strokeStyle);
-  if (!fill.opacity && !stroke.opacity) return;
+  if (!fill.opacity && !stroke.opacity) return e;
 
   /* points */
   var p1 = "", p2 = "";
@@ -3619,24 +3625,21 @@ pv.SvgScene.area = function(scenes) {
     }
   }
 
-  area.removeAttribute("display");
-  area.setAttribute("cursor", s.cursor);
-  area.setAttribute("points", p1 + p2);
-  area.setAttribute("fill", fill.color);
-  area.setAttribute("fill-opacity", fill.opacity);
-  area.setAttribute("stroke", stroke.color);
-  area.setAttribute("stroke-opacity", stroke.opacity);
-  area.setAttribute("stroke-width", s.lineWidth);
-
-  var title = this.title(area, s);
-  if (!title.parentNode) {
-    this.listen(area, scenes, 0);
-    this.parentNode(scenes).appendChild(title);
-  }
+  e = this.expect("polygon", e);
+  e.setAttribute("cursor", s.cursor);
+  e.setAttribute("points", p1 + p2);
+  var fill = pv.color(s.fillStyle);
+  e.setAttribute("fill", fill.color);
+  e.setAttribute("fill-opacity", fill.opacity);
+  var stroke = pv.color(s.strokeStyle);
+  e.setAttribute("stroke", stroke.color);
+  e.setAttribute("stroke-opacity", stroke.opacity);
+  e.setAttribute("stroke-width", s.lineWidth);
+  return this.append(e, scenes, 0);
 };
 
 pv.SvgScene.areaSegment = function(scenes) {
-  var g = this.group(scenes), s = scenes[0];
+  var e = scenes.$g.firstChild;
   for (var i = 0, n = scenes.length - 1; i < n; i++) {
     var s1 = scenes[i], s2 = scenes[i + 1];
 
@@ -3651,21 +3654,20 @@ pv.SvgScene.areaSegment = function(scenes) {
         + (s2.left + s2.width) + "," + (s2.top + s2.height) + " "
         + (s1.left + s1.width) + "," + (s1.top + s1.height);
 
-    var segment = this.cache(s1, "polygon", "segment");
-    segment.setAttribute("cursor", s1.cursor);
-    segment.setAttribute("points", p);
-    segment.setAttribute("fill", fill.color);
-    segment.setAttribute("fill-opacity", fill.opacity);
-    segment.setAttribute("stroke", stroke.color);
-    segment.setAttribute("stroke-opacity", stroke.opacity);
-    segment.setAttribute("stroke-width", s1.lineWidth);
-    this.listen(segment, scenes, i);
-    g.appendChild(this.title(segment, s1));
+    e = this.expect("polygon", e);
+    e.setAttribute("cursor", s1.cursor);
+    e.setAttribute("points", p);
+    e.setAttribute("fill", fill.color);
+    e.setAttribute("fill-opacity", fill.opacity);
+    e.setAttribute("stroke", stroke.color);
+    e.setAttribute("stroke-opacity", stroke.opacity);
+    e.setAttribute("stroke-width", s1.lineWidth);
+    e = this.append(e, scenes, i);
   }
-  g.removeAttribute("display");
+  return e;
 };
 pv.SvgScene.bar = function(scenes) {
-  var g = this.group(scenes);
+  var e = scenes.$g.firstChild;
   for (var i = 0; i < scenes.length; i++) {
     var s = scenes[i];
 
@@ -3674,23 +3676,23 @@ pv.SvgScene.bar = function(scenes) {
     var fill = pv.color(s.fillStyle), stroke = pv.color(s.strokeStyle);
     if (!fill.opacity && !stroke.opacity) continue;
 
-    var rect = this.cache(s, "rect", "bar");
-    rect.setAttribute("cursor", s.cursor);
-    rect.setAttribute("x", s.left);
-    rect.setAttribute("y", s.top);
-    rect.setAttribute("width", Math.max(1E-10, s.width));
-    rect.setAttribute("height", Math.max(1E-10, s.height));
-    rect.setAttribute("fill", fill.color);
-    rect.setAttribute("fill-opacity", fill.opacity);
-    rect.setAttribute("stroke", stroke.color);
-    rect.setAttribute("stroke-opacity", stroke.opacity);
-    rect.setAttribute("stroke-width", s.lineWidth);
-    this.listen(rect, scenes, i);
-    g.appendChild(this.title(rect, s));
+    e = this.expect("rect", e);
+    e.setAttribute("cursor", s.cursor);
+    e.setAttribute("x", s.left);
+    e.setAttribute("y", s.top);
+    e.setAttribute("width", Math.max(1E-10, s.width));
+    e.setAttribute("height", Math.max(1E-10, s.height));
+    e.setAttribute("fill", fill.color);
+    e.setAttribute("fill-opacity", fill.opacity);
+    e.setAttribute("stroke", stroke.color);
+    e.setAttribute("stroke-opacity", stroke.opacity);
+    e.setAttribute("stroke-width", s.lineWidth);
+    e = this.append(e, scenes, i);
   }
+  return e;
 };
 pv.SvgScene.dot = function(scenes) {
-  var g = this.group(scenes);
+  var e = scenes.$g.firstChild;
   for (var i = 0; i < scenes.length; i++) {
     var s = scenes[i];
 
@@ -3756,90 +3758,63 @@ pv.SvgScene.dot = function(scenes) {
         + (s.angle ? " rotate(" + 180 * s.angle / Math.PI + ")" : "");
 
     /* The normal fill path. */
-    var path = this.cache(s, "path", "fill");
-    path.setAttribute("d", fillPath);
-    path.setAttribute("transform", transform);
-    path.setAttribute("fill", fill.color);
-    path.setAttribute("fill-opacity", fill.opacity);
-    path.setAttribute("cursor", s.cursor);
+    e = this.expect("path", e);
+    e.setAttribute("d", fillPath);
+    e.setAttribute("transform", transform);
+    e.setAttribute("fill", fill.color);
+    e.setAttribute("fill-opacity", fill.opacity);
+    e.setAttribute("cursor", s.cursor);
     if (strokePath) {
-      path.setAttribute("stroke", "none");
+      e.setAttribute("stroke", "none");
     } else {
-      path.setAttribute("stroke", stroke.color);
-      path.setAttribute("stroke-opacity", stroke.opacity);
-      path.setAttribute("stroke-width", s.lineWidth);
+      e.setAttribute("stroke", stroke.color);
+      e.setAttribute("stroke-opacity", stroke.opacity);
+      e.setAttribute("stroke-width", s.lineWidth);
     }
-    this.listen(path, scenes, i);
-    g.appendChild(this.title(path, s));
+    e = this.append(e, scenes, i);
 
     /* The special-case stroke path. */
     if (strokePath) {
-      path = this.cache(s, "path", "stroke");
-      path.setAttribute("d", strokePath);
-      path.setAttribute("transform", transform);
-      path.setAttribute("fill", stroke.color);
-      path.setAttribute("fill-opacity", stroke.opacity);
-      path.setAttribute("cursor", s.cursor);
-      this.listen(path, scenes, i);
-      g.appendChild(this.title(path, s));
+      e = this.expect("path", e);
+      e.setAttribute("d", strokePath);
+      e.setAttribute("transform", transform);
+      e.setAttribute("fill", stroke.color);
+      e.setAttribute("fill-opacity", stroke.opacity);
+      e.setAttribute("cursor", s.cursor);
+      e = this.append(e, scenes, i);
     }
   }
+  return e;
 };
 pv.SvgScene.image = function(scenes) {
-  var g = this.group(scenes);
+  var e = scenes.$g.firstChild;
   for (var i = 0; i < scenes.length; i++) {
     var s = scenes[i];
 
     /* visible */
     if (!s.visible) continue;
 
-    /* left, top */
-    var gi = g;
-    if (s.left || s.top) {
-      gi = this.cache(s, "g", "g");
-      gi.setAttribute("transform", "translate(" + s.left + "," + s.top + ")");
-      g.appendChild(gi);
-    }
-
     /* fill */
-    var fill = pv.color(s.fillStyle);
-    if (fill.opacity) {
-      var rect = this.cache(s, "rect", "fill");
-      rect.setAttribute("width", s.width);
-      rect.setAttribute("height", s.height);
-      rect.setAttribute("fill", fill.color);
-      rect.setAttribute("fill-opacity", fill.opacity);
-      gi.appendChild(rect);
-    }
+    e = this.fill(e, scenes, i);
 
     /* image */
-    var image = this.cache(s, "image", "image");
-    image.setAttribute("preserveAspectRatio", "none");
-    image.setAttribute("width", s.width);
-    image.setAttribute("height", s.height);
-    image.setAttributeNS(pv.ns.xlink, "href", s.url);
-    this.listen(image, scenes, i);
-    gi.appendChild(image);
+    e = this.expect("image", e);
+    e.setAttribute("preserveAspectRatio", "none");
+    e.setAttribute("x", s.left);
+    e.setAttribute("y", s.top);
+    e.setAttribute("width", s.width);
+    e.setAttribute("height", s.height);
+    e.setAttribute("cursor", s.cursor);
+    e.setAttributeNS(pv.ns.xlink, "href", s.url);
+    e = this.append(e, scenes, i);
 
     /* stroke */
-    var stroke = pv.color(s.strokeStyle);
-    if (stroke.opacity || s.cursor || s.title) {
-      var rect = this.cache(s, "rect", "stroke");
-      rect.setAttribute("width", s.width);
-      rect.setAttribute("height", s.height);
-      rect.setAttribute("fill", "none");
-      rect.setAttribute("pointer-events", "all");
-      rect.setAttribute("stroke", stroke.color);
-      rect.setAttribute("stroke-opacity", stroke.opacity);
-      rect.setAttribute("stroke-width", s.lineWidth);
-      rect.setAttribute("cursor", s.cursor);
-      this.listen(rect, scenes, i);
-      gi.appendChild(this.title(rect, s));
-    }
+    e = this.stroke(e, scenes, i);
   }
+  return e;
 };
 pv.SvgScene.label = function(scenes) {
-  var g = this.group(scenes);
+  var e = scenes.$g.firstChild;
   for (var i = 0; i < scenes.length; i++) {
     var s = scenes[i];
 
@@ -3861,50 +3836,40 @@ pv.SvgScene.label = function(scenes) {
       case "left": x = s.textMargin; break;
     }
 
-    var text = this.cache(s, "text", "text");
-    text.setAttribute("pointer-events", "none");
-    text.setAttribute("x", x);
-    text.setAttribute("y", y);
-    text.setAttribute("dy", dy);
-    text.setAttribute("text-anchor", anchor);
-    text.setAttribute("transform",
+    e = this.expect("text", e);
+    e.setAttribute("pointer-events", "none");
+    e.setAttribute("x", x);
+    e.setAttribute("y", y);
+    e.setAttribute("dy", dy);
+    e.setAttribute("text-anchor", anchor);
+    e.setAttribute("transform",
         "translate(" + s.left + "," + s.top + ")"
         + (s.textAngle ? " rotate(" + 180 * s.textAngle / Math.PI + ")" : ""));
-    text.setAttribute("fill", fill.color);
-    text.setAttribute("fill-opacity", fill.opacity);
-    text.style.font = s.font;
-    text.style.textShadow = s.textShadow;
-    text.appendChild(document.createTextNode(s.text));
-    g.appendChild(text);
+    e.setAttribute("fill", fill.color);
+    e.setAttribute("fill-opacity", fill.opacity);
+    e.style.font = s.font;
+    e.style.textShadow = s.textShadow;
+    if (e.firstChild) e.firstChild.nodeValue = s.text;
+    else e.appendChild(document.createTextNode(s.text));
+    e = this.append(e, scenes, i);
   }
+  return e;
 };
 // TODO fillStyle for lineSegment?
 // TODO lineOffset for flow maps?
 
 pv.SvgScene.line = function(scenes) {
-
-  /*
-   * Rather than using the default group element, since we know lines only
-   * contain a single polyline element, use that instead. However, since we
-   * won't be appending children to the group element, instead assume it will be
-   * invisible by default.
-   */
-  var line = this.cache(scenes, "polyline", "line"), g = scenes.scene.g;
-  line.setAttribute("display", "none");
-  if (g) g.setAttribute("display", "none");
+  var e = scenes.$g.firstChild;
+  if (scenes.length < 2) return e;
+  var s = scenes[0];
 
   /* segmented */
-  if (scenes.length < 2) return;
-  var s = scenes[0];
-  if (s.segmented) {
-    this.lineSegment(scenes);
-    return;
-  }
+  if (s.segmented) return this.lineSegment(scenes);
 
   /* visible */
-  if (!s.visible) return;
+  if (!s.visible) return e;
   var fill = pv.color(s.fillStyle), stroke = pv.color(s.strokeStyle);
-  if (!fill.opacity && !stroke.opacity) return;
+  if (!fill.opacity && !stroke.opacity) return e;
 
   /* points */
   var p = "";
@@ -3928,24 +3893,20 @@ pv.SvgScene.line = function(scenes) {
     }
   }
 
-  line.removeAttribute("display");
-  line.setAttribute("cursor", s.cursor);
-  line.setAttribute("points", p);
-  line.setAttribute("fill", fill.color);
-  line.setAttribute("fill-opacity", fill.opacity);
-  line.setAttribute("stroke", stroke.color);
-  line.setAttribute("stroke-opacity", stroke.opacity);
-  line.setAttribute("stroke-width", s.lineWidth);
 
-  var title = this.title(line, s);
-  if (!title.parentNode) {
-    this.listen(line, scenes, 0);
-    this.parentNode(scenes).appendChild(title);
-  }
+  e = this.expect("polyline", e);
+  e.setAttribute("cursor", s.cursor);
+  e.setAttribute("points", p);
+  e.setAttribute("fill", fill.color);
+  e.setAttribute("fill-opacity", fill.opacity);
+  e.setAttribute("stroke", stroke.color);
+  e.setAttribute("stroke-opacity", stroke.opacity);
+  e.setAttribute("stroke-width", s.lineWidth);
+  return this.append(e, scenes, 0);
 };
 
 pv.SvgScene.lineSegment = function(scenes) {
-  var g = this.group(scenes);
+  var e = scenes.$g.firstChild;
   for (var i = 0, n = scenes.length - 1; i < n; i++) {
     var s1 = scenes[i], s2 = scenes[i + 1];
 
@@ -3954,7 +3915,7 @@ pv.SvgScene.lineSegment = function(scenes) {
     var stroke = pv.color(s1.strokeStyle);
     if (!stroke.opacity) continue;
 
-    /* Line-line intersection, per Akenine-Möller 16.16.1. */
+    /* Line-line intersection, per Akenine-Moller 16.16.1. */
     function intersect(o1, d1, o2, d2) {
       return o1.plus(d1.times(o2.minus(o1).dot(d2.perp()) / d1.dot(d2.perp())));
     }
@@ -4007,20 +3968,19 @@ pv.SvgScene.lineSegment = function(scenes) {
       + c.x + "," + c.y + " "
       + d.x + "," + d.y;
 
-    var segment = this.cache(s1, "polygon", "segment");
-    segment.setAttribute("cursor", s1.cursor);
-    segment.setAttribute("points", p);
-    segment.setAttribute("fill", stroke.color);
-    segment.setAttribute("fill-opacity", stroke.opacity);
-    this.listen(segment, scenes, i);
-    g.appendChild(this.title(segment, s1));
+    e = this.expect("polygon", e);
+    e.setAttribute("cursor", s1.cursor);
+    e.setAttribute("points", p);
+    e.setAttribute("fill", stroke.color);
+    e.setAttribute("fill-opacity", stroke.opacity);
+    e = this.append(e, scenes, i);
   }
-  g.removeAttribute("display");
+  return e;
 };
-pv.SvgScene.panel = function(scenes) {
-  var parent = scenes.parent && this.group(scenes), marker = {};
-  var previous;
+var guid = 0;
 
+pv.SvgScene.panel = function(scenes) {
+  var g = scenes.$g, e = g && g.firstChild;
   for (var i = 0; i < scenes.length; i++) {
     var s = scenes[i];
 
@@ -4030,113 +3990,124 @@ pv.SvgScene.panel = function(scenes) {
     /* svg */
     if (!scenes.parent) {
       s.canvas.style.display = "inline-block";
-      if (s.canvas.firstChild) {
-        var svg = s.canvas.firstChild;
-        if (svg.marker != marker) {
-          while (svg.lastChild) svg.removeChild(svg.lastChild);
-          previous = null;
-        }
-      } else {
-        var svg = s.canvas.appendChild(this.cache(s, "svg", "svg"));
-        svg.setAttribute("width", s.width + s.left + s.right);
-        svg.setAttribute("height", s.height + s.top + s.bottom);
-        svg.onclick
-            = svg.onmousedown
-            = svg.onmouseup
-            = svg.onmousemove
-            = svg.onmouseout
-            = svg.onmouseover
+      g = s.canvas.firstChild;
+      if (!g) {
+        g = s.canvas.appendChild(this.create("svg"));
+        g.onclick
+            = g.onmousedown
+            = g.onmouseup
+            = g.onmousemove
+            = g.onmouseout
+            = g.onmouseover
             = pv.SvgScene.dispatch;
-        previous = null;
       }
-      svg.marker = marker;
-      parent = svg;
+      scenes.$g = g;
+      g.setAttribute("width", s.width + s.left + s.right);
+      g.setAttribute("height", s.height + s.top + s.bottom);
+      if (typeof e == "undefined") e = g.firstChild;
     }
 
-    /* g */
-    var g = parent;
-    if (s.left || s.top) {
-      if (previous
-          && (previous.left == s.left)
-          && (previous.top == s.top)) {
-        g = previous.scene.g;
-      } else {
-        g = this.cache(s, "g", "panel");
-        g.setAttribute("transform", "translate(" + s.left + "," + s.top + ")");
-        previous = s;
-      }
+    /* clip (nest children) */
+    if (s.overflow == "hidden") {
+      var c = this.expect("g", e), id = (guid++).toString(36);
+      c.setAttribute("clip-path", "url(#" + id + ")");
+      if (!c.parentNode) g.appendChild(c);
+      scenes.$g = g = c;
+      e = c.firstChild;
+
+      e = this.expect("clipPath", e);
+      e.setAttribute("id", id);
+      var r = e.firstChild ||  e.appendChild(this.create("rect"));
+      r.setAttribute("x", s.left);
+      r.setAttribute("y", s.top);
+      r.setAttribute("width", s.width);
+      r.setAttribute("height", s.height);
+      if (!e.parentNode) g.appendChild(e);
+      e = e.nextSibling;
     }
-    (s.scene || (s.scene = {})).g = g;
 
     /* fill */
-    var fill = pv.color(s.fillStyle);
-    if (fill.opacity || s.cursor || s.title) {
-      var rect = this.cache(s, "rect", "fill");
-      rect.setAttribute("width", s.width);
-      rect.setAttribute("height", s.height);
-      rect.setAttribute("cursor", s.cursor);
-      rect.setAttribute("pointer-events", "all");
-      rect.setAttribute("fill", fill.color);
-      rect.setAttribute("fill-opacity", fill.opacity);
-      this.listen(rect, scenes, i);
-      g.appendChild(this.title(rect, s));
-    }
+    e = this.fill(e, scenes, i);
 
     /* children */
     for (var j = 0; j < s.children.length; j++) {
+      s.children[j].$g = e = this.expect("g", e);
+      e.setAttribute("transform", "translate(" + s.left + "," + s.top + ")");
       this.updateAll(s.children[j]);
+      if (!e.parentNode) g.appendChild(e);
+      e = e.nextSibling;
     }
 
     /* stroke */
-    var stroke = pv.color(s.strokeStyle);
-    if (stroke.opacity) {
-      var rect = this.cache(s, "rect", "stroke");
-      rect.setAttribute("width", Math.max(1E-10, s.width));
-      rect.setAttribute("height", Math.max(1E-10, s.height));
-      rect.setAttribute("cursor", s.cursor);
-      rect.setAttribute("fill", "none");
-      rect.setAttribute("stroke", stroke.color);
-      rect.setAttribute("stroke-opacity", stroke.opacity);
-      rect.setAttribute("stroke-width", s.lineWidth);
-      this.listen(rect, scenes, i);
-      g.appendChild(this.title(rect, s));
-    }
+    e = this.stroke(e, scenes, i);
 
-    /*
-     * WebKit appears has a bug where images are not rendered if the g element
-     * is appended before it contained any elements. Creating the child elements
-     * first and then appending them solves the problem and is more efficient.
-     */
-    if (s.scene.panel) parent.appendChild(g);
+    /* clip (restore group) */
+    if (s.overflow == "hidden") {
+      scenes.$g = g = c.parentNode;
+      e = c.nextSibling;
+    }
   }
+  return e;
+};
+
+pv.SvgScene.fill = function(e, scenes, i) {
+  var s = scenes[i], fill = pv.color(s.fillStyle);
+  if (fill.opacity) {
+    e = this.expect("rect", e);
+    e.setAttribute("x", s.left);
+    e.setAttribute("y", s.top);
+    e.setAttribute("width", s.width);
+    e.setAttribute("height", s.height);
+    e.setAttribute("cursor", s.cursor);
+    e.setAttribute("fill", fill.color);
+    e.setAttribute("fill-opacity", fill.opacity);
+    e = this.append(e, scenes, i);
+  }
+  return e;
+};
+
+pv.SvgScene.stroke = function(e, scenes, i) {
+  var s = scenes[i], stroke = pv.color(s.strokeStyle);
+  if (stroke.opacity) {
+    e = this.expect("rect", e);
+    e.setAttribute("x", s.left);
+    e.setAttribute("y", s.top);
+    e.setAttribute("width", Math.max(1E-10, s.width));
+    e.setAttribute("height", Math.max(1E-10, s.height));
+    e.setAttribute("cursor", s.cursor);
+    e.setAttribute("fill", "none");
+    e.setAttribute("stroke", stroke.color);
+    e.setAttribute("stroke-opacity", stroke.opacity);
+    e.setAttribute("stroke-width", s.lineWidth);
+    e = this.append(e, scenes, i);
+  }
+  return e;
 };
 pv.SvgScene.rule = function(scenes) {
-  var g = this.group(scenes);
+  var e = scenes.$g.firstChild;
   for (var i = 0; i < scenes.length; i++) {
     var s = scenes[i];
 
     /* visible */
     if (!s.visible) continue;
-
-    /* stroke */
     var stroke = pv.color(s.strokeStyle);
     if (!stroke.opacity) continue;
 
-    var line = this.cache(s, "line", "rule");
-    line.setAttribute("cursor", s.cursor);
-    line.setAttribute("x1", s.left);
-    line.setAttribute("y1", s.top);
-    line.setAttribute("x2", s.left + s.width);
-    line.setAttribute("y2", s.top + s.height);
-    line.setAttribute("stroke", stroke.color);
-    line.setAttribute("stroke-opacity", stroke.opacity);
-    line.setAttribute("stroke-width", s.lineWidth);
-    this.listen(line, scenes, i);
-    g.appendChild(this.title(line, s));
+    e = this.expect("line", e);
+    e.setAttribute("cursor", s.cursor);
+    e.setAttribute("x1", s.left);
+    e.setAttribute("y1", s.top);
+    e.setAttribute("x2", s.left + s.width);
+    e.setAttribute("y2", s.top + s.height);
+    e.setAttribute("stroke", stroke.color);
+    e.setAttribute("stroke-opacity", stroke.opacity);
+    e.setAttribute("stroke-width", s.lineWidth);
+    e = this.append(e, scenes, i);
   }
+  return e;
 };
 pv.SvgScene.wedge = function(scenes) {
-  var g = this.group(scenes);
+  var e = scenes.$g.firstChild;
   for (var i = 0; i < scenes.length; i++) {
     var s = scenes[i];
 
@@ -4184,19 +4155,19 @@ pv.SvgScene.wedge = function(scenes) {
       }
     }
 
-    var path = this.cache(s, "path", "wedge");
-    path.setAttribute("fill-rule", "evenodd");
-    path.setAttribute("cursor", s.cursor);
-    path.setAttribute("transform", "translate(" + s.left + "," + s.top + ")");
-    path.setAttribute("d", p);
-    path.setAttribute("fill", fill.color);
-    path.setAttribute("fill-opacity", fill.opacity);
-    path.setAttribute("stroke", stroke.color);
-    path.setAttribute("stroke-opacity", stroke.opacity);
-    path.setAttribute("stroke-width", s.lineWidth);
-    g.appendChild(this.title(path, s));
-    this.listen(path, scenes, i);
+    e = this.expect("path", e);
+    e.setAttribute("fill-rule", "evenodd");
+    e.setAttribute("cursor", s.cursor);
+    e.setAttribute("transform", "translate(" + s.left + "," + s.top + ")");
+    e.setAttribute("d", p);
+    e.setAttribute("fill", fill.color);
+    e.setAttribute("fill-opacity", fill.opacity);
+    e.setAttribute("stroke", stroke.color);
+    e.setAttribute("stroke-opacity", stroke.opacity);
+    e.setAttribute("stroke-width", s.lineWidth);
+    e = this.append(e, scenes, i);
   }
+  return e;
 };
 /**
  * Constructs a new mark with default properties. Marks, with the exception of
@@ -6349,7 +6320,8 @@ pv.Panel = function() {
 };
 
 pv.Panel.prototype = pv.extend(pv.Bar)
-    .property("canvas");
+    .property("canvas")
+    .property("overflow");
 
 pv.Panel.prototype.type = "panel";
 
@@ -6377,7 +6349,8 @@ pv.Panel.prototype.type = "panel";
  */
 pv.Panel.prototype.defaults = new pv.Panel()
     .extend(pv.Bar.prototype.defaults)
-    .fillStyle(null);
+    .fillStyle(null)
+    .overflow("visible");
 
 /**
  * Returns an anchor with the specified name. This method is overridden since

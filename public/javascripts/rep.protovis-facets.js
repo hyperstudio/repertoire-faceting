@@ -13,6 +13,10 @@
 *      since Safari doesn't support them.
 */
 
+//= require <jquery>
+//= require "rep.faceting"
+//= require "protovis"
+
 (function($) {
 	
 	repertoire = repertoire || {};

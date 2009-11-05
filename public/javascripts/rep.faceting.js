@@ -42,6 +42,10 @@
 * TODO. can the css for this module be namespaced?
 */
 
+//= require <jquery>
+//= require "../stylesheets/rep.faceting.css"
+//= provide "../images/**/*"
+
 // claim a single global namespace, 'repertoire'
 repertoire = {};
 
