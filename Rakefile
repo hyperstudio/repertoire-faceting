@@ -27,7 +27,8 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('ruby-pg')
   s.add_dependency('merb-core')
   s.add_dependency('dm-core')
-  s.add_dependency('jquery', '~>1.3.2')
+  s.add_dependency('rep.jquery', '~>1.3.2')
+  s.add_dependency('rep.ajax.toolkit', '~>0.1.2')
 #  s.extensions = ["ext/extconf.rb"]
   s.files = %w(LICENSE README Rakefile TODO ext/extconf.rb ext/Makefile ext/signature.c ext/signature.sql.IN ext/uninstall_signature.sql.IN) + Dir.glob("{lib,spec,public}/**/*")
   s.require_paths = %w(lib)

@@ -18,8 +18,6 @@
 //= require "protovis"
 
 (function($) {
-	
-	repertoire = repertoire || {};
 
   //
   // TODO: Desirable features.
