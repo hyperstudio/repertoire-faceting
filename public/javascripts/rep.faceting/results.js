@@ -25,29 +25,27 @@
 repertoire.results = function($results, options) {
   // inherit basic facet widget behaviour
   var self = repertoire.facet_widget($results, options);
-
+  
+  
   //
-  // Update results from webservice
+  // Ajax callback for results
   //
-  // By default, the url is '/<context>/counts/<facet>'
-  //
-  self.update = function(state, callback) {
-    // default url is '<context>/results'
-    var url = self.default_url([self.context_name(), 'results']);
-    // package up the faceting state and send back to results rendering service
-    self.fetch(state, url, options.type, callback);
+  self.reload = function(callback) {
+    var context  = self.context();
+    context.results(options.type, callback, $results);
   }
-
+  
   //
-  // Render only fetched html
+  // Render fetched html
   //
   var $template_fn = self.render;
   self.render = function(data) {
     var $markup = $template_fn();
 
     // if html returned, use it; otherwise defer to a custom injector
-    if (options.type == 'html')
+    if (options.type == 'html') {
       $markup.append(data);
+    }
 
     // opacity mask (for loading)
     $markup.append('<div class="mask"/>')

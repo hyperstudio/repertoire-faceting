@@ -13,7 +13,7 @@ begin
     
     s.add_dependency('repertoire-assets', '~>0.1.1')
     s.add_dependency('rep.jquery', '~>1.3.2')
-    s.add_dependency('rep.ajax.toolkit', '~>0.1.2')
+    s.add_dependency('rep.ajax.toolkit', '~>0.2.0')
     
     s.add_dependency('ruby-pg')
     s.add_dependency('merb-core')

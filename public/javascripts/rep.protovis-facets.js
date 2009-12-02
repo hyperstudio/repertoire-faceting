@@ -64,9 +64,10 @@
           .angle(function(d) { return a(d[1]) })
           .title(function(d) { return d[0] + ': ' + d[1] + ' nobelists' })
           .event("click", function(d) {
-            var filter = self.refinements(self.facet_name());
-            self.toggle(filter, d[0]);
-            self.state_changed();
+            var filter  = self.refinements(self.facet_name());
+            var context = self.context();
+            context.toggle(self.facet_name(), d[0]);
+            context.trigger('changed');
             return false;
           }).cursor("pointer")
         .anchor("outer").add(pv.Label)
@@ -124,8 +125,9 @@
           .left(function() { return x(this.index) })
          .event("click", function(d) {
             var filter = self.refinements(self.facet_name());
-            self.toggle(filter, d[0]);
-            self.state_changed();
+            var context = self.context();
+            context.toggle(self.facet_name(), d[0]);
+            context.trigger('changed');
             return false;
            }).cursor("pointer")
          .anchor("top").add(pv.Label)    
@@ -207,8 +209,9 @@
           
          dots.event("click", function(d) {
             var filter = self.refinements(self.facet_name());
-            self.toggle(filter, d[0]);
-            self.state_changed();
+            var context = self.context();
+            context.toggle(self.facet_name(), d[0]);
+            context.trigger('changed');
             return false;
           }).cursor("pointer");
 

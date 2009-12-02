@@ -22,20 +22,21 @@
 
 //= require "facet_widget"
 
-
 repertoire.nested_facet = function($facet, options) {
   // inherit complete facet-value-count widget behaviour
   var self = repertoire.facet($facet, options);
   
   self.handler('click!.rep .facet .nesting_level', function() {
+    var context = self.context();
     // extract the nesting level to clear beyond
     var level = $(this).data('facet_nesting_level');
     if (level === undefined) throw "Nesting context element does not have level data";
     // get current refinements for this facet
-    var filter = self.refinements(self.facet_name());
+    var filter = context.refinements(self.facet_name());
     // clear all beyond clicked level and update entire context
     filter.splice(level);
-    self.state_changed();
+    // reload all associated facet widgets
+    context.trigger('changed');
     return false;
   });
   
@@ -45,7 +46,8 @@ repertoire.nested_facet = function($facet, options) {
   var $template_fn = self.render;
   self.render = function(counts) {
     var $markup = $template_fn(counts);
-    var selected = self.refinements(self.facet_name());
+    var context = self.context();
+    var selected = context.refinements(self.facet_name());
     
     // deselect any values chosen by the default renderer; 
     // nested selections are in line above values

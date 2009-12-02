@@ -35,46 +35,42 @@ repertoire.facet = function($facet, options) {
   // toggle facet value selection after a user click
   //
   self.handler('click.toggle_value!.rep .facet .value', function() {
+    var context = self.context();
     // extract facet value that was clicked
     var value = $(this).data('facet_value');
     if (!value) throw "Value element does not have facet data";
-    // determine current refinements for this facet
-    var filter = self.refinements(self.facet_name());
     // toggle the facet value's selection
-    self.toggle(filter, value);
-    // reload entire context
-    self.state_changed();
+    context.toggle(self.facet_name(), value);
+    // reload all associated facet widgets
+    context.trigger('changed');
     // do not bubble event
     return false;
   });
-    
+  
   //
-  // Update facet value counts from webservice
+  // Ajax callback for facet value counts
   //
-  // By default, the url is '/<context>/counts/<facet>'
-  //
-  self.update = function(state, callback) {
-    // default url is '<context>/results'
-    var url = self.default_url([self.context_name(), 'counts', self.facet_name()]);
-    // package up the faceting state and send back to results rendering service
-    self.fetch(state, url, 'json', callback);
-  };
+  self.reload = function(callback) {
+    var context  = self.context();
+    context.counts(self.facet_name(), callback, $facet);
+  }
 
   //
-  // Inject facet value markup into template
+  // Render facet value counts and inject into template
   //
   var $template_fn = self.render;
-  self.render = function(counts) {
-    var selected = self.refinements(self.facet_name());
+  self.render = function(counts, success) {
+    var selected = self.refinements();
     
     // facet container
     var $value_list = $('<div class="facet"></div>');
-    
+  
     // title bar
     $value_list.append( '<div class="title">' + options.title + '<span class="controls"></span><span class="spinner"></span></div>' );
-    
+  
     // facet values
     var $values = $('<div class="values"/>')
+    
     $.each(counts, function() {
       var value    = this[0];
       var count    = this[1];
@@ -83,12 +79,12 @@ repertoire.facet = function($facet, options) {
       $elem.data('facet_value', value);
       $values.append($elem);
     });
-    
+  
     // opacity mask (for loading)
     $values.append('<div class="mask"/>')
     
     $value_list.append($values);
-    return $template_fn(counts).append($value_list);
+    return $template_fn().append($value_list);
   };
 
   // helper: format a single value count
@@ -105,6 +101,22 @@ repertoire.facet = function($facet, options) {
   self.facet_name = function() {
     return options.name;
   }
+  
+  //
+  // Convenience methods for accessing model
+  //
+  self.refinements = function() {
+    var facet_name = self.facet_name();
+    var context    = self.context();
+    return context.refinements(facet_name);
+  }
+  
+  //
+  // Return true/false depending if a value is present in the list of values
+  //
+  self.is_selected = function(values, item) {
+    return ($.inArray(item, values) > -1);
+  };
     
   // end of faceting widget factory method
   return self;
