@@ -19,6 +19,8 @@ begin
     s.add_dependency('merb-core')
     s.add_dependency('dm-core')
     
+    s.extensions = []               # extensions require sudo access, not possible when bundling - install by hand instead
+    
     s.post_install_message = <<-POST_INSTALL_MESSAGE
     #{'*'*80}
         If this is the first time you have installed Repertoire faceting, you need
