@@ -25,8 +25,8 @@
 
 //= require <rep.widgets/model>
 
-repertoire.facet_context = function(context_name, state_fn) {
-  var self = repertoire.model();
+repertoire.facet_context = function(context_name, state_fn, options) {
+  var self = repertoire.model(options);
   
   // current query state for all facets in context
   var filter = {};
@@ -107,7 +107,7 @@ $.fn.facet_context = function(state_fn) {
     // add locator css class to element, and store faceting context data model in it
     var $elem = $(this);
     var name  = $elem.attr('id');
-    var model = repertoire.facet_context(name, state_fn);
+    var model = repertoire.facet_context(name, state_fn, repertoire.defaults);
     $elem.addClass('facet_refinement_context');
     $elem.data('context', model);
   });
