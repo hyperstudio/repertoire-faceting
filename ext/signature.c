@@ -215,13 +215,10 @@ sig_set( PG_FUNCTION_ARGS )
 		resbytes = sigbytes;
 	}
 	
-	if (IN_AGGR && resbytes == sigbytes) {
-		res = sig;
-	} else {
-		res = (Signature *) palloc0( resbytes + VARHDRSZ + SIGNATUREHDRSZ );
-		SET_VARSIZE(res, resbytes + VARHDRSZ + SIGNATUREHDRSZ );	
-		memcpy(res->data, sig->data, MIN(sigbytes, resbytes));
-	}
+	res = (Signature *) palloc0( resbytes + VARHDRSZ + SIGNATUREHDRSZ );
+	SET_VARSIZE(res, resbytes + VARHDRSZ + SIGNATUREHDRSZ );	
+	memcpy(res->data, sig->data, MIN(sigbytes, resbytes));
+
 	res->len = MAX(sig->len, index+1);
 	
 	c = res->data[byte_offset];
@@ -455,12 +452,9 @@ sig_and( PG_FUNCTION_ARGS )
 	
 	resbytes = MAX(sig1bytes, sig2bytes);
 	
-	if (IN_AGGR && resbytes == sig1bytes) {
-		res = sig1;
-	} else {
-		res = (Signature *) palloc0( resbytes + VARHDRSZ + SIGNATUREHDRSZ );
-		SET_VARSIZE(res, resbytes + VARHDRSZ + SIGNATUREHDRSZ );
-	}
+	res = (Signature *) palloc0( resbytes + VARHDRSZ + SIGNATUREHDRSZ );
+	SET_VARSIZE(res, resbytes + VARHDRSZ + SIGNATUREHDRSZ );
+
 	res->len = MAX(sig1->len, sig2->len);
 	
 	for(i=0; i<resbytes; i++) {
@@ -497,12 +491,9 @@ sig_or( PG_FUNCTION_ARGS )
 	
 	resbytes = MAX(sig1bytes, sig2bytes);
 	
-	if (IN_AGGR && resbytes == sig1bytes) {
-		res = sig1;
-	} else {
-		res = (Signature *) palloc0( resbytes + VARHDRSZ + SIGNATUREHDRSZ );
-		SET_VARSIZE(res, resbytes + VARHDRSZ + SIGNATUREHDRSZ );
-	}
+	res = (Signature *) palloc0( resbytes + VARHDRSZ + SIGNATUREHDRSZ );
+	SET_VARSIZE(res, resbytes + VARHDRSZ + SIGNATUREHDRSZ );
+
 	res->len = MAX(sig1->len, sig2->len);
 	
 	for(i=0; i<resbytes; i++) {
