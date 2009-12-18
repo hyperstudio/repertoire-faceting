@@ -1,10 +1,21 @@
--- spinners
--- render in nested facet
+
+Changes in this version
+
+- the 'type' parameter, which cast facet values to a given type, is gone
+- query execution is delayed until results are wanted
+- type specific formatters
+
+
+KNOWN PROBLEMS.
+
+-- none at the moment
 
 
 DESIRED FEATURES / IMPROVEMENTS.
 
+-- "training-wheels" mode using SQL group statements instead of bitsets
 -- migrations using DM facet declarations
+
 -- clean up sql generation in postgres adapter  DONE
 -- determine exact memory requirements of postgres scalability example  DONE
 -- optimise queries up to 1,000,000 scalability target DONE

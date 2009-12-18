@@ -1,3 +1,29 @@
+module Repertoire
+  module Faceting
+
+    class BBox
+      attr_reader :x_min, :y_min, :x_max, :y_max
+      def initialize(x1, y1, x2, y2)        
+        @x_min = [x1, x2].min; @x_max = [x1, x2].max
+        @y_min = [y1, y2].min; @y_max = [y1, y2].max
+      end
+      def center
+        [ (@x_max + @x_min) / 2.0, (@y_max + @y_min) / 2.0 ]
+      end
+      def extend(other)
+        @x_min = [@x_min, other.x_min].min; @x_max = [@x_max, other.x_max].max
+        @y_min = [@y_min, other.y_min].min; @y_max = [@y_max, other.y_max].max
+        self
+      end
+      def camera_range
+        ([(@x_max - @x_min).abs, (@y_max - @y_min).abs].max * 56000).floor
+      end
+      def to_s
+        [@x_min, @x_max, @y_min, @y_max].join(', ')
+      end
+    end
+  end
+end
 
 ======= potentially of use later:
 
@@ -242,4 +268,173 @@ sig_hash(PG_FUNCTION_ARGS)
 
 	PG_RETURN_DATUM(result);
 }
-*/
+
+
+
+
+
+
+// end gis facet factory
+return self;
+}
+
+
+
+
+
+  // if called before google earth ready, just return
+  if (!ge)
+    return;
+  
+  // determine how feature indices map onto quantiles
+  var category_size = counts.length / options.quantiles.categories;
+  console.log("category size: " + category_size);
+  
+  // create a placemark style for each quantile
+  var styles = [];
+  for (var i = 0; i < options.quantiles.categories; i += 1 ) {
+    var fraction = i / options.quantiles.categories;
+    
+    var style    = gex.dom.buildStyle(options.style || {});
+    var color    = gex.util.blendColors(options.quantiles.low, options.quantiles.high, fraction);
+    //style.getPolyStyle().setColor(color);
+    console.log("category " + i + ": " + fraction);
+    
+    styles[i] = style;
+  }
+  
+  // create a map between feature ids and their choropleth styles
+  var quantile      = {};
+  $.each(counts, function(index, facet_value_count) {
+    var value    = facet_value_count[0];
+    var count    = facet_value_count[1];
+    var category = Math.floor( index / category_size );
+    quantile[value] = styles[category];
+  })
+
+  // walk the dom and update style on all matching placemarks
+  gex.dom.walk({
+    rootObject: ge,
+    visitCallback: function() {
+      console.log(this.getType());
+      if ('getType' in this && this.getType() == 'KmlPlacemark') {
+        var id    = this.getId();
+        var style = quantile[id];
+        
+        console.log(id);
+      
+        //if (style) {
+          console.log('setting ' + id);
+          this.setStyleSelector(style);
+          this.setVisibility(true);
+        //} else {
+        //  console.log('hiding ' + id);
+        //  this.setVisibility(false);
+        //}
+      }
+      
+      return true;
+    }
+  });
+  
+  
+  
+   '<ExtendedData>' +
+   '<Data name="label">' +
+   '<value>' + label + '</value>' +
+   '</Data>' +
+   '</ExtendedData>' +
+
+
+
+   --
+   -- Aggregate for generating weighted sample data from tables
+   --
+   -- Usage:
+   --
+   --    Given a table of data and frequencies, generate an array of 45 
+   --      statistically-representative values:
+   --
+   --    SELECT weighted_sample(surname, frequency, 45) FROM male_names;
+   -- 
+   --    If you only want one:
+   --
+   --    SELECT weighted_sample(surname, frequency) FROM male_names;
+   --
+   --    The frequency can be any series of numbers representing relative
+   --    weights.  It is not necessary that they sum to 1.0.  The values them-
+   --    selves are cast to TEXT.
+   --
+   --    You can turn the resulting values back into rows with unnest() and
+   --    join them to other sample data.  See the Postgresql 8.4 documentation.
+   --
+
+   CREATE TYPE sample AS (vals TEXT[], freqs DOUBLE PRECISION[], sum DOUBLE PRECISION, size INTEGER);
+
+   --
+   -- Given X (a series of vals) and Y (a series of DOUBLE PRECISION values), return a random
+   -- X/id that conforms to the weighted sample of all values Y within the total.
+   --
+   CREATE OR REPLACE FUNCTION sample_matrix(state sample) RETURNS TEXT[] AS $$
+   DECLARE
+     running_sum DOUBLE PRECISION;
+     i           INTEGER;
+     rand        DOUBLE PRECISION;
+     samples     TEXT[];
+   BEGIN
+     FOR i IN 1..state.size LOOP
+       -- select a random value and loop through until hitting the corresponding item
+       rand        := random();
+       running_sum := 0.0;
+       i           := 0;
+       WHILE rand >= running_sum LOOP
+         i := i + 1;
+         running_sum := running_sum + (state.freqs[i] / state.sum);
+       END LOOP;
+       samples := samples || state.vals[i];
+     END LOOP;
+     RETURN samples;
+   END
+   $$ LANGUAGE plpgsql;
+
+   CREATE OR REPLACE FUNCTION sample_matrix_single(state sample) RETURNS TEXT AS $$
+   BEGIN
+     RETURN (sample_matrix(state))[1];
+   END
+   $$ LANGUAGE plpgsql;
+
+   CREATE OR REPLACE FUNCTION matrix_agg(state sample, id ANYELEMENT, val DOUBLE PRECISION, size INTEGER) RETURNS sample AS $$
+   BEGIN
+     state.size  := size;
+     state.vals  := state.vals || id::TEXT;
+     state.freqs := state.freqs || val::DOUBLE PRECISION;
+     state.sum   := state.sum + val;
+     RETURN state;
+   END
+   $$ LANGUAGE plpgsql;
+
+   CREATE OR REPLACE FUNCTION matrix_agg_single(state sample, id ANYELEMENT, val DOUBLE PRECISION) RETURNS sample AS $$
+   BEGIN
+     state.size  := 1;
+     state.vals  := state.vals || id::TEXT;
+     state.freqs := state.freqs || val::DOUBLE PRECISION;
+     state.sum   := state.sum + val;
+     RETURN state;
+   END
+   $$ LANGUAGE plpgsql;
+
+   CREATE AGGREGATE weighted_sample(ANYELEMENT, DOUBLE PRECISION)
+   (
+       sfunc = matrix_agg_single,
+       stype = sample,
+       finalfunc = sample_matrix_single,
+       initcond = '({}, {}, 0.0, 0)'
+   );
+
+   CREATE AGGREGATE weighted_sample(ANYELEMENT, DOUBLE PRECISION, INTEGER)
+   (
+       sfunc = matrix_agg,
+       stype = sample,
+       finalfunc = sample_matrix,
+       initcond = '({}, {}, 0.0, 0)'
+   );

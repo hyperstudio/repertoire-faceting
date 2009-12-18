@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{repertoire_faceting}
-  s.version = "0.3.5"
+  s.version = "0.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Christopher York"]
-  s.date = %q{2009-12-08}
+  s.date = %q{2010-01-04}
   s.description = %q{Merb/Postgresql plugin that provides faceted indexing and browsing}
   s.email = %q{yorkc@mit.edu}
   s.extra_rdoc_files = [
@@ -34,14 +34,18 @@ Gem::Specification.new do |s|
      "ext/uninstall_signature.sql.IN",
      "lib/repertoire_faceting.rb",
      "lib/repertoire_faceting/adapters/postgres_adapter.rb",
+     "lib/repertoire_faceting/facet_query.rb",
      "lib/repertoire_faceting/faceting_functions.rb",
      "lib/repertoire_faceting/is-faceted.rb",
      "lib/repertoire_faceting/is-faceted/is/faceted.rb",
      "lib/repertoire_faceting/is-faceted/is/version.rb",
+     "public/images/repertoire-faceting/proportional_symbol.png",
      "public/images/repertoire-faceting/spinner_sm.gif",
+     "public/javascripts/google-earth-extensions.js",
      "public/javascripts/protovis.js",
      "public/javascripts/rep.faceting.js",
      "public/javascripts/rep.faceting/context.js",
+     "public/javascripts/rep.faceting/ext/earth_facet.js",
      "public/javascripts/rep.faceting/facet.js",
      "public/javascripts/rep.faceting/facet_widget.js",
      "public/javascripts/rep.faceting/nested_facet.js",
@@ -51,20 +55,23 @@ Gem::Specification.new do |s|
      "repertoire_faceting.gemspec",
      "spec/README.spec",
      "spec/citizens.sql",
+     "spec/gis_faceting_spec.rb",
      "spec/nobelists.sql",
+     "spec/nobelists_gis.sql",
      "spec/repertoire_faceting_spec.rb",
      "spec/scalability_spec.rb",
      "spec/spec_helper.rb"
   ]
   s.homepage = %q{http://github.com/repertoire/repertoire-faceting}
   s.post_install_message = %q{    ********************************************************************************
-        If this is the first time you have installed Repertoire faceting, you need
+    If this is the first time you have installed Repertoire faceting, you need
     to build and install the native PostgreSQL extension.
 
       cd repertoire-faceting/ext
       sudo make install
-
-      See the repertoire-faceting README for details.
+      
+    To do GIS faceting, you will also need to install the PostGIS spatial extension.
+    See the repertoire-faceting README for details.
     ********************************************************************************
 }
   s.rdoc_options = ["--charset=UTF-8"]
@@ -72,7 +79,8 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{Merb/Postgresql plugin that provides faceted indexing and browsing}
   s.test_files = [
-    "spec/repertoire_faceting_spec.rb",
+    "spec/gis_faceting_spec.rb",
+     "spec/repertoire_faceting_spec.rb",
      "spec/scalability_spec.rb",
      "spec/spec_helper.rb"
   ]

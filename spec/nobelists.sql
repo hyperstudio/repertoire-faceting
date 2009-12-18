@@ -49,7 +49,7 @@ COPY nobelists (id, name, birthdate, deathdate, birth_country, birth_state, birt
 4	Daniel C. Tsui	1939-02-28 00:00:00	\N	People's Republic of China	Henan	\N	\N	Physics	t	Tsui	1998	\N	Horst L. Störmer, Robert B. Laughlin	http://nobelprize.org/nobel_prizes/physics/laureates/1998/tsui_thumb.jpg	\N
 5	Elias J. Corey Jr.	1928-07-12 00:00:00	\N	United States of America	Massachusetts	Methuen	\N	Chemistry	f	Corey	1990	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1990/corey_thumb.jpg	\N
 6	Horst L. Störmer	1949-04-06 00:00:00	\N	Germany	\N	Frankfurt	\N	Physics	t	Störmer	1998	\N	Robert B. Laughlin, Daniel C. Tsui	http://nobelprize.org/nobel_prizes/physics/laureates/1998/stormer_thumb.jpg	\N
-8	Phillip A. Sharp	1944-06-06 00:00:00	\N	United States of America	Kentucky	McKinneysburg	\N	Medicine/Physiology	t	Sharp	1993	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1993/sharp_thumb.jpg	\N
+8	Phillip A. Sharp	1944-06-06 00:00:00	\N	United States of America	Kentucky	Falmouth	\N	Medicine/Physiology	t	Sharp	1993	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1993/sharp_thumb.jpg	\N
 9	Lawrence R. Klein	1920-09-14 00:00:00	\N	United States of America	Nebraska	Omaha	\N	Economics	f	Klein	1980	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1980/klein_thumb.jpg	\N
 16	E. Donnall Thomas	1920-03-15 00:00:00	\N	\N	\N	\N	\N	Medicine/Physiology	t	Thomas	1990	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1990/thomas_thumb.jpg	\N
 28	Edwin M. McMillan	1907-09-18 00:00:00	1991-09-07 00:00:00	United States of America	California	Redondo Beach	\N	Chemistry	t	McMillan	1951	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1951/mcmillan_thumb.jpg	\N
@@ -69,7 +69,7 @@ COPY nobelists (id, name, birthdate, deathdate, birth_country, birth_state, birt
 29	Myron S. Scholes	1941-07-01 00:00:00	\N	Canada	Ontario	Timmons	\N	Economics	t	Scholes	1997	\N	Robert C. Merton	http://nobelprize.org/nobel_prizes/economics/laureates/1997/scholes_thumb.jpg	\N
 54	Sidney Altman	1939-05-07 00:00:00	\N	Canada	Quebec	Montreal	\N	Chemistry	t	Altman	1989	\N	Thomas R. Cech	http://nobelprize.org/nobel_prizes/chemistry/laureates/1989/altman_thumb.jpg	\N
 50	Clifford G. Shull	1915-09-23 00:00:00	\N	United States of America	Pennsylvania	Pittsburgh	\N	Physics	t	Shull	1994	\N	\N	http://nobelprize.org/nobel_prizes/physics/laureates/1994/shull_thumb.jpg	\N
-56	Henry W. Kendall	1926-12-09 00:00:00	1999-02-15 00:00:00	United States of America	Florida	Wakulla State Park	\N	Physics	t	Kendall	1990	\N	Jerome I. Friedman	http://nobelprize.org/nobel_prizes/physics/laureates/1990/kendall_thumb.jpg	\N
+56	Henry W. Kendall	1926-12-09 00:00:00	1999-02-15 00:00:00	United States of America	Massachusetts	Boston	\N	Physics	t	Kendall	1990	\N	Jerome I. Friedman	http://nobelprize.org/nobel_prizes/physics/laureates/1990/kendall_thumb.jpg	\N
 38	Mario J. Molina	1943-03-19 00:00:00	\N	Mexico	\N	Mexico City	\N	Chemistry	t	Molina	1995	\N	\N	http://people.csail.mit.edu/dfhuynh/projects/nobelists/images/mario-j-molina.png	http://mitworld.mit.edu/video/63/
 59	Robert C. Merton	1944-07-31 00:00:00	\N	United States of America	New York	New York City	\N	Economics	t	Merton	1997	\N	Myron S. Scholes	http://nobelprize.org/nobel_prizes/economics/laureates/1997/merton_thumb.jpg	\N
 40	Robert B. Laughlin	1950-11-01 00:00:00	\N	United States of America	California	Visalia	\N	Physics	t	Laughlin	1998	\N	Horst L. Störmer, Daniel C. Tsui	http://nobelprize.org/nobel_prizes/physics/laureates/1998/laughlin_thumb.jpg	\N

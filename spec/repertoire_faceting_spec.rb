@@ -155,7 +155,7 @@ describe "Repertoire faceting" do
       expected = [["1993", 1]]      
       counts = Nobelist.facet_count('nobel_year', :birth_state => 'Kentucky', :refinements => query)
       counts.should == expected
-    end  
+    end
     
     it "should allow drill-down in nested facet values" do
       expected = [["United States of America", 32], [nil, 15], ["Germany", 4], ["Canada", 3], ["England", 2], ["British India", 1], 
@@ -164,8 +164,8 @@ describe "Repertoire faceting" do
       counts = Nobelist.facet_count(:birth_place)
       counts.should == expected
 
-      expected = [["New York", 7], ["California", 5], ["Massachusetts", 3], ["Pennsylvania", 3], ["Florida", 2], ["Illinois", 2], 
-                  ["Connecticut", 1], ["District of Columbia", 1], ["Indiana", 1], ["Kentucky", 1], ["Michigan", 1], 
+      expected = [["New York", 7], ["California", 5], ["Massachusetts", 4], ["Pennsylvania", 3], ["Illinois", 2], 
+                  ["Connecticut", 1], ["District of Columbia", 1], ["Florida", 1], ["Indiana", 1], ["Kentucky", 1], ["Michigan", 1], 
                   ["Nebraska", 1], ["North Carolina", 1], ["South Carolina", 1], ["Virginia", 1], ["West Virginia", 1]]
       counts = Nobelist.facet_count(:birth_place, :birth_place => [ 'United States of America' ])
       counts.should == expected
@@ -191,12 +191,6 @@ describe "Repertoire faceting" do
       counts = Nobelist.facet_count(:degree, :order => [:count.desc, :degree.asc])
       counts.should == expected
     end
-    
-  	it "should allow user to specity a facet value type" do
-  	  expected = [[1985, 1], [2001, 1]]
-  	  counts = Nobelist.facet_count(:nobel_year, :type => Integer, :discipline => 'Peace')
-  	  counts.should == expected
-  	end
   	
   	it "should allow user to specify whether to include null facet values" do
   	  expected = [[nil, 40], ["Ph.D.", 16], ["S.B.", 11], ["S.M.", 2]]
@@ -208,5 +202,5 @@ describe "Repertoire faceting" do
   	  counts.should == expected
   	end
   end
-
+  
 end

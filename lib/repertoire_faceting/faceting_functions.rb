@@ -5,24 +5,22 @@ module Repertoire
       # refinement on facets of current query model
       def facet_results(*args)
         query = args.last.kind_of?(Hash) ? args.pop : {}
-        adapter = repository.adapter
-        
-        query, refinements = parse_refinements(query)
-        logic              = default_logic(query.delete(:logic) || {})
 
-        # run facet refinement query
-        query  = scoped_query(query)
-        items  = adapter.facet_results(query, refinements, logic)
-        result = query.model.load(items, query)
+        # parse facet-results specific arguments
+        query_spec = FacetQuery.new do |fq|
+          query, fq.refinements = parse_refinements(query)
+          fq.adapter            = repository.adapter
+          fq.logic              = default_logic(query.delete(:logic) || {})
+          fq.base_query         = scoped_query(query)
+        end
         
-        return result
+        return query_spec.facet_results
       end
-      
+
       # facet value count on current query model
       def facet_count(*args)
         query   = args.last.kind_of?(Hash) ? args.pop : {}
         facet   = args.first.to_s
-        adapter = repository.adapter
 
         raise "Property #{facet} must be declared as a facet" unless self.facet?(facet)
         if [:fields, :links, :unique, :add_reversed, :reload].any? { |o| query[o] }
@@ -30,20 +28,24 @@ module Repertoire
         end
         
         # parse facet-count specific arguments
-        query, refinements = parse_refinements(query)
-        logic              = default_logic(query.delete(:logic) || {})
-        minimum            = query.delete(:minimum) || 1
-        type               = query.delete(:type) || String
-        nullable           = query.delete(:nullable) != false
-        order              = query.delete(:order) || [:count.desc, facet.to_sym.asc]
-        limit              = query.delete(:limit)
-        offset             = query.delete(:offset) || 0
+        query_spec = FacetQuery.new do |fq|
+          query, fq.refinements = parse_refinements(query)
+          fq.adapter            = repository.adapter
+          fq.facet              = facet        
+          fq.logic              = default_logic(query.delete(:logic) || {})
+          fq.type               = query.delete(:type)    || String
+          fq.minimum            = query.delete(:minimum) || (fq.logic[fq.facet] == :geom ? 0 : 1)
+          fq.nullable           = query.delete(:nullable) != false
+          fq.order              = query.delete(:order)   || [:count.desc, facet.to_sym.asc]
+          fq.limit              = query.delete(:limit)
+          fq.offset             = query.delete(:offset)  || 0
+          fq.also               = query.delete(:also)    || []
         
-        # run facet count query
-        base_query  = scoped_query(query)
-        result = adapter.facet_count(facet, base_query, refinements, minimum, order, limit, offset, logic, nullable, type)
+          # any remaining items are DataMapper conditions for the base query
+          fq.base_query           = scoped_query(query)
+        end
         
-        return result
+        query_spec.facet_count
       end
       
       # name of facet index table

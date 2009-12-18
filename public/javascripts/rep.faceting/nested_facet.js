@@ -58,16 +58,20 @@ repertoire.nested_facet = function($facet, options) {
     
     // collect element for each level
     var $elems   = $.map(selected, function(v, i) {
-      var $elem  = $('<span class="nesting_level selected">' + v + '</span>');
+      var $elem  = $('<span class="nesting_level selected">' + v + ' </span>');
       $elem.data('facet_nesting_level', i);
       return $elem;
     });
 
     // inject into summary interspersed with delimiter
-    $.each($elems, function(i, e) {
-      $nesting.append(e);
-      if (i < $elems.length-1)
-        $nesting.append(options.delim);
+    $.each($elems, function(i, $e) {
+      $nesting.append($e);
+      if (i < $elems.length-1) {
+        if (options.compress)
+          $e.html('> ');
+        else
+          $nesting.append(options.delim);
+      }
     });
     
     // inject the nesting summary directly before the facet values list
@@ -83,5 +87,6 @@ repertoire.nested_facet = function($facet, options) {
 // Nested facet plugin
 $.fn.nested_facet = repertoire.plugin(repertoire.nested_facet);
 $.fn.nested_facet.defaults = {
-  delim: '&nbsp;/ '                       /* delimiter between nesting levels */
+  delim: '&nbsp;/ ',                     /* delimiter between nesting levels */
+  compress: false                        /* compressed format for nesting summary? */
 };

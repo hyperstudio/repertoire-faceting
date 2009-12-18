@@ -19,17 +19,18 @@ begin
     s.add_dependency('merb-core')
     s.add_dependency('dm-core')
     
-    s.extensions = []               # extensions require sudo access, not possible when bundling - install by hand instead
+    s.extensions = []                         # extensions require sudo access, not possible when bundling - install by hand instead
     
     s.post_install_message = <<-POST_INSTALL_MESSAGE
     #{'*'*80}
-        If this is the first time you have installed Repertoire faceting, you need
+    If this is the first time you have installed Repertoire faceting, you need
     to build and install the native PostgreSQL extension.
 
       cd repertoire-faceting/ext
       sudo make install
-
-      See the repertoire-faceting README for details.
+      
+    To do GIS faceting, you will also need to install the PostGIS spatial extension.
+    See the repertoire-faceting README for details.
     #{'*'*80}
     POST_INSTALL_MESSAGE
   end

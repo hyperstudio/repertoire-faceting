@@ -3,6 +3,7 @@ dir = Pathname(__FILE__).dirname.expand_path + 'repertoire_faceting'
 
 require dir + 'adapters' + 'postgres_adapter'
 require dir + 'faceting_functions'
+require dir + 'facet_query'
 
 require dir + 'is-faceted'
 
@@ -36,6 +37,7 @@ if defined?(Merb::Plugins)
   
   Merb::BootLoader.before_app_loads do    
     # Merb::Controller.send(:include, Repertoire::FacetingMixin)
+    Merb.add_mime_type :kml, :to_kml, %w[application/vnd.google-earth.kml+xml]
   end
   
   Merb::BootLoader.after_app_loads do

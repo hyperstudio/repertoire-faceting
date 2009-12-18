@@ -286,3 +286,166 @@ is :faceted do |model|
 { :genre     => model.genre,
   :published => [ model.date.year, model.date.month, model.date.day ] }
 end
+
+
+===== Using facets with GIS =====
+
+The repertoire-faceting module provides optional support for faceting over
+data associated with GIS features or points. For example, rather than
+selecting the words 'USA', 'Massachusetts', and 'Boston' successively to
+refine on the nested values of a textual facet, the user could drill down by
+clicking on a map. From a GIS perspective, this involves selecting
+intersecting features from a series of GIS layers (in this case, 'countries',
+'states', and 'cities'). At each stage, the display colors features in the map
+according to a choropleth distribution of results given other selected values.
+
+From a conceptual standpoint a GIS facet behaves exactly the same way as a
+nested textual facet. However, standard GIS operations can be used to
+affiliate items in the result set with map features: for example, if faceting
+over a person's city of residence, only points in the final layer ('cities')
+need be directly connected to items in the result set. The remainder of the
+associations are computed using spatial logic operators in the database.
+
+Textual facets can either derive the range of facet values from data in your
+tables or can use a separate controlled vocabulary. Because when you view
+facet values in a map you generally want entire entire map to appear but with
+those features associated to items highlighted, GIS facets nearly always use a
+controlled vocabulary. (Otherwise the widget would only display a fragmented
+map of values associated with items in the current result set.) Hence, the
+process of preparing data for faceted GIS browsing generally involves two
+steps: (a) marshalling a complete set of GIS data for all layers into a single
+table and preparing it for display on the web; and (b) creating a faceted
+index over the association between your result items and the GIS features.
+
+N.B. - You must be familiar with GIS concepts, be proficient with the
+PostgreSQL GIS extension (PostGIS), and your GIS data needs to be in good form
+before considering faceted indexing or browsing. Repertoire-faceting builds
+faceted browsing on top of your existing GIS, rather than automating GIS
+upload and display. You should be conversant with GIS databases and your data
+needs to be in good form before even considering faceted indexing or browsing.
+Ensure that each GIS layer has the correct SRID for its existing projection
+and that you can transform the layers into a common SRID and render them
+successfully. Also consider whether you need to simplify or combine geometries
+using ST_Union(), ST_Simplify(), ST_Transform(), etc. in order to render the
+features on the web with appropriate detail for the altitude you anticipate
+viewing each layer. If your layers display together correctly using a standard
+WMS (GeoServer is suggested) and rendered in Google Earth or Open Layers, then
+you are probably ready to proceed. Be aware you must use the EPSG:4269 (NAD
+83) projection with Google Earth.
+
+- Preparing your system, a rough recipe:
+
+1. Install PostGIS into your database
+
+sudo port install postgis
+psql -Upostgres hyperstudio_development -f /opt/local/share/postgresql84/contrib/postgis.sql
+psql -Upostgres repertoire_testing -f /opt/local/share/postgresql84/contrib/spatial_ref_sys.sql
+
+2. Install Google Earth + Plugin
+
+3. Install GeoServer (suggested for testing, not deployment)
+
+4. load GIS data into PostgreSQL, using shp2pgsql, ogr2ogr, and other tools.
+(Make sure you know and set the SRID).
+
+5. ensure GIS layers display together using GeoServer + Google Earth
+
+- Preparing your project to use GIS faceting
+
+1. Register with Google for an Earth API key and add a script element to load
+it in your layout. (Since Google requires your API key, you must add this even
+though the remainder of the project may use repertoire-assets to load
+scripts.)
+
+<script src="http://www.google.com/jsapi?key=<your key code here>" type="text/javascript"></script>
+
+2. In your database, create a table to hold the controlled vocabulary of
+features from every layer you may facet over. 'layer' is an integer indicating
+the nesting order of GIS layers (e.g. countries to states to cities). 'label'
+identifies the feature, e.g. 'California'. (The label needn't be unique.)
+'full_geom' holds the complete geometry for that facet value, translated to a
+common projection (e.g. EPSG:4269). 'display_geom' holds the geometry that
+should actually be rendered when the feature is displayed in the facet (a
+simplified version of full_geom). For example:
+
+CREATE TABLE my_gis_vocab(id SERIAL, label TEXT, layer INTEGER);
+SELECT AddGeometryColumn('my_gis_vocab', 'display_geom', 4269, 'GEOMETRY', 2);
+SELECT AddGeometryColumn('my_gis_vocab', 'full_geom', 4269, 'GEOMETRY', 2);
+INSERT INTO my_gis_vocab(label, layer, display_geom, full_geom)
+  SELECT country_name, 1, ST_SimplifyPreserveTopology(ST_Transform(the_geom, 4269), 0.002), the_geom FROM countries;
+INSERT INTO my_gis_vocab(label, layer, display_geom, full_geom)
+  SELECT state_name, 2, ST_Transform(the_geom, 4269), the_geom FROM states;
+...
+
+(Note that it is not strictly necessary to create a separate table for the
+controlled vocabulary, as it is also possible to do similar GIS
+transformations when creating a GIS facet value index and then UNION the
+results together. However, the SQL is simpler and this route allows you to
+verify and tweak the controlled vocabulary table using GeoServer.)
+
+3. Generate the actual GIS facet index. Whereas normal facet indices have two
+columns, the value and the signature, GIS indices have five: an md5 checksum
+of the full geometry, and the fields in the controlled vocabulary (label,
+layer number, display geometry, and full geometry).
+
+Because the result item probably links to a GIS table rather than including
+the geometry as a column, we join these in a subselect (*a below). We then use
+the ST_Within spatial operator to find all of the features in the GIS
+controlled vocabulary that contain this feature (*b). Because there should be
+an index entry for every feature in the controlled vocabulary regardless of
+whether it is used by one of the items, we use a left outer join to combine
+the vocabulary with the signatures (*c) and coalesce to make sure the empty
+entries also have a signature (*d).
+
+SELECT recreate_table('_people_birthplace_facet', $$
+  SELECT md5(full_geom::bytea) AS birthplace, label, layer, 
+                                  --- (*d)
+         display_geom, full_geom, coalesce(signature, '0'::signature) AS signature
+  FROM my_gis_vocab
+--- (*c)
+    LEFT OUTER JOIN
+    (SELECT my_gis_vocab.id AS vocab_id, signature(_packed_id)
+--- (*a)
+     FROM my_gis_vocab,
+          nobelists JOIN nobelist_cities ON (birth_city_id = nobelist_cities.id)
+--- (*b)
+     WHERE ST_Within(nobelist_cities.the_geom, my_gis_vocab.full_geom)
+     GROUP BY my_gis_vocab.id) AS signatures
+  ON (vocab_id = my_gis_vocab.id)
+$$);
+
+Finally, a PostGIS index esnures that facet nesting queries are efficient:
+
+CREATE INDEX _nobelists_birthplace_facet_ndx ON _nobelists_birthplace_facet USING gist(full_geom);
+
+4. In your model, declare that your facet uses 'geom' logic, e.g.:
+
+is :faceted, :birthplace => :geom
+
+5. Usage in your controller and models is identical to traditional facets.
+
+6. In your view, use the GIS widget, e.g.:
+
+$().ready(function() {
+  $('#people').facet_context();
+  $('#occupation').facet();
+  $("#birthplace").earth_facet( { 
+    title: 'Location',
+    camera: { lat: 37, long: -94, tilt: 4, altitude: 4000000, speed: 0.2 }
+  });
+});
+
+Available options are documented in the earth faceting widget. You can set the
+initial camera position, the number of categories and coloring for choropleth
+maps, and other visual characteristics.
+
+7. In the future, a helper that automatically assembles the controlled
+vocabulary and creates the facet index may be added. It would accept a select
+statement associating items ids and their geometries; and a series of layer
+definitions.  E.g.:
+
+-- SELECT recreate_gis_facet('people', 'birthplace',
+--	"SELECT _packed_id, the_geom FROM people JOIN cities ON (people.birth_city_id = cities.id)",
+--	"SELECT city, the_geom, the_geom FROM nobelist_cities",
+--	"SELECT country, the_geom, ST_SimplifyPreserveTopology(the_geom, 0.02) FROM nobelist_countries")
+-- $$);

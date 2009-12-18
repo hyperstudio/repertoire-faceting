@@ -57,8 +57,7 @@ repertoire.facet_context = function(context_name, state_fn, options) {
   // By default, the url is '/<context>/counts/<facet>'
   //
   self.counts = function(facet_name, callback, $elem) {
-    // default url is '<context>/results'
-    var url = self.default_url([context_name, 'counts', facet_name]);
+    var url = self.facet_url('counts', facet_name);
     // package up the faceting state and send back to results rendering service
     self.fetch(self.params(), url, 'json', callback, $elem);
   };
@@ -69,10 +68,23 @@ repertoire.facet_context = function(context_name, state_fn, options) {
   // By default, the url is '/<context>/counts/<facet>'
   //
   self.results = function(type, callback, $elem) {
-    // default url is '<context>/results'
-    var url = self.default_url([context_name, 'results']);
+    var url = self.facet_url('results');
     // package up the faceting state and send back to results rendering service
     self.fetch(self.params(), url, type, callback, $elem);
+  };
+  
+  //
+  // Convenience function for constructing faceting urls
+  //
+  self.facet_url = function(action, facet, ext, params) {
+    var paths = [context_name, action]    
+    if (facet)
+      paths.push(facet)
+    var url = self.default_url(paths, ext);
+    if (params)
+      return url + '?' + self.to_query_string(params);
+    else
+      return url;
   };
     
   //
@@ -80,8 +92,15 @@ repertoire.facet_context = function(context_name, state_fn, options) {
   // with any context-specific additions
   //
   self.params = function() {
-    return $.extend({ filter: self.refinements() }, state_fn());
+    return $.extend({}, { filter: self.refinements() }, state_fn());
   };
+  
+  //
+  // Return the identifying name for this context (usually the model class, pluralized)
+  //
+  self.name = function() {
+    return context_name;
+  }
 
   //
   // Toggle whether facet value is selected

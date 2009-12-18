@@ -144,7 +144,7 @@ Q. Why not support the metadata jquery plugin?  Why not automatically turn all e
 
 A. Possibly.  It needs some thought.
 
-   
+
    
 = About facet indexing and the signature SQL type = 
 
@@ -159,3 +159,17 @@ A. Up to about 500,000 items, supposing 6-8 simultaneous facets with domains any
 Q. My nested facet widget is empty!
 
 A. Did you remember to call expand_nesting(<facet index table>, <facet name>) after creating your index?
+
+
+
+= About GIS faceting =
+
+Q. None of my GIS data works, period.
+
+A. This isn't a Repertoire faceting question.  But: are you absolutely sure you know what SRID the source data was in?  Did you tell shp2psql using -s<SRID>?  If you created new geometry columns in-database, did you pass it to AddGeometryColumn?  The only way to ensure success is to declare the correct SRID at every step and check results frequently in a GIS browser (e.g. GeoServer).  To follow this
+process on known-good data, view layers from the nobelists' spec data in Google Earth/KML using GeoServer.
+
+Q. Why are GIS features indexed by md5 checksum instead of their label?
+
+A. There's a New York City in Texas.  It's perfectly possible to have two rivers in a state with the same name.  In other words, only the feature itself serves as a unique identifier.  We take the checksum instead because many feature geometries are quite large.
+

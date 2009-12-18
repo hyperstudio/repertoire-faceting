@@ -184,7 +184,7 @@ CREATE AGGREGATE signature( INT )
 (
 	sfunc = sig_set,
 	stype = signature,
-	initcond = ''
+  initcond = '0'
 );
 
 CREATE AGGREGATE collect( signature )

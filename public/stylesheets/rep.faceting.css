@@ -5,9 +5,10 @@
 .rep .facet .title                { font-size:10pt; border-bottom: 1px solid #CCC; background: #F4F4F4; color: black; padding: 0.3em; margin: 0; }
 .rep .facet .title .controls      { float: right; }
 .rep .facet .title .controls span { cursor: pointer; margin-left: 5px; color: gray;}
-.rep .facet .nesting              { padding: 0.3em; }
-.rep .facet .values               { font-size: 9pt; padding: 0.3em; margin: 0; height: 10em; overflow: auto; position:relative; }
 .rep .facet .selected             { color: #aaaadd; }
+.rep .facet .nesting              { padding: 0.3em; min-height: 1em; border-bottom: 1px dotted #CCC; }
+.rep .facet .nesting .selected    { color: #000099; }
+.rep .facet .values               { font-size: 9pt; padding: 0.3em; margin: 0; height: 10em; overflow: auto; position:relative; }
 .rep .facet .values .value        { padding-top: 0.1em; padding-bottom: 0.1em; width:95%;}
 .rep .facet .values .value .count { position: relative; left: 0; width: 2.0em; text-align: right; padding-right:5px; color: #aaaadd; float:left; }
 .rep .facet .values .value .label { position: relative; left: 0.5em;}

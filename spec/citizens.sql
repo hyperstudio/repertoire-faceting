@@ -9,10 +9,20 @@
 -- 
 --
 
+BEGIN;
+
+DROP TABLE IF EXISTS citizens;
+
+DROP TABLE IF EXISTS surnames;
+DROP TABLE IF EXISTS male_names;
+DROP TABLE IF EXISTS female_names;
+DROP TABLE IF EXISTS cities;
+DROP TABLE IF EXISTS occupations;
+
 CREATE TABLE surnames(name TEXT, frequency REAL, total INT, id INT PRIMARY KEY, low DOUBLE PRECISION, high DOUBLE PRECISION);
 CREATE TABLE male_names(name TEXT, frequency REAL, total INT, id INT PRIMARY KEY, low DOUBLE PRECISION, high DOUBLE PRECISION);
 CREATE TABLE female_names(name TEXT, frequency REAL, total INT, id INT PRIMARY KEY, low DOUBLE PRECISION, high DOUBLE PRECISION);
-CREATE TABLE cities(id INT PRIMARY KEY, city TEXT, state TEXT, population INT, low DOUBLE PRECISION, high DOUBLE PRECISION);
+CREATE TABLE cities(id INT PRIMARY KEY, city TEXT, state TEXT, state_abbr CHAR(2), population INT, low DOUBLE PRECISION, high DOUBLE PRECISION);
 CREATE TABLE occupations(id SERIAL PRIMARY KEY, name TEXT);
 
 COPY surnames (name, total, frequency, id) FROM stdin WITH DELIMITER AS E'\t';
@@ -6924,280 +6934,280 @@ TERRA	0.008	12145	999
 CELINA	0.008	12145	1000
 \.
 
-COPY cities(id, city, state, population) FROM stdin WITH DELIMITER AS E'\t';
-1	New York	New York	8363710
-2	Los Angeles	California	3833995
-3	Chicago	Illinois	2853114
-4	Houston	Texas	2242193
-5	Phoenix	Arizona	1567924
-6	Philadelphia	Pennsylvania	1447395
-7	San Antonio	Texas	1351305
-8	Dallas	Texas	1279910
-9	San Diego	California	1279329
-10	San Jose	California	948279
-11	Detroit	Michigan	912062
-12	San Francisco	California	808976
-13	Jacksonville	Florida	807815
-14	Indianapolis	Indiana	798382
-15	Austin	Texas	757688
-16	Columbus	Ohio	754885
-17	Fort Worth	Texas	703073
-18	Charlotte	North Carolina	687456
-19	Memphis	Tennessee	669651
-20	Baltimore	Maryland	636919
-21	El Paso	Texas	613190
-22	Boston	Massachusetts	609023
-23	Milwaukee	Wisconsin	604477
-24	Denver	Colorado	598707
-25	Seattle	Washington	598541
-26	Nashville	Tennessee	596462
-27	Washington	District of Columbia	591833
-28	Las Vegas	Nevada	558383
-29	Portland	Oregon	557706
-30	Louisville	Kentucky	557224
-31	Oklahoma City	Oklahoma	551789
-32	Tucson	Arizona	541811
-33	Atlanta	Georgia	537958
-34	Albuquerque	New Mexico	521999
-35	Fresno	California	476050
-36	Sacramento	California	463794
-37	Long Beach	California	463789
-38	Mesa	Arizona	463552
-39	Kansas City	Missouri	451572
-40	Omaha	Nebraska	438646
-41	Cleveland	Ohio	433748
-42	Virginia Beach	Virginia	433746
-43	Miami	Florida	413201
-44	Oakland	California	404155
-45	Raleigh	North Carolina	392552
-46	Tulsa	Oklahoma	385635
-47	Minneapolis	Minnesota	382605
-48	Colorado Springs	Colorado	380307
-49	Honolulu	Hawaii	374676
-50	Arlington	Texas	374417
-51	Wichita	Kansas	366046
-52	St. Louis	Missouri	354361
-53	Tampa	Florida	340882
-54	Santa Ana	California	339130
-55	Anaheim	California	335288
-56	Cincinnati	Ohio	333336
-57	Bakersfield	California	321078
-58	Aurora	Colorado	319057
-59	New Orleans	Louisiana	311853
-60	Pittsburgh	Pennsylvania	310037
-61	Riverside	California	295357
-62	Toledo	Ohio	293201
-63	Stockton	California	287037
-64	Corpus Christi	Texas	286462
-65	Lexington	Kentucky	282114
-66	St. Paul	Minnesota	279590
-67	Anchorage	Alaska	279243
-68	Newark	New Jersey	278980
-69	Buffalo	New York	270919
-70	Plano	Texas	267480
-71	Henderson	Nevada	252064
-72	Lincoln	Nebraska	251624
-73	Fort Wayne	Indiana	251591
-74	Glendale	Arizona	251522
-75	Greensboro	North Carolina	250642
-76	Chandler	Arizona	247140
-77	St. Petersburg	Florida	245314
-78	Jersey City	New Jersey	241114
-79	Scottsdale	Arizona	235371
-80	Norfolk	Virginia	234220
-81	Madison	Wisconsin	231916
-82	Orlando	Florida	230519
-83	Birmingham	Alabama	228798
-84	Baton Rouge	Louisiana	223689
-85	Durham	North Carolina	223284
-86	Laredo	Texas	221659
-87	Lubbock	Texas	220483
-88	Chesapeake	Virginia	220111
-89	Chula Vista	California	219318
-90	Garland	Texas	218577
-91	Winston-Salem	North Carolina	217600
-92	North Las Vegas	Nevada	217253
-93	Reno	Nevada	217016
-94	Gilbert	Arizona	216449
-95	Hialeah	Florida	210542
-96	Arlington	Virginia	209969
-97	Akron	Ohio	207510
-98	Irvine	California	207500
-99	Rochester	New York	206886
-100	Boise	Idaho	205314
-101	Modesto	California	202967
-102	Fremont	California	202867
-103	Montgomery	Alabama	202696
-104	Spokane	Washington	202319
-105	Richmond	Virginia	202002
-106	Yonkers	New York	201588
-107	Irving	Texas	201358
-108	Shreveport	Louisiana	199729
-109	San Bernardino	California	198580
-110	Tacoma	Washington	197181
-111	Glendale	California	197176
-112	Des Moines	Iowa	197052
-113	Augusta	Georgia	194149
-114	Grand Rapids	Michigan	193396
-115	Huntington Beach	California	192620
-116	Mobile	Alabama	191022
-117	Moreno Valley	California	190871
-118	Little Rock	Arkansas	189515
-119	Amarillo	Texas	187236
-120	Columbus	Georgia	186984
-121	Oxnard	California	185717
-122	Fontana	California	184984
-123	Knoxville	Tennessee	184802
-124	Fort Lauderdale	Florida	183126
-125	Salt Lake City	Utah	181698
-126	Newport News	Virginia	179614
-127	Huntsville	Alabama	176645
-128	Tempe	Arizona	175523
-129	Brownsville	Texas	175494
-130	Worcester	Massachusetts	175011
-131	Fayetteville	North Carolina	174091
-132	Jackson	Mississippi	173861
-133	Tallahassee	Florida	171922
-134	Aurora	Illinois	171782
-135	Ontario	California	171691
-136	Providence	Rhode Island	171557
-137	Overland Park	Kansas	171231
-138	Rancho Cucamonga	California	171176
-139	Chattanooga	Tennessee	170880
-140	Oceanside	California	169684
-141	Santa Clarita	California	169500
-142	Garden Grove	California	165796
-143	Vancouver	Washington	163186
-144	Grand Prairie	Texas	160641
-145	Peoria	Arizona	157960
-146	Rockford	Illinois	157272
-147	Cape Coral	Florida	156835
-148	Springfield	Missouri	156206
-149	Santa Rosa	California	155796
-150	Sioux Falls	South Dakota	154997
-151	Port St. Lucie	Florida	154353
-152	Dayton	Ohio	154200
-153	Salem	Oregon	153435
-154	Pomona	California	152699
-155	Springfield	Massachusetts	150640
-156	Eugene	Oregon	150104
-157	Corona	California	149923
-158	Pasadena	Texas	146439
-159	Joliet	Illinois	146125
-160	Pembroke Pines	Florida	145661
-161	Paterson	New Jersey	145643
-162	Hampton	Virginia	145494
-163	Lancaster	California	145469
-164	Alexandria	Virginia	143885
-165	Salinas	California	143640
-166	Palmdale	California	143197
-167	Naperville	Illinois	143117
-168	Pasadena	California	143080
-169	Kansas City	Kansas	142562
-170	Hayward	California	142061
-171	Hollywood	Florida	141740
-172	Lakewood	Colorado	140989
-173	Torrance	California	140820
-174	Syracuse	New York	138068
-175	Escondido	California	137103
-176	Fort Collins	Colorado	136509
-177	Bridgeport	Connecticut	136405
-178	Orange	California	136392
-179	Warren	Michigan	133939
-180	Elk Grove	California	133003
-181	Savannah	Georgia	132410
-182	Mesquite	Texas	132123
-183	Sunnyvale	California	132109
-184	Fullerton	California	131868
-185	McAllen	Texas	129776
-186	Cary	North Carolina	129545
-187	Cedar Rapids	Iowa	128056
-188	Sterling Heights	Michigan	127160
-189	Columbia	South Carolina	127029
-190	Coral Springs	Florida	125783
-191	Carrollton	Texas	125595
-192	Elizabeth	New Jersey	124755
-193	Hartford	Connecticut	124062
-194	Waco	Texas	124009
-195	Bellevue	Washington	123771
-196	New Haven	Connecticut	123669
-197	West Valley City	Utah	123447
-198	Topeka	Kansas	123446
-199	Thousand Oaks	California	123091
-200	El Monte	California	121791
-201	McKinney	Texas	121211
-202	Concord	California	121160
-203	Visalia	California	121040
-204	Simi Valley	California	120543
-205	Olathe	Kansas	119993
-206	Clarksville	Tennessee	119735
-207	Denton	Texas	119454
-208	Stamford	Connecticut	119303
-209	Provo	Utah	118581
-210	Springfield	Illinois	117352
-211	Killeen	Texas	116934
-212	Abilene	Texas	116484
-213	Evansville	Indiana	116309
-214	Gainesville	Florida	114916
-215	Vallejo	California	114729
-216	Ann Arbor	Michigan	114386
-217	Peoria	Illinois	114114
-218	Lansing	Michigan	113968
-219	Lafayette	Louisiana	113656
-220	Thornton	Colorado	113429
-221	Athens	Georgia	113398
-222	Flint	Michigan	112900
-223	Inglewood	California	112714
-224	Roseville	California	112660
-225	Charleston	South Carolina	111978
-226	Beaumont	Texas	110553
-227	Independence	Missouri	110440
-228	Victorville	California	110318
-229	Santa Clara	California	110200
-230	Costa Mesa	California	110080
-231	Miami Gardens	Florida	109346
-232	Manchester	New Hampshire	108586
-233	Miramar	Florida	108484
-234	Downey	California	107587
-235	Arvada	Colorado	107361
-236	Allentown	Pennsylvania	107250
-237	Westminster	Colorado	107056
-238	Waterbury	Connecticut	107037
-239	Norman	Oklahoma	106957
-240	Midland	Texas	106561
-241	Elgin	Illinois	106330
-242	West Covina	California	105790
-243	Clearwater	Florida	105774
-244	Cambridge	Massachusetts	105596
-245	Pueblo	Colorado	104951
-246	West Jordan	Utah	104447
-247	Round Rock	Texas	104446
-248	Billings	Montana	103994
-249	Erie	Pennsylvania	103817
-250	South Bend	Indiana	103807
-251	San Buenaventura (Ventura)	California	103706
-252	Fairfield	California	103683
-253	Lowell	Massachusetts	103615
-254	Norwalk	California	102982
-255	Burbank	California	102968
-256	Richmond	California	102285
-257	Pompano Beach	Florida	101943
-258	High Point	North Carolina	101835
-259	Murfreesboro	Tennessee	101753
-260	Lewisville	Texas	101624
-261	Richardson	Texas	101589
-262	Daly City	California	101514
-263	Berkeley	California	101371
-264	Gresham	Oregon	101221
-265	Wichita Falls	Texas	101202
-266	Green Bay	Wisconsin	101025
-267	Davenport	Iowa	100827
-268	Palm Bay	Florida	100786
-269	Columbia	Missouri	100733
-270	Portsmouth	Virginia	100577
-271	Rochester	Minnesota	100413
-272	Antioch	California	100219
-273	Wilmington	North Carolina	100192
+COPY cities(id, city, state, state_abbr, population) FROM stdin WITH DELIMITER AS E'\t';
+1	New York	New York	NY	8363710
+2	Los Angeles	California	CA	3833995
+3	Chicago	Illinois	IL	2853114
+4	Houston	Texas	TX	2242193
+5	Phoenix	Arizona	AZ	1567924
+6	Philadelphia	Pennsylvania	PA	1447395
+7	San Antonio	Texas	TX	1351305
+8	Dallas	Texas	TX	1279910
+9	San Diego	California	CA	1279329
+10	San Jose	California	CA	948279
+11	Detroit	Michigan	MI	912062
+12	San Francisco	California	CA	808976
+13	Jacksonville	Florida	FL	807815
+14	Indianapolis	Indiana	IN	798382
+15	Austin	Texas	TX	757688
+16	Columbus	Ohio	OH	754885
+17	Fort Worth	Texas	TX	703073
+18	Charlotte	North Carolina	NC	687456
+19	Memphis	Tennessee	TN	669651
+20	Baltimore	Maryland	MD	636919
+21	El Paso	Texas	TX	613190
+22	Boston	Massachusetts	MA	609023
+23	Milwaukee	Wisconsin	WI	604477
+24	Denver	Colorado	CO	598707
+25	Seattle	Washington	WA	598541
+26	Nashville	Tennessee	TN	596462
+27	Washington	District of Columbia	DC	591833
+28	Las Vegas	Nevada	NV	558383
+29	Portland	Oregon	OR	557706
+30	Louisville	Kentucky	KY	557224
+31	Oklahoma City	Oklahoma	OK	551789
+32	Tucson	Arizona	AZ	541811
+33	Atlanta	Georgia	GA	537958
+34	Albuquerque	New Mexico	NM	521999
+35	Fresno	California	CA	476050
+36	Sacramento	California	CA	463794
+37	Long Beach	California	CA	463789
+38	Mesa	Arizona	AZ	463552
+39	Kansas City	Missouri	MO	451572
+40	Omaha	Nebraska	NE	438646
+41	Cleveland	Ohio	OH	433748
+42	Virginia Beach	Virginia	VA	433746
+43	Miami	Florida	FL	413201
+44	Oakland	California	CA	404155
+45	Raleigh	North Carolina	NC	392552
+46	Tulsa	Oklahoma	OK	385635
+47	Minneapolis	Minnesota	MN	382605
+48	Colorado Springs	Colorado	CO	380307
+49	Honolulu	Hawaii	HI	374676
+50	Arlington	Texas	TX	374417
+51	Wichita	Kansas	KS	366046
+52	St. Louis	Missouri	MO	354361
+53	Tampa	Florida	FL	340882
+54	Santa Ana	California	CA	339130
+55	Anaheim	California	CA	335288
+56	Cincinnati	Ohio	OH	333336
+57	Bakersfield	California	CA	321078
+58	Aurora	Colorado	CO	319057
+59	New Orleans	Louisiana	LA	311853
+60	Pittsburgh	Pennsylvania	PA	310037
+61	Riverside	California	CA	295357
+62	Toledo	Ohio	OH	293201
+63	Stockton	California	CA	287037
+64	Corpus Christi	Texas	TX	286462
+65	Lexington	Kentucky	KY	282114
+66	St. Paul	Minnesota	MN	279590
+67	Anchorage	Alaska	AK	279243
+68	Newark	New Jersey	NJ	278980
+69	Buffalo	New York	NY	270919
+70	Plano	Texas	TX	267480
+71	Henderson	Nevada	NV	252064
+72	Lincoln	Nebraska	NE	251624
+73	Fort Wayne	Indiana	IN	251591
+74	Glendale	Arizona	AZ	251522
+75	Greensboro	North Carolina	NC	250642
+76	Chandler	Arizona	AZ	247140
+77	St. Petersburg	Florida	FL	245314
+78	Jersey City	New Jersey	NJ	241114
+79	Scottsdale	Arizona	AZ	235371
+80	Norfolk	Virginia	VA	234220
+81	Madison	Wisconsin	WI	231916
+82	Orlando	Florida	FL	230519
+83	Birmingham	Alabama	AL	228798
+84	Baton Rouge	Louisiana	LA	223689
+85	Durham	North Carolina	NC	223284
+86	Laredo	Texas	TX	221659
+87	Lubbock	Texas	TX	220483
+88	Chesapeake	Virginia	VA	220111
+89	Chula Vista	California	CA	219318
+90	Garland	Texas	TX	218577
+91	Winston-Salem	North Carolina	NC	217600
+92	North Las Vegas	Nevada	NV	217253
+93	Reno	Nevada	NV	217016
+94	Gilbert	Arizona	AZ	216449
+95	Hialeah	Florida	FL	210542
+96	Arlington	Virginia	VA	209969
+97	Akron	Ohio	OH	207510
+98	Irvine	California	CA	207500
+99	Rochester	New York	NY	206886
+100	Boise	Idaho	ID	205314
+101	Modesto	California	CA	202967
+102	Fremont	California	CA	202867
+103	Montgomery	Alabama	AL	202696
+104	Spokane	Washington	WA	202319
+105	Richmond	Virginia	VA	202002
+106	Yonkers	New York	NY	201588
+107	Irving	Texas	TX	201358
+108	Shreveport	Louisiana	LA	199729
+109	San Bernardino	California	CA	198580
+110	Tacoma	Washington	WA	197181
+111	Glendale	California	CA	197176
+112	Des Moines	Iowa	IA	197052
+113	Augusta	Georgia	GA	194149
+114	Grand Rapids	Michigan	MI	193396
+115	Huntington Beach	California	CA	192620
+116	Mobile	Alabama	AL	191022
+117	Moreno Valley	California	CA	190871
+118	Little Rock	Arkansas	AR	189515
+119	Amarillo	Texas	TX	187236
+120	Columbus	Georgia	GA	186984
+121	Oxnard	California	CA	185717
+122	Fontana	California	CA	184984
+123	Knoxville	Tennessee	TN	184802
+124	Fort Lauderdale	Florida	FL	183126
+125	Salt Lake City	Utah	UT	181698
+126	Newport News	Virginia	VA	179614
+127	Huntsville	Alabama	AL	176645
+128	Tempe	Arizona	AZ	175523
+129	Brownsville	Texas	TX	175494
+130	Worcester	Massachusetts	MA	175011
+131	Fayetteville	North Carolina	NC	174091
+132	Jackson	Mississippi	MS	173861
+133	Tallahassee	Florida	FL	171922
+134	Aurora	Illinois	IL	171782
+135	Ontario	California	CA	171691
+136	Providence	Rhode Island	RI	171557
+137	Overland Park	Kansas	KS	171231
+138	Rancho Cucamonga	California	CA	171176
+139	Chattanooga	Tennessee	TN	170880
+140	Oceanside	California	CA	169684
+141	Santa Clarita	California	CA	169500
+142	Garden Grove	California	CA	165796
+143	Vancouver	Washington	WA	163186
+144	Grand Prairie	Texas	TX	160641
+145	Peoria	Arizona	AZ	157960
+146	Rockford	Illinois	IL	157272
+147	Cape Coral	Florida	FL	156835
+148	Springfield	Missouri	MO	156206
+149	Santa Rosa	California	CA	155796
+150	Sioux Falls	South Dakota	SD	154997
+151	Port St. Lucie	Florida	FL	154353
+152	Dayton	Ohio	OH	154200
+153	Salem	Oregon	OR	153435
+154	Pomona	California	CA	152699
+155	Springfield	Massachusetts	MA	150640
+156	Eugene	Oregon	OR	150104
+157	Corona	California	CA	149923
+158	Pasadena	Texas	TX	146439
+159	Joliet	Illinois	IL	146125
+160	Pembroke Pines	Florida	FL	145661
+161	Paterson	New Jersey	NJ	145643
+162	Hampton	Virginia	VA	145494
+163	Lancaster	California	CA	145469
+164	Alexandria	Virginia	VA	143885
+165	Salinas	California	CA	143640
+166	Palmdale	California	CA	143197
+167	Naperville	Illinois	IL	143117
+168	Pasadena	California	CA	143080
+169	Kansas City	Kansas	KS	142562
+170	Hayward	California	CA	142061
+171	Hollywood	Florida	FL	141740
+172	Lakewood	Colorado	CO	140989
+173	Torrance	California	CA	140820
+174	Syracuse	New York	NY	138068
+175	Escondido	California	CA	137103
+176	Fort Collins	Colorado	CO	136509
+177	Bridgeport	Connecticut	CT	136405
+178	Orange	California	CA	136392
+179	Warren	Michigan	MI	133939
+180	Elk Grove	California	CA	133003
+181	Savannah	Georgia	GA	132410
+182	Mesquite	Texas	TX	132123
+183	Sunnyvale	California	CA	132109
+184	Fullerton	California	CA	131868
+185	McAllen	Texas	TX	129776
+186	Cary	North Carolina	NC	129545
+187	Cedar Rapids	Iowa	IA	128056
+188	Sterling Heights	Michigan	MI	127160
+189	Columbia	South Carolina	SC	127029
+190	Coral Springs	Florida	FL	125783
+191	Carrollton	Texas	TX	125595
+192	Elizabeth	New Jersey	NJ	124755
+193	Hartford	Connecticut	CT	124062
+194	Waco	Texas	TX	124009
+195	Bellevue	Washington	WA	123771
+196	New Haven	Connecticut	CT	123669
+197	West Valley City	Utah	UT	123447
+198	Topeka	Kansas	KS	123446
+199	Thousand Oaks	California	CA	123091
+200	El Monte	California	CA	121791
+201	McKinney	Texas	TX	121211
+202	Concord	California	CA	121160
+203	Visalia	California	CA	121040
+204	Simi Valley	California	CA	120543
+205	Olathe	Kansas	KS	119993
+206	Clarksville	Tennessee	TN	119735
+207	Denton	Texas	TX	119454
+208	Stamford	Connecticut	CT	119303
+209	Provo	Utah	UT	118581
+210	Springfield	Illinois	IL	117352
+211	Killeen	Texas	TX	116934
+212	Abilene	Texas	TX	116484
+213	Evansville	Indiana	IN	116309
+214	Gainesville	Florida	FL	114916
+215	Vallejo	California	CA	114729
+216	Ann Arbor	Michigan	MI	114386
+217	Peoria	Illinois	IL	114114
+218	Lansing	Michigan	MI	113968
+219	Lafayette	Louisiana	LA	113656
+220	Thornton	Colorado	CO	113429
+221	Athens	Georgia	GA	113398
+222	Flint	Michigan	MI	112900
+223	Inglewood	California	CA	112714
+224	Roseville	California	CA	112660
+225	Charleston	South Carolina	SC	111978
+226	Beaumont	Texas	TX	110553
+227	Independence	Missouri	MO	110440
+228	Victorville	California	CA	110318
+229	Santa Clara	California	CA	110200
+230	Costa Mesa	California	CA	110080
+231	Miami Gardens	Florida	FL	109346
+232	Manchester	New Hampshire	NH	108586
+233	Miramar	Florida	FL	108484
+234	Downey	California	CA	107587
+235	Arvada	Colorado	CO	107361
+236	Allentown	Pennsylvania	PA	107250
+237	Westminster	Colorado	CO	107056
+238	Waterbury	Connecticut	CT	107037
+239	Norman	Oklahoma	OK	106957
+240	Midland	Texas	TX	106561
+241	Elgin	Illinois	IL	106330
+242	West Covina	California	CA	105790
+243	Clearwater	Florida	FL	105774
+244	Cambridge	Massachusetts	MA	105596
+245	Pueblo	Colorado	CO	104951
+246	West Jordan	Utah	UT	104447
+247	Round Rock	Texas	TX	104446
+248	Billings	Montana	MT	103994
+249	Erie	Pennsylvania	PA	103817
+250	South Bend	Indiana	IN	103807
+251	San Buenaventura (Ventura)	California	CA	103706
+252	Fairfield	California	CA	103683
+253	Lowell	Massachusetts	MA	103615
+254	Norwalk	California	CA	102982
+255	Burbank	California	CA	102968
+256	Richmond	California	CA	102285
+257	Pompano Beach	Florida	FL	101943
+258	High Point	North Carolina	NC	101835
+259	Murfreesboro	Tennessee	TN	101753
+260	Lewisville	Texas	TX	101624
+261	Richardson	Texas	TX	101589
+262	Daly City	California	CA	101514
+263	Berkeley	California	CA	101371
+264	Gresham	Oregon	OR	101221
+265	Wichita Falls	Texas	TX	101202
+266	Green Bay	Wisconsin	WI	101025
+267	Davenport	Iowa	IA	100827
+268	Palm Bay	Florida	FL	100786
+269	Columbia	Missouri	MO	100733
+270	Portsmouth	Virginia	VA	100577
+271	Rochester	Minnesota	MN	100413
+272	Antioch	California	CA	100219
+273	Wilmington	North Carolina	NC	100192
 \.
 
 COPY occupations(name) FROM stdin WITH DELIMITER AS E'\t';
@@ -7832,6 +7842,7 @@ CREATE TABLE citizens(
 	last_name TEXT,
 	gender TEXT,
 	occupation TEXT,
+	birth_city_id INTEGER REFERENCES cities(id),
   birth_city TEXT,
   birth_state TEXT,
 	birthdate DATE,
@@ -7846,6 +7857,7 @@ DECLARE
   last_name TEXT;
   gender TEXT;
   occupation TEXT;
+  birth_city_id INTEGER;
   birth_city TEXT;
   birth_state TEXT;
   birthdate DATE;
@@ -7861,11 +7873,11 @@ BEGIN
 	    SELECT name INTO first_name FROM male_names, random() r WHERE low < r AND high > r;
     END IF;	
 	  SELECT name INTO occupation FROM occupations, random() r WHERE id = (r * (SELECT max(id) FROM occupations))::INTEGER;
-    SELECT city, state INTO birth_city, birth_state FROM cities, random() r WHERE low < r AND high > r;
+    SELECT id, city, state INTO birth_city_id, birth_city, birth_state FROM cities, random() r WHERE low < r AND high > r;
 	  birthdate := now()::date - (random() * 31025)::integer;
 		social_security := (random() * 900 + 100)::integer || '-' || (random() * 90 + 10)::integer || '-' || (random() * 900 + 100)::integer;
 	
-    INSERT INTO citizens VALUES(first_name, last_name, gender, occupation, birth_city, birth_state, birthdate, social_security,
+    INSERT INTO citizens VALUES(first_name, last_name, gender, occupation, birth_city_id, birth_city, birth_state, birthdate, social_security,
 	                              to_tsvector(first_name || ' ' || last_name || ' ' || occupation || ' ' || birth_city || ' ' || birth_state));
 	END LOOP;
 END;
@@ -7888,5 +7900,7 @@ SELECT recreate_table('_citizens_birth_place_facet', 'SELECT ARRAY [ birth_state
 SELECT recreate_table('_citizens_birthdate_facet', 'SELECT birthdate, signature(_packed_id) FROM (SELECT (EXTRACT(year FROM birthdate)::integer / 10::integer) * 10 AS birthdate, _packed_id from citizens) AS computed GROUP by birthdate');
 
 CREATE INDEX citizens_last_name_ndx on citizens(last_name);
+
+COMMIT;
 
 VACUUM ANALYZE;

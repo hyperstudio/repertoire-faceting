@@ -2,44 +2,68 @@ module Repertoire
   module Faceting
     module PostgresAdapter
       
+      # TODO.  abstract out the logic-specific elements here into a pluggable architecture for producing sql
+      
       # execute a facet value count query
-      def facet_count(facet, query, refinements, count_minimum, count_order, count_limit, count_offset, logic = {}, nullable = true, type = String)
-        # TODO.  simplify this method's parameters
+      def facet_count(fq)
         # much-simplified adaptation of standard select statement
-        model         = query.model
-        conditions    = query.conditions
-        nesting_level = refinement_nesting_level(facet, refinements, logic)
-        
-        base_signature_statement, bind_values = base_signature_statement(query, refinements, logic)
-        refinements_statement, bind_values    = refinements_statement(model, refinements, logic, bind_values)
-        
-        nesting_point = nesting_level ? "[#{nesting_level}]" : ""
-        
+        q = fq.base_query
+
+        base_signature_statement, bind_values = base_signature_statement(fq.base_query, fq.refinements, fq.logic)
+        refinements_statement, bind_values    = refinements_statement(fq.base_query.model, fq.refinements, fq.logic, bind_values)
+
         signature_expr = ["facet.signature"]
         signature_expr << "base.signature"   unless base_signature_statement.empty?
         signature_expr << "filter.signature" unless refinements_statement.empty?
-        
-        inner_conditions = []
-        if nesting_level
-          inner_conditions << "array_length(#{quote_name(facet)}, 1) = ?"
-          bind_values      << nesting_level
+
+        nesting_level    = refinement_nesting_level(fq.facet, fq.refinements, fq.logic)
+        nesting_point    = nesting_level ? "[#{nesting_level}]" : ""
+
+        return_fields = [ "#{quote_name(fq.facet)}", "count" ]
+        return_types  = [ String, Integer ]
+        facet_fields  = [ "#{quote_name(fq.facet)}#{nesting_point}", "count(#{signature_expr.join(' & ')})" ]
+        extra_fields(fq) do |expr, type, index|
+          return_fields << "extra#{index}"
+          return_types  << type
+          facet_fields  << "#{expr} AS extra#{index}"
         end
+
+        pivot_statement  = ""
+        pivot_conditions = []
+        case fq.logic[fq.facet]
+        when :nested
+          pivot_conditions << "array_length(#{quote_name(fq.facet)}, 1) = ?" if nesting_level
+          bind_values      << nesting_level                                  if nesting_level
+        when :geom
+          if fq.refinements[fq.facet]
+            pivot_statement   = "SELECT #{quote_name(fq.facet)} as pivot_key, full_geom AS pivot_geom, layer AS pivot_layer FROM #{quote_name(q.model.facet_storage_name(fq.facet))}"
+            pivot_conditions << "ST_Within(full_geom, pivot_geom)"
+            pivot_conditions << "layer = pivot_layer + 1"
+            pivot_conditions << "pivot_key = ?"
+            bind_values      << fq.refinements[fq.facet].first
+          else
+            pivot_conditions << "facet.layer = 1"
+          end
+        end
+
+        facet_conditions = []
+        facet_conditions << "count >= #{fq.minimum}"              if fq.minimum > 0
+        facet_conditions << "#{quote_name(fq.facet)} IS NOT NULL" if !fq.nullable
         
-        outer_conditions = []
-        outer_conditions << "count >= #{count_minimum}"        if count_minimum > 0
-        outer_conditions << "#{quote_name(facet)} IS NOT NULL" if !nullable
+        facet_count_order_statement = facet_count_order_statement(fq.facet, fq.order, facet_fields)
         
-        statement =  "SELECT #{quote_name(facet)}, count FROM ("
-        statement << "SELECT #{quote_name(facet)}#{nesting_point}, count(#{signature_expr.join(' & ')})"
-        statement << " FROM #{quote_name(model.facet_storage_name(facet))} AS facet"
+        statement =  "SELECT #{return_fields.join(', ')} FROM ("
+        statement << "SELECT #{facet_fields.join(', ')}"
+        statement << " FROM #{quote_name(q.model.facet_storage_name(fq.facet))} AS facet"
         statement << ", (#{base_signature_statement}) AS base"        unless base_signature_statement.empty?
         statement << ", (#{refinements_statement}) AS filter"         unless refinements_statement.empty?
-        statement << " WHERE #{inner_conditions}"                     unless inner_conditions.empty?
+        statement << ", (#{pivot_statement}) AS pivot"                unless pivot_statement.empty?
+        statement << " WHERE #{pivot_conditions.join(' AND ')}"       unless pivot_conditions.empty?
         statement << ") AS facet_counts"
-        statement << " WHERE #{outer_conditions.join(' AND ')}"       unless outer_conditions.empty?
-        statement << " ORDER BY #{facet_count_order_statement(facet, count_order)}"
+        statement << " WHERE #{facet_conditions.join(' AND ')}"       unless facet_conditions.empty?
+        statement << " ORDER BY #{facet_count_order_statement}"       unless facet_count_order_statement.empty?
 
-        read_array_from_sql([type, Integer], statement, bind_values)
+        read_array_from_sql(return_types, statement, bind_values)
       end
       
       # Constructs SELECT statement for given query,
@@ -47,21 +71,15 @@ module Repertoire
       # @return [String] SELECT statement as a string
       #
       # @api private
-      def facet_results(query, refinements, logic={})
+      def facet_results(fq)
         # use base and filter as signature as subselect, then get model fields
-        raise "Facet refinement cannot be used with links (yet!)" if query.links.any?
         
         # much-simplified adaptation of standard select statement
-        model      = query.model
-        fields     = query.fields
-        conditions = query.conditions
-        limit      = query.limit
-        offset     = query.offset
-        order_by   = query.order
-        qualify    = false
+        q       = fq.base_query
+        qualify = false
 
-        base_signature_statement, bind_values = base_signature_statement(query, refinements, logic)
-        refinements_statement, bind_values    = refinements_statement(model, refinements, logic, bind_values)
+        base_signature_statement, bind_values = base_signature_statement(q, fq.refinements, fq.logic)
+        refinements_statement, bind_values    = refinements_statement(q.model, fq.refinements, fq.logic, bind_values)
         
         signature_expr = []
         signature_expr << "base.signature"   unless base_signature_statement.empty?
@@ -71,19 +89,19 @@ module Repertoire
         faceted_expr << "(#{base_signature_statement}) AS base"   unless base_signature_statement.empty?
         faceted_expr << "(#{refinements_statement}) AS filter"    unless refinements_statement.empty?
         
-        statement = "SELECT #{columns_statement(fields, qualify)}"
-        statement << " FROM #{quote_name(model.storage_name(name))}"
+        statement = "SELECT #{columns_statement(q.fields, qualify)}"
+        statement << " FROM #{quote_name(q.model.storage_name(name))}"
         unless signature_expr.empty?
           statement << ", (SELECT members(#{signature_expr.join(' & ')}) FROM "
           statement << faceted_expr.join(', ')
           statement << ") AS faceted"
-          statement << " WHERE #{quote_name(model.storage_name(name))}.#{quote_name(model.signature_id_column)} = faceted.members"
+          statement << " WHERE #{quote_name(q.model.storage_name(name))}.#{quote_name(q.model.signature_id_column)} = faceted.members"
         end
-        statement << " ORDER BY #{order_statement(order_by, qualify)}"   if order_by && order_by.any?
+        statement << " ORDER BY #{order_statement(q.order, qualify)}"   if q.order && q.order.any?
 
-        add_limit_offset!(statement, limit, offset, bind_values)
+        add_limit_offset!(statement, q.limit, q.offset, bind_values)
         
-        read_hash_from_sql(fields, statement, bind_values)
+        read_hash_from_sql(q.fields, statement, bind_values)
       end
         
       private
@@ -96,7 +114,8 @@ module Repertoire
         end
       end
       
-      def facet_count_order_statement(facet, order)
+      def facet_count_order_statement(facet, order, facet_fields)
+        # TODO.  make ordering more flexible; add to facet_fields
         facet_sym = facet.to_sym
         statement = []
         order.each do |field|
@@ -105,19 +124,20 @@ module Repertoire
           when :count.asc, :count, 'count' then     "count ASC" 
           when facet_sym.desc then                  "#{facet} DESC"
           when facet_sym.asc, facet_sym, facet then "#{facet} ASC"
+          when :id.asc, :id, 'id' then              facet_fields << "id"; "id ASC"
           else raise "Unkown order: #{order}"
           end
         end        
         statement.join(', ')
       end
       
-      def base_signature_statement(query, refinements, logic)
-        model       = query.model
-        conditions  = query.conditions
+      def base_signature_statement(base_query, refinements, logic)
+        model       = base_query.model
+        conditions  = base_query.conditions
         qualify     = false
 
         conditions_statement, bind_values = conditions_statement(conditions, qualify)
-      
+
         statement = ""
         unless conditions_statement.blank?
           statement << "SELECT signature(#{quote_name(model.signature_id_column)}) FROM #{quote_name(model.storage_name(name))}"
@@ -126,18 +146,18 @@ module Repertoire
 
         return statement, bind_values
       end
-      
+
       def refinements_statement(model, refinements, logic, bind_values=[])
         statements = []
         refinements.each do |facet, values|
           facet_value_conditions = facet_value_conditions(facet, values, logic)
 
           aggregate_fn = case logic[facet]
-          when nil, :and    then 'filter'
-          when :or, :nested then 'collect'
+          when nil, :and           then 'filter'
+          when :or, :nested, :geom then 'collect'
           else raise "Unkown facet refinement logic option: #{logic[facet]}"
           end
-          
+
           expr = "SELECT #{aggregate_fn}(signature) AS signature"
           expr << " FROM #{quote_name(model.facet_storage_name(facet))}"
           expr << " WHERE #{facet_value_conditions}"
@@ -158,6 +178,16 @@ module Repertoire
           else              " #{quote_name(facet.to_s)} IN (#{placeholders.join(', ')})"
         end
         return statement
+      end
+
+      def extra_fields(fq)
+        case fq.logic[fq.facet]
+        when :geom
+          yield "label", String, 2
+          yield "ST_AsKML(display_geom)", String, 3
+          yield "GeometryType(display_geom)", String, 4
+          yield "ST_AsKML(ST_PointOnSurface(display_geom))", String, 5
+        end
       end
       
       def read_hash_from_sql(fields, statement, bind_values)
