@@ -2,6 +2,9 @@
 -- Testing data for faceting : MIT Nobel prize winners example
 --
 
+DROP TABLE IF EXISTS affiliations;
+DROP TABLE IF EXISTS nobelists;
+
 CREATE TABLE nobelists (
     id serial PRIMARY KEY,
     name text NOT NULL,
@@ -49,7 +52,7 @@ COPY nobelists (id, name, birthdate, deathdate, birth_country, birth_state, birt
 8	Phillip A. Sharp	1944-06-06 00:00:00	\N	United States of America	Kentucky	McKinneysburg	\N	Medicine/Physiology	t	Sharp	1993	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1993/sharp_thumb.jpg	\N
 9	Lawrence R. Klein	1920-09-14 00:00:00	\N	United States of America	Nebraska	Omaha	\N	Economics	f	Klein	1980	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1980/klein_thumb.jpg	\N
 16	E. Donnall Thomas	1920-03-15 00:00:00	\N	\N	\N	\N	\N	Medicine/Physiology	t	Thomas	1990	\N	\N	http://nobelprize.org/nobel_prizes/medicine/laureates/1990/thomas_thumb.jpg	\N
-28	Edwin M. McMillan	1907-09-18 00:00:00	1991-09-07 00:00:00	United State of America	California	Redondo Beach	\N	Chemistry	t	McMillan	1951	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1951/mcmillan_thumb.jpg	\N
+28	Edwin M. McMillan	1907-09-18 00:00:00	1991-09-07 00:00:00	United States of America	California	Redondo Beach	\N	Chemistry	t	McMillan	1951	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1951/mcmillan_thumb.jpg	\N
 24	Paul A. Samuelson	1915-05-15 00:00:00	\N	United States of America	Indiana	Gary	\N	Economics	f	Samuelson	1970	\N	\N	http://nobelprize.org/nobel_prizes/economics/laureates/1970/samuelson_thumb.jpg	\N
 39	Robert Burns Woodward	1917-04-10 00:00:00	1979-07-08 00:00:00	United States of America	Massachusetts	Cambridge	\N	Chemistry	f	Woodward	1965	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1965/woodward_thumb.jpg	\N
 52	Geoffrey Wilkinson	1921-07-14 00:00:00	1996-09-26 00:00:00	England	\N	Springside	\N	Chemistry	t	Wilkinson	1973	\N	\N	http://nobelprize.org/nobel_prizes/chemistry/laureates/1973/wilkinson_thumb.jpg	\N

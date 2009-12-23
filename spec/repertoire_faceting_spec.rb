@@ -76,7 +76,7 @@ describe "Repertoire faceting" do
 
     it "should use arrays to represent nested facet values" do
       results = Nobelist.facet_results(:birth_place => ["United States of America"])
-      results.size.should == 31
+      results.size.should == 32
       results = Nobelist.facet_results(:birth_place => ["United States of America", "New York"])
       results.size.should == 7
     end
@@ -158,13 +158,13 @@ describe "Repertoire faceting" do
     end  
     
     it "should allow drill-down in nested facet values" do
-      expected = [["United States of America", 31], [nil, 15], ["Germany", 4], ["Canada", 3], ["England", 2], ["British India", 1], 
+      expected = [["United States of America", 32], [nil, 15], ["Germany", 4], ["Canada", 3], ["England", 2], ["British India", 1], 
                   ["British Mandate of Palestine", 1], ["Italy", 1], ["Japan", 1], ["Korea", 1], ["Mexico", 1], 
-                  ["People's Republic of China", 1], ["United State of America", 1]]
+                  ["People's Republic of China", 1]]
       counts = Nobelist.facet_count(:birth_place)
       counts.should == expected
 
-      expected = [["New York", 7], ["California", 4], ["Massachusetts", 3], ["Pennsylvania", 3], ["Florida", 2], ["Illinois", 2], 
+      expected = [["New York", 7], ["California", 5], ["Massachusetts", 3], ["Pennsylvania", 3], ["Florida", 2], ["Illinois", 2], 
                   ["Connecticut", 1], ["District of Columbia", 1], ["Indiana", 1], ["Kentucky", 1], ["Michigan", 1], 
                   ["Nebraska", 1], ["North Carolina", 1], ["South Carolina", 1], ["Virginia", 1], ["West Virginia", 1]]
       counts = Nobelist.facet_count(:birth_place, :birth_place => [ 'United States of America' ])

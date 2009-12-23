@@ -443,6 +443,8 @@ sig_and( PG_FUNCTION_ARGS )
 	      sig2bytes,
 		    resbytes,
 				i;
+  uint8 byte1,
+        byte2;
 	
 	sig1 = PG_GETARG_SIGNATURE_P(0);
 	sig1bytes = VARSIZE(sig1) - VARHDRSZ - SIGNATUREHDRSZ;
@@ -458,9 +460,13 @@ sig_and( PG_FUNCTION_ARGS )
 	res->len = MAX(sig1->len, sig2->len);
 	
 	for(i=0; i<resbytes; i++) {
-		if (i < sig1bytes && i < sig2bytes) {
-			res->data[i] = sig1->data[i] & sig2->data[i];
-		}
+    byte1 = byte2 = 0;
+    if (i < sig1bytes)
+      byte1 = sig1->data[i];
+    if (i < sig2bytes)
+      byte2 = sig2->data[i];
+	  
+    res->data[i] = byte1 & byte2;
 	}
 	
 	PG_FREE_IF_COPY(sig1, 0);
@@ -482,6 +488,8 @@ sig_or( PG_FUNCTION_ARGS )
 	      sig2bytes,
 		    resbytes,
 				i;
+  uint8 byte1,
+        byte2;
 	
 	sig1 = PG_GETARG_SIGNATURE_P(0);
 	sig1bytes = VARSIZE(sig1) - VARHDRSZ - SIGNATUREHDRSZ;
@@ -496,10 +504,14 @@ sig_or( PG_FUNCTION_ARGS )
 
 	res->len = MAX(sig1->len, sig2->len);
 	
-	for(i=0; i<resbytes; i++) {
-		if (i < sig1bytes && i < sig2bytes) {
-			res->data[i] = sig1->data[i] | sig2->data[i];
-		}
+	for(i=0; i<resbytes; i++) {        
+    byte1 = byte2 = 0;
+    if (i < sig1bytes)
+      byte1 = sig1->data[i];
+    if (i < sig2bytes)
+      byte2 = sig2->data[i];
+	  
+    res->data[i] = byte1 | byte2;
 	}
 	
 	PG_FREE_IF_COPY(sig1, 0);
