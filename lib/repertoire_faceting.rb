@@ -1,3 +1,5 @@
+require "active_record"
+
 # require code that must be loaded before the application
 dir = Pathname(__FILE__).dirname.expand_path + 'repertoire_faceting'
 
@@ -7,10 +9,12 @@ require dir + 'facet_query'
 
 require dir + 'is-faceted'
 
-require DataMapper.root / 'lib' / 'dm-core' / 'adapters' / 'postgres_adapter'
-gem 'do_postgres', '~>0.10.0'
-require 'do_postgres'
+if defined?(ActiveRecord::Base)
+  ActiveRecord::Base.extend Repertoire::Faceting::Functions
+end
 
+
+=begin
 module DataMapper
   module Model
     include Repertoire::Faceting::Functions
@@ -26,23 +30,4 @@ module DataMapper
     end
   end
 end
-
-
-# make sure we're running inside Merb
-if defined?(Merb::Plugins)
-
-  # Merb gives you a Merb::Plugins.config hash...feel free to put your stuff in your piece of it
-  Merb::Plugins.config[:repertoire_faceting] = {
-  }
-  
-  Merb::BootLoader.before_app_loads do    
-    # Merb::Controller.send(:include, Repertoire::FacetingMixin)
-    Merb.add_mime_type :kml, :to_kml, %w[application/vnd.google-earth.kml+xml]
-  end
-  
-  Merb::BootLoader.after_app_loads do
-    # code that can be required after the application loads
-  end
-  
-  # Merb::Plugins.add_rakefiles "repertoire_faceting/merbtasks"
-end
+=end

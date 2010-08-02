@@ -5,8 +5,8 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |s|
     s.name = "repertoire_faceting"
-    s.summary = "Merb/Postgresql plugin that provides faceted indexing and browsing"
-    s.description = "Merb/Postgresql plugin that provides faceted indexing and browsing"
+    s.summary = "Rails/Postgresql plugin that provides faceted indexing and browsing"
+    s.description = "Rails/Postgresql plugin that provides faceted indexing and browsing"
     s.email = "yorkc@mit.edu"
     s.homepage = "http://github.com/repertoire/repertoire-faceting"
     s.authors = ["Christopher York"]
@@ -16,8 +16,7 @@ begin
     s.add_dependency('rep.ajax.toolkit', '~>0.2.0')
     
     s.add_dependency('ruby-pg')
-    s.add_dependency('merb-core')
-    s.add_dependency('dm-core')
+    s.add_dependency('rails')
     
     s.extensions = []                         # extensions require sudo access, not possible when bundling - install by hand instead
     
