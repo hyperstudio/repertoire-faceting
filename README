@@ -1,3 +1,10 @@
+Rails3 documentation revisions
+
+- requires ruby 1.9.2 (ordered hashes)
+
+=====
+
+
 API for faceted browsing within PostgreSQL, with extensions for Merb and jquery ajax widgets
 
 ===== Strategy =====
