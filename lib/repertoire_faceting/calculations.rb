@@ -30,8 +30,12 @@ module Repertoire
           end
         end
       
-        refinements = refinements.map { |s| "(#{s})"}
-        rel.where("contains(#{ refinements.join(' & ') }, #{table_name}.id)")
+        if refinements.empty?
+          rel
+        else
+          refinements = refinements.map { |s| "(#{s})"}
+          rel.where("contains(#{ refinements.join(' & ') }, #{table_name}.id)")
+        end
       end
       
       def facet_expr(values)

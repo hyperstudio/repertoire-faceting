@@ -24,9 +24,6 @@ module Repertoire
             # defaults: group on same column as facet name, counts descending
             relation = relation.group(name) if relation.group_values.empty?
             
-            # TODO. order clause may change if nested facet is refined down
-#            relation = relation.order("count_all desc", "#{relation.group_values.first} asc") if relation.order_values.empty?
-            
             # set facet metadata on relation
             relation.facet_name = name
             
@@ -41,10 +38,12 @@ module Repertoire
         end
         
         def facet?(name)
+          name = name.to_sym
           facets.key?(name)
         end
         
         def facet_for(name)
+          name = name.to_sym
           raise "Unknown facet #{name}" unless facet?(name)
           facets[name].call
         end

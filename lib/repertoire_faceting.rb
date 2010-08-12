@@ -4,6 +4,7 @@ require 'pathname'
 dir = Pathname(__FILE__).dirname.expand_path + 'repertoire_faceting'
 
 require dir + 'calculations'
+require dir + 'controller'
 require dir + 'model'
 require dir + 'relation'
 require dir + 'version'

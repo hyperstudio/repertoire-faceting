@@ -1,6 +1,6 @@
 module Repertoire
   module Faceting
-    module Model
+    module Controller
       extend ActiveSupport::Concern
       
       module ClassMethods

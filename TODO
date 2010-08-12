@@ -16,6 +16,10 @@ rails3.
 - rake task to install postgresql extensions
 - prettier output for raw facet relations in to_s
 
+- new method: relation.facet[:name] ...  finds the facet relation, merges with current one, and returns result
+- allow refinement on nested facets using single refinement values (as above)
+
+ex:  Nobelist.refine(:birth_place => 'Germany').facet[:birth_place].count
 
 
 controller:
