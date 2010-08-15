@@ -15,6 +15,11 @@ module Repertoire
           super
         end
       end
+      
+      def build_arel
+        puts "********************"
+        super
+      end
 
       def refine(opts)
         rel = clone

@@ -1,10 +1,19 @@
 rails3.
 
-- test cases running in 'training wheels' mode
+- test cases running in 'training wheels' mode    DONE
+- controller mixin with counts/results            DONE
+- routes extensions                               DONE
+
+- get core examples working                       DONE
+- sorting defaults
+- nested facet widget not working
+
+- install procedure for new app
+  * generators
+  * rakefile works
+
 - adapter for running indexed counts/queries
 - system for checking presence of indexes
-- controller extensions with counts/results
-- routes extensions
 
 - sort mode option built in to widget
 - minimum option built in to widget
@@ -21,6 +30,7 @@ rails3.
 
 ex:  Nobelist.refine(:birth_place => 'Germany').facet[:birth_place].count
 
+- generate routes that don't conflict with resource routes (rails thinks /nobelists/results is the nobelist named 'results')
 
 controller:
 

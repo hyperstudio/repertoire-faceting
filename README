@@ -1,6 +1,8 @@
 Rails3 documentation revisions
 
 - requires ruby 1.9.2 (ordered hashes)
+- include_root_in_json = false
+- rake faceting:postgres_install
 
 =====
 

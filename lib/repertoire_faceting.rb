@@ -6,7 +6,10 @@ dir = Pathname(__FILE__).dirname.expand_path + 'repertoire_faceting'
 require dir + 'calculations'
 require dir + 'controller'
 require dir + 'model'
-require dir + 'relation'
 require dir + 'version'
+
+require dir + 'railtie'
+require dir + 'rails/relation'
+require dir + 'rails/routes'
 
 #require dir + 'adapters' + 'postgres_adapter'
