@@ -3,8 +3,9 @@ module Repertoire
     module Model
       extend ActiveSupport::Concern
        
-      included do |base|    
+      included do |base|
         base.singleton_class.delegate :refine, :minimum, :signature, :to => :scoped
+        ActiveRecord::Relation.send(:include, Calculations)
       end
       
       module ClassMethods
@@ -20,12 +21,12 @@ module Repertoire
             else
               scoped
             end
+
+            # set facet metadata on relation
+            relation.facet_name_value = name
             
             # defaults: group on same column as facet name, counts descending
             relation = relation.group(name) if relation.group_values.empty?
-            
-            # set facet metadata on relation
-            relation.facet_name = name
             
             relation
           end

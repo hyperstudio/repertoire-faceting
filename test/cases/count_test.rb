@@ -15,11 +15,11 @@ class CountTest < ActiveSupport::TestCase
   
   def test_count_ordering
     expected = {"Physics" => 27, "Economics" => 13, "Chemistry" => 12, "Medicine/Physiology" => 9, "Peace" => 2}
-    counts = Nobelist.discipline.order('count_all desc', 'discipline asc').count
+    counts = Nobelist.discipline.order('count desc', 'discipline asc').count
     assert_equal expected, counts
     
     expected = {"Chemistry" => 12, "Economics" => 13, "Medicine/Physiology" => 9, "Peace" => 2, "Physics" => 27}
-    counts = Nobelist.discipline.order('discipline desc', 'count_all asc').count
+    counts = Nobelist.discipline.order('discipline desc', 'count asc').count
     assert_equal expected, counts
   end
 
@@ -67,7 +67,6 @@ class CountTest < ActiveSupport::TestCase
     expected = {"New York" => 7, "California" => 5, "Massachusetts" => 4, "Pennsylvania" => 3, "Illinois" => 2, 
                 "Connecticut" => 1, "District of Columbia" => 1, "Florida" => 1, "Indiana" => 1, "Kentucky" => 1, "Michigan"=> 1,
                 "Nebraska" => 1, "North Carolina" => 1, "South Carolina" => 1, "Virginia" => 1, "West Virginia" => 1}
-    
     counts = Nobelist.birth_place.refine(:birth_place => [ 'United States of America' ]).count
     assert_equal expected, counts
   
@@ -82,7 +81,7 @@ class CountTest < ActiveSupport::TestCase
   
   def test_count_joined
     expected = {nil => 43, "Ph.D." => 16, "S.B." => 11, "S.M." => 2}
-    counts = Nobelist.degree.order('count_all desc', 'degree asc').count
+    counts = Nobelist.degree.order('count desc', 'degree asc').count
     assert_equal expected, counts
   end
 	

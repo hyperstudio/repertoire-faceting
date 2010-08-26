@@ -13,7 +13,7 @@ module Repertoire
         # TODO.  better support for ordering
         case order.to_sym
         when :count
-          base = base.reorder("count_all desc")
+          base = base.reorder("count desc")
         end
         
         @counts = base.count

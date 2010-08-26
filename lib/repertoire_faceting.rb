@@ -1,15 +1,19 @@
-require 'pathname'
+require 'active_support/dependencies'
 
-# require code that must be loaded before the application
-dir = Pathname(__FILE__).dirname.expand_path + 'repertoire_faceting'
+module Repertoire
+  module Faceting
 
-require dir + 'calculations'
-require dir + 'controller'
-require dir + 'model'
-require dir + 'version'
+    autoload :Calculations, 'repertoire_faceting/calculations'
+    autoload :Controller, 'repertoire_faceting/controller'
+    autoload :Model, 'repertoire_faceting/model'
+    autoload :Version, 'repertoire_faceting/version'
 
-require dir + 'railtie'
-require dir + 'rails/relation'
-require dir + 'rails/routes'
+    autoload :Railtie, 'repertoire_faceting/railtie'
 
-#require dir + 'adapters' + 'postgres_adapter'
+    #autoload :'repertoire_faceting/adapters/postgres_adapter'
+
+  end
+end
+
+require 'repertoire_faceting/rails/relation'
+require 'repertoire_faceting/rails/routes'

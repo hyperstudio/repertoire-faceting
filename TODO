@@ -4,9 +4,12 @@ rails3.
 - controller mixin with counts/results            DONE
 - routes extensions                               DONE
 
+- get ride of annoying load warnings			  DONE
 - get core examples working                       DONE
+- 'training wheels' using plain-jane SQL
+
 - sorting defaults
-- nested facet widget not working
+- nested facet widget not working                 DONE
 
 - install procedure for new app
   * generators
