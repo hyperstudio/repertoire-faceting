@@ -11,8 +11,8 @@ rails3.
 - nested facet widget not working                 DONE
 
 - install procedure for new app
-  * arrange to load without a generator/config file
-  * check rake tasks load when installed in an app
+  * arrange to load without a generator/config file         DONE
+  * check rake tasks load when installed in an app          DONE
 
 - adapter for running indexed counts/queries
 - system for checking presence of indexes
@@ -27,7 +27,7 @@ rails3.
 - mysql for 'training wheels'
 - mysql adapter for indexing
 
-- rake task to install postgresql extensions
+- rake task to install postgresql extensions                DONE
 
 - new method: relation.facet[:name] ...  finds the facet relation, merges with current one, and returns result          DONE
 - sorting defaults                                          NOT TO DO
