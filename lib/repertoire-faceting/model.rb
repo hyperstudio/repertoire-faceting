@@ -5,7 +5,6 @@ module Repertoire
        
       included do |base|
         base.singleton_class.delegate :refine, :minimum, :signature, :to => :scoped
-        ActiveRecord::Relation.send(:include, Calculations)
       end
       
       module ClassMethods
@@ -39,14 +38,7 @@ module Repertoire
         end
         
         def facet?(name)
-          name = name.to_sym
-          facets.key?(name)
-        end
-        
-        def facet_for(name)
-          name = name.to_sym
-          raise "Unknown facet #{name}" unless facet?(name)
-          facets[name].call
+          facets.key?(name.to_sym)
         end
         
         protected

@@ -6,14 +6,13 @@ rails3.
 
 - get ride of annoying load warnings			  DONE
 - get core examples working                       DONE
-- 'training wheels' using plain-jane SQL
+- 'training wheels' using plain-jane SQL          DONE
 
-- sorting defaults
 - nested facet widget not working                 DONE
 
 - install procedure for new app
-  * generators
-  * rakefile works
+  * arrange to load without a generator/config file
+  * check rake tasks load when installed in an app
 
 - adapter for running indexed counts/queries
 - system for checking presence of indexes
@@ -29,12 +28,10 @@ rails3.
 - mysql adapter for indexing
 
 - rake task to install postgresql extensions
-- prettier output for raw facet relations in to_s
 
-- new method: relation.facet[:name] ...  finds the facet relation, merges with current one, and returns result
-- allow refinement on nested facets using single refinement values (as above)
-
-ex:  Nobelist.refine(:birth_place => 'Germany').facet[:birth_place].count
+- new method: relation.facet[:name] ...  finds the facet relation, merges with current one, and returns result          DONE
+- sorting defaults                                          NOT TO DO
+- prettier output for raw facet relations in to_s           NOT TO DO [ db dependent ]
 
 - generate routes that don't conflict with resource routes (rails thinks /nobelists/results is the nobelist named 'results')
 

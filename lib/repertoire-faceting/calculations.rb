@@ -60,6 +60,14 @@ module Repertoire
         @nested ||= group_values.size > 1 
       end
       
+      def facet(name)
+        name = name.to_sym
+        raise "Unknown facet #{name}" unless klass.facet?(name)
+
+        facet = klass.facets[name].call
+        self.merge(facet)
+      end
+      
       protected
       
       def refine_facet(*values)
@@ -86,8 +94,8 @@ module Repertoire
       end
       
       def refine_context(opts)
-        rels = opts.map do |facet, values|
-          klass.facet_for(facet).refine_facet(*values)
+        rels = opts.map do |name, values|
+          facet(name).refine_facet(*values)
         end
         rels.inject(clone) do |copy, rel|
           # TODO.  VERY MESSY - clean up the merge behavior for facet_name_value, group, and nested?

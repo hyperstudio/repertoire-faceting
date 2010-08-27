@@ -3,7 +3,7 @@
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
-require File.join(File.dirname(__FILE__), 'lib', 'repertoire_faceting', 'version')
+require File.join(File.dirname(__FILE__), 'lib', 'repertoire-faceting', 'version')
 
 def run_without_aborting(*tasks)
   errors = []
@@ -53,7 +53,7 @@ end
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |s|
-    s.name = "repertoire_faceting"
+    s.name = "repertoire-faceting"
     s.version = Repertoire::Faceting::VERSION.dup
     s.summary = "Rails/Postgresql plugin that provides faceted indexing and browsing"
     s.description = "Rails/Postgresql plugin that provides faceted indexing and browsing"

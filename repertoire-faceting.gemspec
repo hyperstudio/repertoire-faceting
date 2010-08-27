@@ -27,12 +27,12 @@ Gem::Specification.new do |s|
      "ext/signature.c",
      "ext/signature.sql.IN",
      "ext/uninstall_signature.sql.IN",
-     "lib/repertoire_faceting.rb",
-     "lib/repertoire_faceting/adapters/postgres_adapter.rb",
-     "lib/repertoire_faceting/faceting_functions.rb",
-     "lib/repertoire_faceting/is-faceted.rb",
-     "lib/repertoire_faceting/is-faceted/is/faceted.rb",
-     "lib/repertoire_faceting/is-faceted/is/version.rb",
+     "lib/repertoire-faceting.rb",
+     "lib/repertoire-faceting/adapters/postgres_adapter.rb",
+     "lib/repertoire-faceting/faceting_functions.rb",
+     "lib/repertoire-faceting/is-faceted.rb",
+     "lib/repertoire-faceting/is-faceted/is/faceted.rb",
+     "lib/repertoire-faceting/is-faceted/is/version.rb",
      "public/images/repertoire-faceting/spinner_sm.gif",
      "public/javascripts/protovis.js",
      "public/javascripts/rep.faceting.js",
@@ -43,11 +43,11 @@ Gem::Specification.new do |s|
      "public/javascripts/rep.faceting/results.js",
      "public/javascripts/rep.protovis-facets.js",
      "public/stylesheets/rep.faceting.css",
-     "repertoire_faceting.gemspec",
+     "repertoire-faceting.gemspec",
      "spec/README.spec",
      "spec/citizens.sql",
      "spec/nobelists.sql",
-     "spec/repertoire_faceting_spec.rb",
+     "spec/repertoire-faceting_spec.rb",
      "spec/scalability_spec.rb",
      "spec/spec_helper.rb"
   ]
@@ -67,7 +67,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{Merb/Postgresql plugin that provides faceted indexing and browsing}
   s.test_files = [
-    "spec/repertoire_faceting_spec.rb",
+    "spec/repertoire-faceting_spec.rb",
      "spec/scalability_spec.rb",
      "spec/spec_helper.rb"
   ]
