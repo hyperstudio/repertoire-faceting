@@ -24,7 +24,10 @@ rails3.
 
 - rake task to update all indices
 - rake task to verify all indices
+
+- mysql for 'training wheels'
 - mysql adapter for indexing
+
 - rake task to install postgresql extensions
 - prettier output for raw facet relations in to_s
 
@@ -34,6 +37,7 @@ rails3.
 ex:  Nobelist.refine(:birth_place => 'Germany').facet[:birth_place].count
 
 - generate routes that don't conflict with resource routes (rails thinks /nobelists/results is the nobelist named 'results')
+
 
 controller:
 

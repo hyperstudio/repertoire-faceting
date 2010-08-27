@@ -25,8 +25,6 @@ module Repertoire
           group_column    = column_for(group_field)
           aggregate_alias = 'count'
 
-          puts "FOOWEIRD: #{group_values.join(',')}" if group_field.blank?
-
           select_statement = "COUNT(*) AS #{aggregate_alias}, #{group_field} AS #{group_alias}"
           relation = except(:group).select(select_statement).group(group_field)
           
