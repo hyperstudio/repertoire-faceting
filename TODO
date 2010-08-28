@@ -14,8 +14,8 @@ rails3.
   * arrange to load without a generator/config file         DONE
   * check rake tasks load when installed in an app          DONE
 
-- adapter for running indexed counts/queries
 - system for checking presence of indexes
+- adapter for running indexed counts/queries
 
 - sort mode option built in to widget
 - minimum option built in to widget

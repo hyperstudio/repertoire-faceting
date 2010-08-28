@@ -2,7 +2,7 @@ module Repertoire
   module Faceting
     module Model
       extend ActiveSupport::Concern
-       
+      
       included do |base|
         base.singleton_class.delegate :refine, :minimum, :signature, :to => :scoped
       end
@@ -39,6 +39,10 @@ module Repertoire
         
         def facet?(name)
           facets.key?(name.to_sym)
+        end
+
+        def indexed_facet?(name)
+          facets.key?(name) && connection.indexed_facet?(table_name, name)
         end
         
         protected
