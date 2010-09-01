@@ -4,7 +4,7 @@ rails3.
 - controller mixin with counts/results            DONE
 - routes extensions                               DONE
 
-- get ride of annoying load warnings			  DONE
+- get ride of annoying load warnings			  DONE - MUST REDO
 - get core examples working                       DONE
 - 'training wheels' using plain-jane SQL          DONE
 
