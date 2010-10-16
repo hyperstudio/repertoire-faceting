@@ -4,7 +4,7 @@ module Repertoire
       extend ActiveSupport::Concern
       
       included do |base|
-        base.singleton_class.delegate :refine, :minimum, :signature, :to => :scoped
+        base.singleton_class.delegate :refine, :minimum, :nils, :signature, :to => :scoped
       end
       
       module ClassMethods
@@ -13,21 +13,18 @@ module Repertoire
           valid_facet_name?(name)
           
           facets[name] = lambda do |*args|
-            relation = if options.is_a?(Hash)
-              scoped.apply_finder_options(options)
-            elsif options
-              scoped.merge(options)
-            else
-              scoped
-            end
-
-            # set facet metadata on relation
-            relation.facet_name_value = name
+            relation = options || scoped
             
-            # defaults: group on same column as facet name, counts descending
-            relation = relation.group(name) if relation.group_values.empty?
+            raise QueryError, "Already configuring facet #{relation.facet_name_value}" if relation.facet_name_value.present?
             
-            relation
+            # default: group by attribute with facet name, order by count descending
+            relation = relation.clone.tap { |r| r.facet_name_value = name }
+                                                
+            relation = relation.group(name)                 if relation.group_values.empty?
+            relation = relation.order(["count DESC", name]) if relation.order_values.empty?
+            
+            # facet scopes only inherit selection info from their parent
+            scoped.only(:joins, :includes, :refine).merge(relation)
           end
 
           singleton_class.send(:redefine_method, name, &facets[name])
@@ -40,11 +37,15 @@ module Repertoire
         def facet?(name)
           facets.key?(name.to_sym)
         end
+        
+        def indexed_facets
+          connection.indexed_facets(table_name).map(&:to_sym)
+        end
 
         def indexed_facet?(name)
-          facets.key?(name) && connection.indexed_facet?(table_name, name)
+          indexed_facets.include?(name)
         end
-        
+
         protected
 
         def valid_facet_name?(name)

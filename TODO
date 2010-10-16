@@ -1,82 +1,56 @@
 rails3.
 
+- results from indexes
+- nested faceting not working
+- README
+  * declaring facets
+  * faceting db api
+  * installing postgresql extensions
+  * migrations for indexing
+  * updating indices (a) postgresql-crontab (b) rake crontab
+- generate routes that don't conflict with resource routes (rails thinks /nobelists/results is the nobelist named 'results')
+- FAQ
+  * "not grouped error"
+  * migrations and facet decls
+- get ride of annoying load warnings on test
+- remove mysql references in test suite
+
+- run all tests indexed and unindexed             DONE
+- migrations for facet indexes                    DONE
+- indexed counts                                  DONE
+- mix indexed and non-indexed                     DONE
+
 - test cases running in 'training wheels' mode    DONE
 - controller mixin with counts/results            DONE
 - routes extensions                               DONE
 
-- get ride of annoying load warnings			  DONE
 - get core examples working                       DONE
 - 'training wheels' using plain-jane SQL          DONE
 
-- nested facet widget not working                 DONE
+- facets should inherit scope                     DONE
 
 - install procedure for new app
   * arrange to load without a generator/config file         DONE
   * check rake tasks load when installed in an app          DONE
 
-- system for checking presence of indexes
-- adapter for running indexed counts/queries
+- system for checking presence of indexes         DONE
+- adapter for running indexed counts/queries      DONE
 
-- sort mode option built in to widget
-- minimum option built in to widget
-- widgets multiplex calls to count
+- sort mode option built in to widget           NOT TO DO
+- minimum option built in to widget             NOT TO DO
+- widgets multiplex calls to count              NOT TO DO
 
-- rake task to update all indices
-- rake task to verify all indices
+- rake task to update all indices               NOT TO DO
+- rake task to verify all indices               NOT TO DO
 
-- mysql for 'training wheels'
-- mysql adapter for indexing
+- mysql for 'training wheels'                   NOT TO DO
+- mysql adapter for indexing                    NOT TO DO
 
 - rake task to install postgresql extensions                DONE
 
 - new method: relation.facet[:name] ...  finds the facet relation, merges with current one, and returns result          DONE
 - sorting defaults                                          NOT TO DO
 - prettier output for raw facet relations in to_s           NOT TO DO [ db dependent ]
-
-- generate routes that don't conflict with resource routes (rails thinks /nobelists/results is the nobelist named 'results')
-
-
-controller:
-
-def facet_base
-  search = params[:search]
-  Nobelist.where(["_fulltext @@ ?", search])
-end
-
-# added by module
-def counts
-  facets      = params[:facets] || []
-  refinements = params[:refinements] || {}
-  base        = self.facet_base
-  
-  @counts = {}
-  facets.each do |facet|
-    query = base && facet_for(facet).refine(refinements)
-    @counts[facet] = query.facet_count
-  end
-  
-  render :json => @counts
-end
-
-def results
-  refinements = params[:refinements] || {}
-  offset      = params[:offset] || 0
-  limit       = params[:limit] || 25
-  
-  base        = self.facet_base
-  @results     = base.refine(refinements).offset(offset).limit(limit)
-
-  render    # TODO.  how to render many partials
-end
-
-
-def model.facet_for(:foo)
-  if model.respond_to?
-    model.send(foo)						# security problem?
-  else
-    model.group(foo)
-  end
-end
 
 
 Changes in this version
@@ -104,26 +78,3 @@ DESIRED FEATURES / IMPROVEMENTS.
    [ design: fetch() queues ajax calls; update() implementations request queue and merge current webservice call with
              ones already in the queue.  on controller side, receive multiple facet names, iterate, and bundle.  fetch()
              then unbundles the results can dispatches them to appropriate callbacks ]
-
-
-
-
-
-TEMPORARY TABLE FACET VALUE COUNT PROCEDURE
------
-
-BEGIN;
-
-  CREATE TEMP TABLE _filter ON COMMIT DROP AS 							-- base query
-    SELECT signature(_packed_id) FROM nobelists WHERE shared;
-  INSERT INTO _filter													-- degree refinement
-    SELECT signature FROM _nobelists_degree_facet WHERE degree = 'S.B.';
-  INSERT INTO _filter													-- nobel_year refinement
-    SELECT signature FROM _nobelists_nobel_year_facet WHERE nobel_year = 2001;
-
-  SELECT birth_place, count(facet.signature & filter.signature)			-- birth_place facet value count
-    FROM _nobelists_birth_place_facet AS facet,
-          (SELECT filter(signature) AS signature FROM _filter) AS filter
-    ORDER BY count DESC, birth_place ASC;
-
-COMMIT;

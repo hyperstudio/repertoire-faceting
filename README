@@ -4,7 +4,23 @@ Rails3 documentation revisions
 - include_root_in_json = false
 - rake faceting:postgres_install
 
+To cover in the README:
+- how facet indices work
+- why in-database
+
+- maintaining facet indices
+- via migration
+- via rake task
+
 =====
+
+task :reindex_facets do
+  conn do
+    renumber_table(Nobelist.table_name)
+    recreate_table(Nobelist.degree.table_name, Nobelist.degree.signature.to_sql)
+    recreate_table(Nobelist.nobel_year.table_name, Nobelist.nobel_year.signature.to_sql)
+  end
+end
 
 
 API for faceted browsing within PostgreSQL, with extensions for Merb and jquery ajax widgets

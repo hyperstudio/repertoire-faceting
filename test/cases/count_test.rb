@@ -15,23 +15,23 @@ class CountTest < ActiveSupport::TestCase
   
   def test_count_ordering
     expected = {"Physics" => 27, "Economics" => 13, "Chemistry" => 12, "Medicine/Physiology" => 9, "Peace" => 2}
-    counts = Nobelist.discipline.order('count desc', 'discipline asc').count
+    counts = Nobelist.discipline.reorder('count desc', 'discipline asc').count
     assert_equal expected, counts
     
     expected = {"Chemistry" => 12, "Economics" => 13, "Medicine/Physiology" => 9, "Peace" => 2, "Physics" => 27}
-    counts = Nobelist.discipline.order('discipline desc', 'count asc').count
+    counts = Nobelist.discipline.reorder('discipline desc', 'count asc').count
     assert_equal expected, counts
   end
 
   def test_count_base
     expected = {"Economics" => 5, "Chemistry" => 2, "Physics" => 2, "Medicine/Physiology" => 1}
-    counts = Nobelist.discipline.where("name like '%Robert%'").count
+    counts = Nobelist.where("name like '%Robert%'").discipline.count
     assert_equal expected, counts
   end
 
   def test_count_minimum
     expected = {"Economics" => 5}
-    counts = Nobelist.discipline.where("name like '%Robert%'").minimum(3).count
+    counts = Nobelist.where("name like '%Robert%'").discipline.minimum(3).count
     assert_equal expected, counts
   end    
   
@@ -44,16 +44,16 @@ class CountTest < ActiveSupport::TestCase
   def test_count_refinements_2
     query = {}
     query[:discipline] = [ "Medicine/Physiology" ]
-    expected = {1968 => 1, 1969 => 1, 1975 => 1, 1987 => 1, 1990 => 1, 1993 => 1, 2001 => 1, 2002 => 1, 2006 => 1}
-    counts = Nobelist.nobel_year.refine(query).count
+    expected = {"1968" => 1, "1969" => 1, "1975" => 1, "1987" => 1, "1990" => 1, "1993" => 1, "2001" => 1, "2002" => 1, "2006" => 1}
+    counts = Nobelist.refine(query).nobel_year.count
     assert_equal expected, counts
   end
 
   def test_count_base_refinements
     query = {}
     query[:discipline] = [ "Medicine/Physiology" ]
-    expected = {1993 => 1}
-    counts = Nobelist.nobel_year.where(:birth_state => 'Kentucky').refine(query).count
+    expected = {"1993" => 1}
+    counts = Nobelist.where(:birth_state => 'Kentucky').refine(query).nobel_year.count
     assert_equal expected, counts
   end
 
@@ -74,24 +74,27 @@ class CountTest < ActiveSupport::TestCase
     counts = Nobelist.birth_place.refine(:birth_place => [ 'United States of America', 'New York' ]).count
     assert_equal expected, counts
     
-    expected = []
+    expected = {}
     counts = Nobelist.birth_place.refine(:birth_place => [ 'United States of America', 'New York', 'New York City' ]).count
     assert_equal expected, counts
   end
-  
+
   def test_count_joined
-    expected = {nil => 43, "Ph.D." => 16, "S.B." => 11, "S.M." => 2}
-    counts = Nobelist.degree.order('count desc', 'degree asc').count
+    expected = {nil => 40, "Ph.D." => 16, "S.B." => 11, "S.M." => 2}
+    counts = Nobelist.degree.reorder('count desc', 'degree asc').count
     assert_equal expected, counts
+  end
+  
+  def test_count_default_nils
+	  expected = {nil => 40, "Ph.D." => 16, "S.B." => 11, "S.M." => 2}
+	  counts = Nobelist.degree.count
+	  assert_equal expected, counts
   end
 	
   def test_count_no_nils
-	  expected = {nil => 43, "Ph.D." => 16, "S.B." => 11, "S.M." => 2}
-	  counts = Nobelist.degree.count
-	  assert_equal expected, counts
-	  
 	  expected = {"Ph.D." => 16, "S.B." => 11, "S.M." => 2}
 	  counts = Nobelist.degree.nils(false).count
 	  assert_equal expected, counts
   end
+  
 end
