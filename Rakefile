@@ -7,7 +7,7 @@ require __FILE__ + '/../lib/repertoire-faceting/version'
 
 gemspec = eval(File.read("repertoire-faceting.gemspec"))
 
-def run_without_aborting(modes, *tasks)
+def run_without_aborting(*tasks)
   errors = []
 
   tasks.each do |task|
@@ -31,13 +31,13 @@ end
 desc 'Default: run tests'
 task :default => :test
 
-desc 'Run postgresql and mysql tests'
+desc 'Run tests for supported databases (currently only Postgresql)'
 task :test do
-  tasks = %w(test_postgresql test_mysql)
+  tasks = %w(test_postgresql )
   run_without_aborting(*tasks)
 end
 
-%w( postgresql mysql ).each do |adapter|
+%w( postgresql ).each do |adapter|
   Rake::TestTask.new("test_#{adapter}") do |t|
     connection_path = "test/connections/#{adapter}"
     t.libs << "test" << connection_path

@@ -1,3 +1,39 @@
+-- Utility function to expand nesting in facet indices
+--
+--  Initially a acet index will include only leaves of 
+--  nesting tree.  This function adds all interior nodes
+--  with their respective aggregate signatures, and adds a
+--  postgresql index to the nested facet value.
+--
+-- e.g. given the facet values
+--   '{USA,Florida}'  '10'
+--   '{USA,Iowa}'     '01'
+--
+-- the function inserts
+--   '{USA}'          '11'
+--
+-- N.B. expand_nesting may only be called once on a table
+--      it refuses to add internal node duplicates
+--
+CREATE OR REPLACE FUNCTION expand_nesting(tbl TEXT, col TEXT) RETURNS VOID AS $$
+DECLARE
+  len INTEGER;
+BEGIN
+  -- add unique index on facet value column
+  EXECUTE 'CREATE UNIQUE INDEX ' || tbl || '_' || col || '_ndx  ON ' || quote_ident(tbl) || '(' || quote_ident(col) || ')';
+  -- compute maximum nesting length for facet values
+  EXECUTE 'SELECT max(array_length(' || quote_ident(col) || ', 1)) FROM ' || quote_ident(tbl)
+    INTO len;
+  -- expand each level
+  FOR i IN REVERSE (len-1)..1 LOOP
+    EXECUTE 'INSERT INTO ' || quote_ident(tbl) || '(' || quote_ident(col) || ', signature)'
+	  || ' SELECT ' || quote_ident(col) || '[1:' || i || '], collect(signature)'
+	  || ' FROM ' || quote_ident(tbl)
+	  || ' WHERE array_length(' || quote_ident(col) || ', 1) > ' || i
+	  || ' GROUP BY ' || quote_ident(col) || '[1:' || i || ']';
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
 
 
 def table_name

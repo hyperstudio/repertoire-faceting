@@ -13,7 +13,7 @@ rails3.
   * "not grouped error"
   * migrations and facet decls
 - get ride of annoying load warnings on test
-- remove mysql references in test suite
+- remove mysql references in test suite           DONE
 
 - run all tests indexed and unindexed             DONE
 - migrations for facet indexes                    DONE
