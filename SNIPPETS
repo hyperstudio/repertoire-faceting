@@ -1,5 +1,121 @@
 
 
+def table_name
+if facet_name_value.present?
+connection.facet_table_name(@klass.table_name, facet_name_value)
+else
+super
+end
+end
+
+=begin
+def facet_count(relation)
+facet_name   = relation.facet_name_value.to_s
+index_table  = relation.table_name
+
+# arel
+index_arel   = Table(index_table)
+raise facet_name unless index_arel[facet_name]
+index_column = index_arel.column_for(index_arel[facet_name])
+
+filters = {}
+filters[:base] = base_signature(relation).to_sql
+
+relation.refine_value.keys.each do |filter_facet|
+filter_table = facet_table_name(relation.table_name, filter_facet)
+if filter_values = relation.refine_value[filter_facet]
+# TODO.  better quoting for interpolated values
+vals = filter_values.map{ |v| quote(v) }.join(', ')
+filters[filter_facet] = "SELECT filter(signature) AS signature FROM #{filter_table} WHERE #{filter_facet} IN (#{ vals })"
+end
+end
+
+filter_sql    = filters.map { |key, query| "(#{query}) AS #{key}" }
+signature_sql = ([:facet] | filters.keys).map { |s| "#{s}.signature" }
+
+# TODO. handle order, nils, and minimum
+minimum = relation.minimum_value || 1
+
+sql =  "SELECT facet.#{facet_name}, count(#{ signature_sql.join(' & ') }) AS count "
+sql += "FROM #{index_table} AS facet, "
+sql += filter_sql.join(", ")
+sql += " ORDER BY count DESC, #{facet_name} ASC"
+
+calculated_data = select_all(sql)
+
+calculated_data.inject(ActiveSupport::OrderedHash.new) do |all, row|
+key      = index_column.type_cast(row[facet_name.to_s])
+val      = row['count'].to_i
+all[key] = val if val >= minimum
+all
+end
+end
+
+def facet_results
+end
+
+=end
+
+protected
+
+def base_signature(relation)
+
+end
+def facet_count_unindexed
+relation = clone.clear_facet_options
+relation = relation.with_count(minimum_value) if minimum_value
+relation = relation.without_nils              if nils_value == false
+
+# TODO.  foul hack... why doesn't active record let us set our own aggregate column alias name?
+#        instead, munge order values to follow active record convention
+relation = relation.clone.tap do |r|
+r.order_values = r.order_values.flatten.map { |v| v.to_s.gsub(/^count\b/i, 'count_all')}
+end
+
+relation.count
+end
+
+def facet_column
+# TODO.  does rails have a cleaner method for this?
+#        and is the final joins value a reasonable default?
+
+column = group_values.first.to_s
+table  = joins_values.last || @klass.table_name
+
+if column.include?('.')
+column
+else
+"#{table}.#{column}"
+end
+end
+
+def with_refinement(facet, values)
+relation = @klass.send(facet)
+relation = relation.where({relation.facet_column => values})
+
+self & relation.only(:joins, :includes, :where, :refine)
+end
+
+def with_count(n)
+relation = clone
+if group_values.empty?
+relation.where(['count >= ?', n])
+else
+relation.having(['count(*) >= ?', n])
+end
+end
+
+def without_nils
+clone.where(["#{facet_column} IS NOT NULL"])
+end
+end
+
+
+
+
+
+
+
 # TODO.  abstract out the logic-specific elements here into a pluggable architecture for producing sql
 
 # execute a facet value count query

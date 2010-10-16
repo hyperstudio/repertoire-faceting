@@ -7,7 +7,7 @@ require __FILE__ + '/../lib/repertoire-faceting/version'
 
 gemspec = eval(File.read("repertoire-faceting.gemspec"))
 
-def run_without_aborting(*tasks)
+def run_without_aborting(modes, *tasks)
   errors = []
 
   tasks.each do |task|
@@ -38,14 +38,13 @@ task :test do
 end
 
 %w( postgresql mysql ).each do |adapter|
-  Rake::TestTask.new("test_#{adapter}") { |t|
+  Rake::TestTask.new("test_#{adapter}") do |t|
     connection_path = "test/connections/#{adapter}"
     t.libs << "test" << connection_path
-    t.test_files = (Dir.glob( "test/cases/**/*_test.rb") + 
-                    Dir.glob("test/cases/adapters/#{adapter}/**/*_test.rb")).sort
+    t.test_files = Dir.glob( "test/cases/**/*_test.rb").sort
     t.verbose = true
     t.warning = true
-  }
+  end
 end
 
 desc 'Generate documentation for Repertoire Faceting.'
