@@ -8,6 +8,9 @@ To cover in the README:
 - how facet indices work
 - why in-database
 
+- faceting: controlled vocabularies
+            relational representations
+
 - maintaining facet indices
 - via migration
 - via rake task
@@ -15,11 +18,8 @@ To cover in the README:
 =====
 
 task :reindex_facets do
-  conn do
-    renumber_table(Nobelist.table_name)
-    recreate_table(Nobelist.degree.table_name, Nobelist.degree.signature.to_sql)
-    recreate_table(Nobelist.nobel_year.table_name, Nobelist.nobel_year.signature.to_sql)
-  end
+  conn = ActiveRecord::Base.connection
+  conn.update_indexed_facets(Nobelist, [:degree, :nobel_year])
 end
 
 

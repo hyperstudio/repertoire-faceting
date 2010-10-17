@@ -31,12 +31,10 @@ Gem::Specification.new do |s|
   If this is the first time you have installed Repertoire faceting, you need
   to build and install the native PostgreSQL extension:
 
-    cd <my-rails-app-with-faceting>
+    cd <my-rails-app>
     rake faceting:postgres:install
 
-  To do GIS faceting, you will also need to install the PostGIS spatial extension.
   See the repertoire-faceting README for details.
   #{'*'*80}
   POST_INSTALL_MESSAGE
 end
-

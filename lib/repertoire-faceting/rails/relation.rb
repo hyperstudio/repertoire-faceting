@@ -5,6 +5,5 @@ module ActiveRecord
     include Repertoire::Faceting::Relation::Calculations
     include Repertoire::Faceting::Relation::QueryMethods
     include Repertoire::Faceting::Relation::SpawnMethods
-    include Repertoire::Faceting::Relation::Signatures
   end
 end

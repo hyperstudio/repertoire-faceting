@@ -3,8 +3,10 @@ module Repertoire
     module Model
       extend ActiveSupport::Concern
       
+      FACET_IMPLEMENTATIONS = []
+      
       included do |base|
-        base.singleton_class.delegate :refine, :minimum, :nils, :signature, :to => :scoped
+        base.singleton_class.delegate :refine, :minimum, :nils, :to => :scoped
       end
       
       module ClassMethods
@@ -19,12 +21,16 @@ module Repertoire
             
             # default: group by attribute with facet name, order by count descending
             relation = relation.clone.tap { |r| r.facet_name_value = name }
-                                                
             relation = relation.group(name)                 if relation.group_values.empty?
             relation = relation.order(["count DESC", name]) if relation.order_values.empty?
             
             # facet scopes only inherit selection info from their parent
-            scoped.only(:joins, :includes, :refine).merge(relation)
+            relation = scoped.only(:joins, :refine).merge(relation)
+            
+            # add appropriate faceting implementation
+            relation = mixin_faceting(relation)
+            
+            relation
           end
 
           singleton_class.send(:redefine_method, name, &facets[name])
@@ -43,17 +49,26 @@ module Repertoire
         end
 
         def indexed_facet?(name)
-          indexed_facets.include?(name)
+          facet?(name) && indexed_facets.include?(name)
         end
 
         protected
-
+        
         def valid_facet_name?(name)
           if !facets[name] && respond_to?(name, true)
             logger.warn "Creating facet :#{name}. " \
                         "Overwriting existing method #{self.name}.#{name}."
           end
         end
+        
+        def mixin_faceting(rel)
+          mixins = FACET_IMPLEMENTATIONS.select { |k| k.claim?(rel) }
+          raise QueryError, "Multiple facet implementations claimed #{name}. Using #{mixins.last}" if mixins.size > 1
+          raise QueryError, "No available facet implementations for #{name}"                       if mixins.size < 1
+          rel.singleton_class.send(:include, mixins.last)
+          rel
+        end
+        
       end
     end
   end

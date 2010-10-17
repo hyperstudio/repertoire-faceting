@@ -18,19 +18,14 @@ module Repertoire
       
       # Facet counts and results
       
-      def population(relation, base, filters, facet)
-        # Would be nice to use Arel here... but it isn't up to relational joins of this complexity
-        signatures = (['_facet', '_base'] + filters.keys).map{ |key| "#{key}.signature"}
+      def population(relation, masks, signatures)
+        # Would be nice to use Arel here... but it isn't up to relational joins of this complexity, 
+        # despite best-effort attempts
+        exprs = masks.map { |mask| "(#{mask.to_sql})" }
         
-        clauses = []
-        clauses << "(#{facet.to_sql}) AS _facet"
-        clauses << "(#{base.to_sql})  AS _base"
-        filters.each do |key, rel|
-          clauses << "(#{rel.to_sql}) AS #{key}"
-        end
-        
-        sql  = "SELECT _facet.#{relation.facet_name_value}, count(#{signatures.join(' & ')}) "
-        sql += "FROM #{clauses.join(",\n")} "
+        sql  = "SELECT facet.#{relation.facet_name_value}, count(facet.signature & mask.signature) "
+        sql += "FROM (SELECT (#{exprs.join(' & ')}) AS signature) AS mask, "
+        sql += "     (#{signatures.to_sql}) AS facet "
         sql += "ORDER BY #{relation.order_values.join(', ')} " if relation.order_values.present?
         sql += "OFFSET #{relation.offset_value} "              if relation.offset_value.present?
         sql += "LIMIT #{relation.limit_value} "                if relation.limit_value.present?
@@ -47,10 +42,9 @@ module Repertoire
         results
       end
       
-      def filter_join_sql(filters)
-        signatures = filters.values.map(&:to_sql)
-        signatures = signatures.map { |sql| "(#{sql})" }
-        "INNER JOIN members(#{signatures.join(' & ')}) AS _refinements_packed_id ON (_packed_id = _refinements_packed_id)"
+      def mask_members_sql(masks)
+        exprs = masks.map { |mask| "(#{mask.to_sql})" }
+        "INNER JOIN members(#{exprs.join(' & ')}) AS _refinements_packed_id ON (_packed_id = _refinements_packed_id)"
       end
       
     end

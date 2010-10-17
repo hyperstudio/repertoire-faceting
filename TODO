@@ -1,7 +1,10 @@
 rails3.
 
-- results from indexes
-- nested faceting not working
+- calculated relations conflict with table names
+- allow facet defs in method bodies
+- pluggable facet implementations                 DONE
+- results from indexes                            DONE
+- nested faceting not working                     DONE
 - README
   * declaring facets
   * faceting db api
@@ -12,6 +15,8 @@ rails3.
 - FAQ
   * "not grouped error"
   * migrations and facet decls
+  * facet plugin registration (and multiple claims)
+
 - get ride of annoying load warnings on test
 - remove mysql references in test suite           DONE
 

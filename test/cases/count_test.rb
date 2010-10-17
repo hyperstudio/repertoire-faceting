@@ -78,6 +78,20 @@ class CountTest < ActiveSupport::TestCase
     counts = Nobelist.birth_place.refine(:birth_place => [ 'United States of America', 'New York', 'New York City' ]).count
     assert_equal expected, counts
   end
+  
+  def test_count_calculated
+    expected = { "1896" => 1, "1898" => 1, "1904" => 1, "1906" => 1, "1907" => 1, "1910" => 1, "1912" => 2, "1913" => 1, "1915" => 4, 
+                 "1917" => 1, "1918" => 3, "1920" => 2, "1921" => 2, "1922" => 1, "1924" => 1, "1926" => 1, "1928" => 2, "1929" => 1, 
+                 "1930" => 2, "1931" => 2, "1932" => 1, "1933" => 1, "1936" => 1, "1937" => 1, "1938" => 2, "1939" => 4, "1940" => 1, 
+                 "1941" => 2, "1942" => 1, "1943" => 2, "1944" => 2, "1945" => 2, "1947" => 3, "1948" => 1, "1949" => 1, "1950" => 1, 
+                 "1951" => 2, "1957" => 1, "1959" => 1, "1961" => 1, nil => 1 }
+    counts = Nobelist.birthdate.count
+    assert_equal expected, counts
+    
+    expected = { "September" => 1, "May" => 1, "February" => 1, "October" => 1 }
+    counts = Nobelist.refine(:birthdate => ["1939"]).birthdate.count
+    assert_equal expected, counts
+  end
 
   def test_count_joined
     expected = {nil => 40, "Ph.D." => 16, "S.B." => 11, "S.M." => 2}

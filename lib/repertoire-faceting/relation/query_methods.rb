@@ -54,17 +54,11 @@ module Repertoire
         def indexed_facet?
           facet? && @klass.indexed_facet?(facet_name_value)
         end
-        
-        def nested_facet?
-          facet? && group_values.size > 1
-        end
-        
-        def nest_level
-          raise "Not a nested facet" unless nested_facet?
-          (refine_value[facet_name_value] || []).size
-        end
 
-        def scoping_facet(name)
+        def facet(name)
+          name = name.to_sym
+          raise "Unknown facet #{name}" unless @klass.facet?(name)
+                
           @klass.facets[name].call
         end
         

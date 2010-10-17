@@ -12,7 +12,7 @@ module Repertoire
         tables.grep(/_#{model_name}_(\w+)_facet/) { $1 }
       end
 
-      # High-level migration helpers for facet indices
+      # High-level migration helpers
 
       def update_indexed_facets(model_class, facet_names=nil)
         indexed_facets = model_class.indexed_facets
@@ -33,7 +33,7 @@ module Repertoire
           table = facet_table_name(model_class.table_name, name)
           facet = model_class.facets[name].call
           
-          recreate_table(table, facet.signature.to_sql)
+          recreate_table(table, facet.index.to_sql)
         end
       end
 

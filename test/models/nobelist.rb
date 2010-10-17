@@ -9,8 +9,8 @@ class Nobelist < ActiveRecord::Base
 
   facet :discipline
   facet :nobel_year
-  facet :degree, joins(:affiliations).group(:degree)
+  facet :degree, joins(:affiliations).group('affiliations.degree')
   facet :birth_place, group(:birth_country, :birth_state, :birth_city)
-  facet :birthdate, group('EXTRACT (year FROM birthdate)', 'EXTRACT (month FROM birthdate)', 'EXTRACT (day FROM birthdate)')
+  facet :birthdate, group("EXTRACT (year FROM birthdate)", "trim(to_char(birthdate, 'Month'))", "EXTRACT (day FROM birthdate)")
   
 end

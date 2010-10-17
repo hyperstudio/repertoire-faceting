@@ -7,8 +7,6 @@ class ResultTest < ActiveSupport::TestCase
 
   # N.B. the testing data file must be loaded before this test is run
 
-=begin
-
   def test_result_refinements
     results = Nobelist.refine(:discipline => 'Economics')
     assert_equal 13, results.size
@@ -43,7 +41,5 @@ class ResultTest < ActiveSupport::TestCase
     results = Nobelist.refine(:birth_place => ["United States of America", "New York"])
     assert_equal 7, results.size
   end
-
-=end
 
 end
