@@ -7,9 +7,7 @@ class DrillTest < ActiveSupport::TestCase
   
   # comparing trees of relational algebra queries for equivalence is a hard problem, so
   # we run the queries and compare results as a shorthand
-  
-  # TODO.  find out why ordering on signature not always working
-  
+    
   def setup
     @nobelists    = Arel::Table.new('nobelists')
     @affiliations = Arel::Table.new('affiliations')
@@ -19,94 +17,90 @@ class DrillTest < ActiveSupport::TestCase
   end
 
   def test_bare_mask
-    masks = Nobelist.scoped.masks
     arel  = @nobelists.project('signature(_packed_id)')
+    masks = Nobelist.scoped.masks
     
     assert_equal 1, masks.size
     assert_tuples arel, masks.first
   end
 
-  def test_drill
-    sig  = Nobelist.discipline.drill([], false)
+  def test_signature
+    sig  = Nobelist.facet(:discipline).signature([], false)
     arel = @nobelists.group('discipline').project('discipline', 'signature(_packed_id)')
     
     assert_tuples arel, sig
   end
 
-  def test_joined_drill
-    sig  = Nobelist.degree.drill([], false)
+  def test_joined_signature
+    sig  = Nobelist.facet(:degree).signature([], false)
     arel = @nobelists.join(@affiliations).on(@nobelists[:id].eq(@affiliations[:nobelist_id]))
                      .group('degree').project('degree', 'signature(_packed_id)')
     
     assert_tuples arel, sig
   end
   
-  def test_refined_drill
-    sig  = Nobelist.discipline.drill(['Economics'], true)
+  def test_refined_signature
+    sig  = Nobelist.facet(:discipline).signature(['Economics'], true)
     arel = @nobelists.where(@nobelists[:discipline].eq('Economics')).project('signature(_packed_id)')
 
     assert_tuples arel, sig
   end
   
-  def test_joined_refined_drill
-    sig  = Nobelist.degree.drill(['Ph.D.'], true)
+  def test_joined_refined_signature
+    sig  = Nobelist.facet(:degree).signature(['Ph.D.'], true)
     arel = @nobelists.join(@affiliations).on(@nobelists[:id].eq(@affiliations[:nobelist_id]))
                      .where(@affiliations[:degree].eq('Ph.D.')).project('signature(_packed_id)')
     
     assert_tuples arel, sig
   end
-  
-  def test_nested_drill
-    sig  = Nobelist.birth_place.drill([], false)
+    
+  def test_nested_signature
+    sig  = Nobelist.facet(:birth_place).signature([], false)
     arel = @nobelists.group(:birth_country)
-                     .project(:birth_country, 'signature(_packed_id)')
+                     .project('birth_country', 'signature(_packed_id)')
 
     assert_tuples arel, sig
   end
 
-  def test_nested_refined_drill
-    sig  = Nobelist.birth_place.drill(['British India', 'Punjab'], false)
+  def test_nested_refined_signature
+    sig  = Nobelist.facet(:birth_place).signature(['British India', 'Punjab'], false)
     arel = @nobelists.group(:birth_city)
                      .where(@nobelists[:birth_country].eq('British India'))
                      .where(@nobelists[:birth_state].eq('Punjab'))
-                     .project(:birth_city, 'signature(_packed_id)')
+                     .project('birth_city', 'signature(_packed_id)')
                
     assert_tuples arel, sig
   end
-  
-  def test_indexed_drill
+
+  def test_indexed_signature
     @connection.update_indexed_facets(Nobelist, [:discipline])
     @discipline = Arel::Table.new('_nobelists_discipline_facet')
-    
-    sig  = Nobelist.discipline.drill_indexed([], false)
+
+    sig  = Nobelist.facet(:discipline).signature([], false)
     arel = @discipline.project('discipline', 'signature')
 
-    assert_equal '_nobelists_discipline_facet', sig.relation.name
     assert_tuples arel, sig
   end
-  
-  def test_indexed_refined_drill
+
+  def test_indexed_refined_signature
     @connection.update_indexed_facets(Nobelist, [:discipline])
     @discipline = Arel::Table.new('_nobelists_discipline_facet')
     
-    sig  = Nobelist.discipline.drill_indexed(['Economics'], true)
-    arel = @discipline.where(@discipline[:discipline].eq('Economics')).project('signature')
+    sig  = Nobelist.facet(:discipline).signature(['Economics'], true)
+    arel = @discipline.where(@discipline[:discipline].in(['Economics'])).project(@discipline[:signature])
 
-    assert_equal '_nobelists_discipline_facet', sig.relation.name
     assert_tuples arel, sig
   end
 
-  def test_indexed_nested_refined_drill
+  def test_indexed_nested_refined_signature
     @connection.update_indexed_facets(Nobelist, [:birth_place])
     @birth_place = Arel::Table.new('_nobelists_birth_place_facet')
     
-    sig  = Nobelist.birth_place.drill_indexed(['British India', 'Punjab'], false)
+    sig  = Nobelist.facet(:birth_place).signature(['British India', 'Punjab'], false)
     arel = @birth_place.where(@birth_place[:birth_country].eq('British India'))
                        .where(@birth_place[:birth_state].eq('Punjab'))
                        .group(@birth_place[:birth_city])
                        .project(@birth_place[:birth_city], 'collect(signature) AS signature')
-                       
-    assert_equal '_nobelists_birth_place_facet', sig.relation.name
 
     assert_tuples arel, sig
   end
@@ -115,7 +109,7 @@ class DrillTest < ActiveSupport::TestCase
     @connection.update_indexed_facets(Nobelist, [:discipline])
     
     arel1 = @nobelists.group('discipline').project('discipline', 'signature(_packed_id)')
-    arel2 = Arel::Table.new('_nobelists_discipline_facet')
+    arel2 = Arel::Table.new('_nobelists_discipline_facet').project('discipline', 'signature')
     
     assert_tuples arel1, arel2, 'discipline'
   end
@@ -125,16 +119,19 @@ class DrillTest < ActiveSupport::TestCase
     
     arel1 = @nobelists.join(@affiliations).on(@nobelists[:id].eq(@affiliations[:nobelist_id]))
                       .group('degree').project('degree', 'signature(_packed_id)')
-    arel2 = Arel::Table.new('_nobelists_degree_facet')
+    arel2 = Arel::Table.new('_nobelists_degree_facet').project('degree', 'signature')
     
     assert_tuples arel1, arel2, 'degree'
   end
   
   private
   
-  def assert_tuples(x, y, column='signature')
-    x = x.order(column).map(&:tuple)
-    y = y.order(column).map(&:tuple)
+  def assert_tuples(x, y, order_by='signature')
+    conn = ActiveRecord::Base.connection
+    
+    x = conn.select_rows(x.order(order_by).to_sql)
+    y = conn.select_rows(y.order(order_by).to_sql)
+    
     assert_equal x, y
   end
   

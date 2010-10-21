@@ -1,3 +1,4 @@
+require 'repertoire-faceting'
 require 'rails'
 
 module Repertoire

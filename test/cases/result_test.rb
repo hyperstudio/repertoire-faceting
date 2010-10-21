@@ -39,7 +39,9 @@ class ResultTest < ActiveSupport::TestCase
     results = Nobelist.refine(:birth_place => ["United States of America"])
     assert_equal 32, results.size
     results = Nobelist.refine(:birth_place => ["United States of America", "New York"])
-    assert_equal 7, results.size
+    assert_equal 7, results.size    
+    results = Nobelist.refine(:birth_place => [ 'United States of America', 'New York', 'New York City' ])
+    assert_equal 4, results.size
   end
 
 end

@@ -4,44 +4,41 @@ module Repertoire
       module Calculations
         extend ActiveSupport::Concern
 
-        # N.B. These methods over-ride/extend those defined in active_record/relation/calculations
+        # N.B. These methods over-ride/extend those defined in active_record/relation/calculations        
 
-        def count
-          facet? ? facet_count : super
+        def count(name = nil, options = {})
+          if name.present? && facet?(name)
+            name       = name.to_sym
+            facet      = @klass.facets[name].merge(self)
+            state      = refine_value[name] || []
+            signatures = facet.signature(state, false)
+            connection.population(facet, masks, signatures)
+          else
+            super
+          end
         end
         
         def build_arel
-          refined_facets? ? facet_result : super
+          if refined_facets?
+            join_sql = connection.mask_members_sql(masks)
+            except(:refine).joins(join_sql).arel
+          else
+            super
+          end
         end
         
         def masks
+          base = except(:order, :limit, :offset)
           masks = []
           
           refine_value.each do |name, values|
-            masks << facet(name).facet_drill(values, true)
+            raise QueryError, "Unkown facet #{name} on #{klass.name}"             unless @klass.facet?(name)
+            masks << @klass.facets[name].signature(values, true)
           end
-          masks << only(:where, :joins).project('signature(_packed_id)') if where_values.present?
-          masks << @klass.scoped.project('signature(_packed_id)')        if masks.empty?
+          masks << base.only(:where, :join).select('signature(_packed_id)').arel  if base.where_values.present?
+          masks << @klass.scoped.select('signature(_packed_id)').arel             if masks.empty?
           
           masks
-        end
-
-        protected
-        
-        def facet_drill(values, combine)
-          indexed_facet? ? drill_indexed(values, combine) : drill(values, combine)
-        end
-
-        def facet_count
-          state      = refine_value[facet_name_value] || []
-          signatures = facet_drill(state, false)
-          
-          connection.population(self, masks, signatures)
-        end
-        
-        def facet_result
-          join_sql = connection.mask_members_sql(masks)
-          clear_facet_options.joins(join_sql).build_arel
         end
         
       end

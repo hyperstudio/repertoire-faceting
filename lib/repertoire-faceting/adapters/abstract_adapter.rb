@@ -15,7 +15,7 @@ module Repertoire
       # High-level migration helpers
 
       def update_indexed_facets(model_class, facet_names=nil)
-        indexed_facets = model_class.indexed_facets
+        indexed_facets = indexed_facets(model_class.table_name)
 
         # drop un-needed facet indices
         indexed_facets.each do |name|
@@ -31,7 +31,7 @@ module Repertoire
           raise "Unknown facet #{name}" unless model_class.facet?(name)
           
           table = facet_table_name(model_class.table_name, name)
-          facet = model_class.facets[name].call
+          facet = model_class.facets[name]
           
           recreate_table(table, facet.index.to_sql)
         end

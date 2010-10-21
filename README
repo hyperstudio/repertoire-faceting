@@ -15,6 +15,9 @@ To cover in the README:
 - via migration
 - via rake task
 
+- ordering goes by facet name (not original column)
+- default grouping: column with facet name on last join
+
 =====
 
 task :reindex_facets do

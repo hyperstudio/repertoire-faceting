@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency('rep.jquery', '~>1.3.2')
   s.add_dependency('rep.ajax.toolkit', '~>0.3.0')
   
-  s.add_dependency('rails', '~>3.0.0')
+  s.add_dependency('rails', '~>3.1.0')
   s.add_dependency('pg', '~>0.9.0')
   
   s.post_install_message = <<-POST_INSTALL_MESSAGE

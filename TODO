@@ -1,10 +1,12 @@
 rails3.
 
-- calculated relations conflict with table names
-- allow facet defs in method bodies
-- pluggable facet implementations                 DONE
-- results from indexes                            DONE
-- nested faceting not working                     DONE
+- citizens example
+- final level of nested faceting ~1 value         DONE
+- birth_decade has a null value                   DONE
+- working on rails 3.0.1?
+- cannot refine on null values in facets
+- sorting extension facet example not working
+
 - README
   * declaring facets
   * faceting db api
@@ -17,7 +19,18 @@ rails3.
   * migrations and facet decls
   * facet plugin registration (and multiple claims)
 
-- get ride of annoying load warnings on test
+- get rid of annoying load warnings on test
+
+- indexed nested facet widget not working         DONE
+- factor out facet functionality from relation    DONE
+- not obeying orders for synthesized facets       DONE
+- auto-generated groups scan all joined tables    NOT NECESSARY
+- allow facet defs in method bodies               KNOWN ISSUE RAILS 3
+
+- calculated relations conflict with table names  DONE
+- pluggable facet implementations                 DONE
+- results from indexes                            DONE
+- nested faceting not working                     DONE
 - remove mysql references in test suite           DONE
 
 - run all tests indexed and unindexed             DONE

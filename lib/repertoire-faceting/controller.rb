@@ -4,19 +4,12 @@ module Repertoire
       extend ActiveSupport::Concern
       
       def counts
-        name   = params[:facet]
+        facet  = params[:facet]
         filter = params[:filter] || {}
-        order  = params[:order] || :count
         
-        base = base(name).refine(filter)
+        puts "Counting #{facet}; base is #{base.to_sql}"
         
-        # TODO.  better support for ordering
-        case order.to_sym
-        when :count
-          base = base.reorder("count desc")
-        end
-        
-        @counts = base.count
+        @counts = base.refine(filter).count(facet)
 
         render :json => @counts.to_a
       end

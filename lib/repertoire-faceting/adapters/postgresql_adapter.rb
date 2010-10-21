@@ -2,6 +2,22 @@ require 'active_support/ordered_hash'
 
 module Repertoire
   module Faceting
+    module PostgreSQLColumn
+          
+      # TODO.  still not clear how ActiveRecord adapters support adding custom SQL data types...
+      #        feels like a monkey-patch, but there's no documented procedure
+      def simplified_type(field_type)
+        case field_type
+          # Bitset signature type
+        when 'signature'
+          :string
+        else
+          super        
+        end
+      end
+      
+    end
+    
     module PostgreSQLAdapter
       
       # Helpers for renumbering and re-creating tables
@@ -18,26 +34,26 @@ module Repertoire
       
       # Facet counts and results
       
-      def population(relation, masks, signatures)
+      def population(facet, masks, signatures)
         # Would be nice to use Arel here... but it isn't up to relational joins of this complexity, 
         # despite best-effort attempts
         exprs = masks.map { |mask| "(#{mask.to_sql})" }
         
-        sql  = "SELECT facet.#{relation.facet_name_value}, count(facet.signature & mask.signature) "
+        sql  = "SELECT facet.#{facet.facet_name}, count(facet.signature & mask.signature) "
         sql += "FROM (SELECT (#{exprs.join(' & ')}) AS signature) AS mask, "
         sql += "     (#{signatures.to_sql}) AS facet "
-        sql += "ORDER BY #{relation.order_values.join(', ')} " if relation.order_values.present?
-        sql += "OFFSET #{relation.offset_value} "              if relation.offset_value.present?
-        sql += "LIMIT #{relation.limit_value} "                if relation.limit_value.present?
+        sql += "ORDER BY #{facet.order_values.join(', ')} " if facet.order_values.present?
+        sql += "OFFSET #{facet.offset_value} "              if facet.offset_value.present?
+        sql += "LIMIT #{facet.limit_value} "                if facet.limit_value.present?
         
         # run query and type cast
         results = query(sql)
         results = results.map { |key, count| [ key, count.to_i] }
-        results = Hash[results]
+        results = ActiveSupport::OrderedHash[results]
         
         # minimums and nils
-        results = results.reject { |key, count| count < (relation.minimum_value || 1) }
-        results.delete(nil)                                    if relation.nils_value == false
+        results = results.reject { |key, count| count < (facet.minimum_value || 1) }
+        results.delete(nil)                           if facet.nils_value == false
         
         results
       end

@@ -1,5 +1,21 @@
 = Repertoire Faceting FAQ =
 
+= About facet indexing and the signature SQL type = 
+
+Q. What's the scalability of this thing?
+
+A. Up to about 500,000 items, supposing 6-8 simultaneous facets with domains anywhere from 2-100 values.  In other words, beyond
+   the size of most commonly available datasets.  See the citizens example in the specs directory & example faceting app.
+   
+   It has been tested with up to 1,000,000 items, but this requires unix configuration to give Postgresql lots of shared memory.
+
+
+Q. My nested facet widget is empty!
+
+A. Did you remember to call expand_nesting(<facet index table>, <facet name>) after creating your index?
+
+
+
 = About the ajax faceting widgets =
 
 Q. How do I send page-specific data (for example, a search field) to the webservice with the facet widgets' data?
@@ -63,9 +79,9 @@ A. You can pre-process the entire context's state before it's sent to the webser
 Q. How do I subclass an existing widget, so I can reuse my changes repeatedly?
 
 A. Basically you define a new widget class and move your injectors and handlers (above) into the appropriate places.  See the 
-   results widget for the simplest possible example, and nested_facet for a real-world example that extends the default facet widget.  
-   At a bare minimum, you will over-ride the render() method, and possibly the update() method too.  Here's a 'hello world' that 
-   extends the default facet count widget:
+   results widget for the simplest possible example, and nested_facet for a real-world example that extends the default facet
+   widget.  At a bare minimum, you will over-ride the render() method, and possibly the update() method too.  Here's a 'hello
+   world' that extends the default facet count widget:
 
 var hello_world = function($elem, options) {
   /* declare superclass */
@@ -145,31 +161,19 @@ Q. Why not support the metadata jquery plugin?  Why not automatically turn all e
 A. Possibly.  It needs some thought.
 
 
-   
-= About facet indexing and the signature SQL type = 
-
-Q. What's the scalability of this thing?
-
-A. Up to about 500,000 items, supposing 6-8 simultaneous facets with domains anywhere from 2-100 values.  In other words, beyond
-   the size of most commonly available datasets.  See the citizens example in the specs directory & example faceting app.
-   
-   It has been tested with up to 1,000,000 items, but this requires unix configuration to give Postgresql lots of shared memory.
-
-
-Q. My nested facet widget is empty!
-
-A. Did you remember to call expand_nesting(<facet index table>, <facet name>) after creating your index?
-
-
 
 = About GIS faceting =
 
 Q. None of my GIS data works, period.
 
-A. This isn't a Repertoire faceting question.  But: are you absolutely sure you know what SRID the source data was in?  Did you tell shp2psql using -s<SRID>?  If you created new geometry columns in-database, did you pass it to AddGeometryColumn?  The only way to ensure success is to declare the correct SRID at every step and check results frequently in a GIS browser (e.g. GeoServer).  To follow this
-process on known-good data, view layers from the nobelists' spec data in Google Earth/KML using GeoServer.
+A. This isn't a Repertoire faceting question. But: are you absolutely sure you know what SRID the source data was in? Did you tell
+shp2psql using -s<SRID>? If you created new geometry columns in-database, did you pass it to AddGeometryColumn? The only way to
+ensure success is to declare the correct SRID at every step and check results frequently in a GIS browser (e.g. GeoServer). To
+follow this process on known-good data, view layers from the nobelists' spec data in Google Earth/KML using GeoServer.
+
 
 Q. Why are GIS features indexed by md5 checksum instead of their label?
 
-A. There's a New York City in Texas.  It's perfectly possible to have two rivers in a state with the same name.  In other words, only the feature itself serves as a unique identifier.  We take the checksum instead because many feature geometries are quite large.
-
+A. There's a New York City in Texas. It's perfectly possible to have two rivers in a state with the same name. In other words,
+only the feature itself serves as a unique identifier. We take the checksum instead because many feature geometries are quite
+large.

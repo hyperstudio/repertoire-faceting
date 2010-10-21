@@ -2,20 +2,23 @@ require 'active_support/dependencies'
 
 module Repertoire
   module Faceting
-
+    
     module Relation
       autoload :SpawnMethods, 'repertoire-faceting/relation/spawn_methods'
       autoload :QueryMethods, 'repertoire-faceting/relation/query_methods'
       autoload :Calculations, 'repertoire-faceting/relation/calculations'
     end
     
+    module Facets
+      autoload :AbstractFacet, 'repertoire-faceting/facets/abstract_facet.rb'
+    end
+
     autoload :Model, 'repertoire-faceting/model'
     autoload :Controller, 'repertoire-faceting/controller'
     autoload :Version, 'repertoire-faceting/version'
-
-    autoload :AbstractFacet, 'repertoire-faceting/facets/abstract_facet.rb'
     
     autoload :AbstractAdapter, 'repertoire-faceting/adapters/abstract_adapter'
+    autoload :PostgreSQLColumn, 'repertoire-faceting/adapters/postgresql_adapter'
     autoload :PostgreSQLAdapter, 'repertoire-faceting/adapters/postgresql_adapter'
   end
 end
