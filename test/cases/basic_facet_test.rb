@@ -3,7 +3,7 @@ require "active_support/core_ext/exception"
 
 require "models/nobelist"
 
-class DrillTest < ActiveSupport::TestCase
+class BasicFacetTest < ActiveSupport::TestCase
   
   # comparing trees of relational algebra queries for equivalence is a hard problem, so
   # we run the queries and compare results as a shorthand
@@ -25,14 +25,14 @@ class DrillTest < ActiveSupport::TestCase
   end
 
   def test_signature
-    sig  = Nobelist.facet(:discipline).signature([], false)
+    sig  = Nobelist.facets[:discipline].drill([])
     arel = @nobelists.group('discipline').project('discipline', 'signature(_packed_id)')
     
     assert_tuples arel, sig
   end
 
   def test_joined_signature
-    sig  = Nobelist.facet(:degree).signature([], false)
+    sig  = Nobelist.facets[:degree].drill([])
     arel = @nobelists.join(@affiliations).on(@nobelists[:id].eq(@affiliations[:nobelist_id]))
                      .group('degree').project('degree', 'signature(_packed_id)')
     
@@ -40,35 +40,17 @@ class DrillTest < ActiveSupport::TestCase
   end
   
   def test_refined_signature
-    sig  = Nobelist.facet(:discipline).signature(['Economics'], true)
+    sig  = Nobelist.facets[:discipline].signature(['Economics'])
     arel = @nobelists.where(@nobelists[:discipline].eq('Economics')).project('signature(_packed_id)')
 
     assert_tuples arel, sig
   end
   
   def test_joined_refined_signature
-    sig  = Nobelist.facet(:degree).signature(['Ph.D.'], true)
+    sig  = Nobelist.facets[:degree].signature(['Ph.D.'])
     arel = @nobelists.join(@affiliations).on(@nobelists[:id].eq(@affiliations[:nobelist_id]))
                      .where(@affiliations[:degree].eq('Ph.D.')).project('signature(_packed_id)')
     
-    assert_tuples arel, sig
-  end
-    
-  def test_nested_signature
-    sig  = Nobelist.facet(:birth_place).signature([], false)
-    arel = @nobelists.group(:birth_country)
-                     .project('birth_country', 'signature(_packed_id)')
-
-    assert_tuples arel, sig
-  end
-
-  def test_nested_refined_signature
-    sig  = Nobelist.facet(:birth_place).signature(['British India', 'Punjab'], false)
-    arel = @nobelists.group(:birth_city)
-                     .where(@nobelists[:birth_country].eq('British India'))
-                     .where(@nobelists[:birth_state].eq('Punjab'))
-                     .project('birth_city', 'signature(_packed_id)')
-               
     assert_tuples arel, sig
   end
 
@@ -76,7 +58,7 @@ class DrillTest < ActiveSupport::TestCase
     @connection.update_indexed_facets(Nobelist, [:discipline])
     @discipline = Arel::Table.new('_nobelists_discipline_facet')
 
-    sig  = Nobelist.facet(:discipline).signature([], false)
+    sig  = Nobelist.facets[:discipline].drill([])
     arel = @discipline.project('discipline', 'signature')
 
     assert_tuples arel, sig
@@ -86,21 +68,8 @@ class DrillTest < ActiveSupport::TestCase
     @connection.update_indexed_facets(Nobelist, [:discipline])
     @discipline = Arel::Table.new('_nobelists_discipline_facet')
     
-    sig  = Nobelist.facet(:discipline).signature(['Economics'], true)
+    sig  = Nobelist.facets[:discipline].signature(['Economics'])
     arel = @discipline.where(@discipline[:discipline].in(['Economics'])).project(@discipline[:signature])
-
-    assert_tuples arel, sig
-  end
-
-  def test_indexed_nested_refined_signature
-    @connection.update_indexed_facets(Nobelist, [:birth_place])
-    @birth_place = Arel::Table.new('_nobelists_birth_place_facet')
-    
-    sig  = Nobelist.facet(:birth_place).signature(['British India', 'Punjab'], false)
-    arel = @birth_place.where(@birth_place[:birth_country].eq('British India'))
-                       .where(@birth_place[:birth_state].eq('Punjab'))
-                       .group(@birth_place[:birth_city])
-                       .project(@birth_place[:birth_city], 'collect(signature) AS signature')
 
     assert_tuples arel, sig
   end

@@ -4,10 +4,20 @@ module Repertoire
       extend ActiveSupport::Concern
       
       included do |base|
-        base.singleton_class.delegate :refine, :minimum, :nils, :reorder, :to => :scoped
+        base.singleton_class.delegate :refine, :minimum, :nils, :reorder, :to_sql, :to => :scoped
       end
       
       module ClassMethods
+        
+        def facets
+          read_inheritable_attribute(:facets) || write_inheritable_attribute(:facets, {})
+        end
+        
+        def facet?(name)
+          facets.key?(name.to_sym)
+        end
+        
+        protected
         def facet(name, rel=nil)
           name = name.to_sym
 
@@ -17,15 +27,7 @@ module Repertoire
           rel = rel.order(["count DESC", "#{name} ASC"])  if rel.order_values.empty?
 
           # locate facet implementation that can handle relation
-          facets[name] ||= Facets::AbstractFacet.mixin(name, rel)
-        end
-        
-        def facets
-          read_inheritable_attribute(:facets) || write_inheritable_attribute(:facets, {})
-        end
-        
-        def facet?(name)
-          facets.key?(name.to_sym)
+          facets[name] = Facets::AbstractFacet.mixin(name, rel)
         end
       end
       

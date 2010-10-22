@@ -8,21 +8,23 @@ module Repertoire
         attr_accessor :facet_name
       
         # Abstract interface that all facet implementations should fill in
-        # At minimum, define self.claim? and signature to create working facets.
-      
-        # To add indexing, define index and signature_indexed.  N.B. these MUST return
-        # identical results under all conditions!
+        # At minimum, define self.claim?, signature, and drill to create working facets.
       
         # Return true if this implementation can index this facet      
         def self.claim?(relation)
           raise 'Please implement claim? for your facet'
         end
-      
+              
         # Return an arel expression for the signature of all models matching the given current refinement state for
-        # this facet (and ignoring all others).  if combine is specified, only a signature covering all existing facet 
-        # value options is produced.
-        def signature(state, combine)
+        # this facet (and ignoring all others).
+        def signature(state)
           raise 'Please implement signature for your facet'
+        end
+        
+        # Return an arel expression for state, signature pairs from which one can refine the current state of this facet
+        # (ignoring all others)
+        def drill(state)
+          raise 'Please implement drill for your facet'
         end
 
         # Return an arel expression for this facet's index table, or raise an exception if indexing not supported

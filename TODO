@@ -1,11 +1,14 @@
 rails3.
 
-- citizens example
+- optimize count query: (a) empty base query
+                        (b) join masks rather than looping
+
+- citizens example                                DONE
 - final level of nested faceting ~1 value         DONE
 - birth_decade has a null value                   DONE
 - working on rails 3.0.1?
 - cannot refine on null values in facets
-- sorting extension facet example not working
+- sorting extension facet example not working     DONE
 
 - README
   * declaring facets

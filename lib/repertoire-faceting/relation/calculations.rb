@@ -11,7 +11,7 @@ module Repertoire
             name       = name.to_sym
             facet      = @klass.facets[name].merge(self)
             state      = refine_value[name] || []
-            signatures = facet.signature(state, false)
+            signatures = facet.drill(state)
             connection.population(facet, masks, signatures)
           else
             super
@@ -33,7 +33,7 @@ module Repertoire
           
           refine_value.each do |name, values|
             raise QueryError, "Unkown facet #{name} on #{klass.name}"             unless @klass.facet?(name)
-            masks << @klass.facets[name].signature(values, true)
+            masks << @klass.facets[name].signature(values)
           end
           masks << base.only(:where, :join).select('signature(_packed_id)').arel  if base.where_values.present?
           masks << @klass.scoped.select('signature(_packed_id)').arel             if masks.empty?

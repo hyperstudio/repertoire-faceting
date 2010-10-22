@@ -28,14 +28,14 @@ module Repertoire
       end
       
       def recreate_table(table_name, sql)
-        sql = "SELECT recreate_table('#{table_name}', '#{sql}')"
+        sql = "SELECT recreate_table('#{table_name}', $$#{sql}$$)"
         execute(sql)
       end
       
       # Facet counts and results
       
       def population(facet, masks, signatures)
-        # Would be nice to use Arel here... but it isn't up to relational joins of this complexity, 
+        # Would be nice to use Arel here... but it isn't up to subqueries/outer joins of this complexity, 
         # despite best-effort attempts
         exprs = masks.map { |mask| "(#{mask.to_sql})" }
         

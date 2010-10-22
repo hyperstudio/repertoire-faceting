@@ -5,77 +5,67 @@ module Repertoire
         include AbstractFacet
         include Arel
       
-        #
-        # Registration
-        #
-      
         def self.claim?(relation)
           relation.group_values.size > 1
         end
       
-        #
-        # Non-indexed queries (in ActiveRecord)
-        #
-      
-        def signature(state, combine)
-          return signature_indexed(state, combine) if indexed?
-
-          nlevel, ncol, grp, bind = parse(state)
-          rel                     = only(:where, :joins)
-          
-          # rel.where(ncol => state) preferable, but ActiveRecord adds wrong table name for joins
-          bind.each do |col, value|
-            value = connection.quote(value)
-            rel = rel.where("#{col} = #{value}")
+        def signature(state)
+          return read_index(state, true) if indexed?
+          rel = only(:where, :joins)
+          bind_nest(state, group_values) do |expr, val|
+            rel = rel.where("#{expr} = #{connection.quote(val)}")
           end
+          rel.select('signature(_packed_id)').arel
+        end
         
-          if combine
-            rel.select('signature(_packed_id)').arel
-          else
-            ncol ||= "NULL::TEXT"
-            rel.group(grp).select(["#{ncol} AS #{facet_name}", 'signature(_packed_id)']).arel
+        def drill(state)
+          return read_index(state, false) if indexed?
+          rel = only(:where, :joins)
+          grp, proj = bind_nest(state, group_values) do |expr, val|
+            rel = rel.where("#{expr} = #{connection.quote(val)}")
           end
+          rel.group(grp).select(["#{proj} AS #{facet_name}", 'signature(_packed_id)']).arel
         end
       
         def index
           rel  = only(:where, :joins, :group)
-          cols = group_values.map(&:to_s)
-          rel.select(cols).select('signature(_packed_id)').arel
-        end
-        
-        #
-        # Index queries (in Arel)
-        #
-      
-        def signature_indexed(state, combine)
-          nlevel, ncol, grp, bind = parse(state)
-          index                   = Table.new(facet_index_table)
-          
-          rel = SelectManager.new Table.engine
-          rel.from index
-          
-          bind.map do |col, val|
-            rel = rel.where(index[col].eq(val))
+          group_values.zip(columns).each do |expr, col|
+            rel = rel.select("#{expr} AS #{col}")
           end
-
-          if combine
-            rel.group(ncol).project('collect(signature) AS signature')
-          else
-            # rel[ncol].as(facet_name) preferable, but arel 2.0 has no provision for column aliases
-            rel.project("#{ncol} AS #{facet_name}", index[:signature])
-          end
+          rel.select('signature(_packed_id)').arel
         end
         
         private
+
+        def columns
+          (1..group_values.size).map { |i| "#{facet_name}#{i}"}
+        end
         
-        def parse(state)
-          nlevel = state.size
-          ncol   = group_values[nlevel]
+        def bind_nest(state, cols, &block)
+          level = state.size
+          grp   = cols[0..level].map(&:to_s)
+          bind  = (level > 0) ? grp[0..level-1].zip(state) : []
+          bind.each { |col, val| yield(col, val) }
+          proj  = (level < cols.size) ? grp.last : "NULL::TEXT"
           
-          grp    = group_values[0..nlevel].map(&:to_s)
-          bind   = (nlevel > 0) ? grp[0..nlevel-1].zip(state) : []
+          [ grp, proj ]
+        end
+      
+        def read_index(state, aggregate)
+          index = Table.new(facet_index_table)
+          rel   = SelectManager.new Table.engine
           
-          [nlevel, ncol, grp, bind]
+          rel.from index
+          grp, proj = bind_nest(state, columns) do |col, val|
+            rel.where(index[col].eq(val))
+          end
+
+          if aggregate
+            rel.project('collect(signature) AS signature')
+          else
+            # arel 2.0 has no documented way to alias a column...
+            rel.project("#{proj} AS #{facet_name}", index[:signature])
+          end
         end
       
       end

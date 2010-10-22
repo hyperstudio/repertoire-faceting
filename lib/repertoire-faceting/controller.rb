@@ -6,8 +6,7 @@ module Repertoire
       def counts
         facet  = params[:facet]
         filter = params[:filter] || {}
-        
-        puts "Counting #{facet}; base is #{base.to_sql}"
+        raise "Unkown facet #{facet}" unless base.facet?(facet)
         
         @counts = base.refine(filter).count(facet)
 
