@@ -272,3 +272,58 @@ BEGIN
   RETURN 1.0 - (count(histogram)::REAL / sig_length(histogram)::REAL);
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- Utility function to identify columns for a nested facet index
+--
+CREATE OR REPLACE FUNCTION nest_levels(tbl TEXT) RETURNS SETOF TEXT AS $$
+  SELECT quote_ident(a.attname::TEXT)
+    FROM pg_attribute a LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+    WHERE a.attrelid = $1::regclass
+      AND format_type(a.atttypid, a.atttypmod) != 'signature'
+      AND a.attnum > 0 AND NOT a.attisdropped
+    ORDER BY a.attnum;
+$$ LANGUAGE sql;
+
+
+--Utility function to expand nesting in facet indices
+--
+-- Initially a facet index will include only leaves of the
+-- nesting tree.  This function adds all interior nodes
+-- with their respective aggregate signatures, and adds a
+-- postgresql index to the nested facet value.
+--
+-- e.g. given the nested facet values
+--  {USA,Florida}  '10'
+--  {USA,Iowa}     '01'
+--
+-- the function interpolates
+--  {USA}          '11'
+--
+-- N.B. expand_nesting may only be called once on a table
+--      it refuses to add internal node duplicates
+--
+CREATE OR REPLACE FUNCTION expand_nesting(tbl TEXT) RETURNS VOID AS $$
+DECLARE
+  cols  TEXT[];
+  len   INT;
+  aggr  TEXT;
+BEGIN
+  -- determine column names
+  SELECT array_agg(col) INTO cols FROM nest_levels(tbl) AS col;
+  len := array_length(cols, 1);
+  
+  -- add unique index on facet value columns
+  aggr := array_to_string(cols, ', ');
+  EXECUTE 'CREATE UNIQUE INDEX ' || quote_ident(tbl) || '_ndx  ON ' || quote_ident(tbl) || '(' || aggr || ')';
+    
+  -- expand each level in turn
+  FOR i IN REVERSE (len-1)..1 LOOP
+    aggr := array_to_string(cols[1:i], ', ');
+    EXECUTE 'INSERT INTO ' || quote_ident(tbl) || '(' || aggr || ', signature)'
+         || ' SELECT ' || aggr || ', collect(signature)'
+         || ' FROM ' || quote_ident(tbl)
+         || ' GROUP BY ' || aggr;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;

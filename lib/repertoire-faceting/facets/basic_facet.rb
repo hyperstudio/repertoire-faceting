@@ -28,9 +28,11 @@ module Repertoire
           rel.select(["#{col} AS #{facet_name}", 'signature(_packed_id)']).arel
         end
       
-        def index
+        def create_index
           col = group_values.first
-          only(:where, :joins, :group).select(["#{col} AS #{facet_name}", 'signature(_packed_id)']).arel
+          sql = only(:where, :joins, :group).select(["#{col} AS #{facet_name}", 'signature(_packed_id)']).to_sql
+          
+          connection.recreate_table(facet_index_table, sql)
         end
 
         private

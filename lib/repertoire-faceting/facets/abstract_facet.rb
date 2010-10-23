@@ -29,8 +29,8 @@ module Repertoire
         end
 
         # Return an arel expression describing this facet's index table, or raise an exception if indexing not supported
-        def index
-          raise 'This facet does not support indexing'
+        def create_index
+          raise 'Facet #{facet_name} does not support indexing'
         end
         
         protected

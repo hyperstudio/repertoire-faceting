@@ -8,8 +8,7 @@ Depending on how frequently you need to update facet indices, there are several 
   rake task file, use something like the following:
 
     task :reindex => :environment do
-      conn = ActiveRecord::Base.connection
-      conn.update_indexed_facets(Nobelist, [:degree, :discipline])
+      Nobelist.update_indexed_facets(:degree, :discipline)
     end
   
   Configure your system-level crontab task to run 'rake reindex' at the required interval.
@@ -77,12 +76,6 @@ To cover in the README:
 - default grouping: column with facet name on last join
 
 =====
-
-task :reindex_facets do
-  conn = ActiveRecord::Base.connection
-  conn.update_indexed_facets(Nobelist, [:degree, :nobel_year])
-end
-
 
 API for faceted browsing within PostgreSQL, with extensions for Merb and jquery ajax widgets
 

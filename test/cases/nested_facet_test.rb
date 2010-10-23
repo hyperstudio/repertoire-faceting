@@ -12,8 +12,7 @@ class NestedFacetTest < ActiveSupport::TestCase
     @nobelists    = Arel::Table.new('nobelists')
     @affiliations = Arel::Table.new('affiliations')
     
-    @connection   = ActiveRecord::Base.connection
-    @connection.update_indexed_facets(Nobelist, [])
+    Nobelist.update_indexed_facets([])
   end
     
   def test_nested_signature
@@ -35,7 +34,7 @@ class NestedFacetTest < ActiveSupport::TestCase
   end
 
   def test_indexed_nested_refined_signature
-    @connection.update_indexed_facets(Nobelist, [:birth_place])
+    Nobelist.update_indexed_facets(:birth_place)
     @birth_place = Arel::Table.new('_nobelists_birth_place_facet')
     
     sig  = Nobelist.facets[:birth_place].drill(['British India', 'Punjab'])

@@ -1,14 +1,18 @@
 rails3.
 
+- check nested indexed facet queries
+- integration with postgresql crontab
+- test harness: unindexed / indexed for same test
+
 - optimize count query: (a) empty base query      DONE
                         (b) join masks rather than looping  NOT NECESSARY
 
+- working on rails 3.0.1?
+- push compiled gems to gemcutter
 - citizens example                                DONE
 - final level of nested faceting ~1 value         DONE
 - birth_decade has a null value                   DONE
-- working on rails 3.0.1?
 - sorting extension facet example not working     DONE
-- push compiled gems to gemcutter
 - cannot refine on null values in facets          KNOWN ISSUE
 - final level of nested faceting ~1 value         DONE
 - birth_decade has a null value                   DONE

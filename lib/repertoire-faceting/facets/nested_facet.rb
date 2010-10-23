@@ -11,9 +11,9 @@ module Repertoire
       
         def signature(state)
           return read_index(state, true) if indexed?
-          rel = only(:where, :joins)
+          rel = only(:where, :joins) 
           bind_nest(state, group_values) do |expr, val|
-            rel = rel.where("#{expr} = #{connection.quote(val)}")
+            rel = rel.where("#{expr} = #{connection.quote(val)}") if expr && val
           end
           rel.select('signature(_packed_id)').arel
         end
@@ -22,17 +22,20 @@ module Repertoire
           return read_index(state, false) if indexed?
           rel = only(:where, :joins)
           grp, proj = bind_nest(state, group_values) do |expr, val|
-            rel = rel.where("#{expr} = #{connection.quote(val)}")
+            rel = rel.where("#{expr} = #{connection.quote(val)}") if expr && val
           end
           rel.group(grp).select(["#{proj} AS #{facet_name}", 'signature(_packed_id)']).arel
         end
       
-        def index
-          rel  = only(:where, :joins, :group)
+        def create_index
+          rel = only(:where, :joins, :group)
           group_values.zip(columns).each do |expr, col|
             rel = rel.select("#{expr} AS #{col}")
           end
-          rel.select('signature(_packed_id)').arel
+          sql = rel.select('signature(_packed_id)').to_sql
+          
+          connection.recreate_table(facet_index_table, sql)
+          connection.expand_nesting(facet_index_table)
         end
         
         private
@@ -44,7 +47,8 @@ module Repertoire
         def bind_nest(state, cols, &block)
           level = state.size
           grp   = cols[0..level].map(&:to_s)
-          bind  = (level > 0) ? grp[0..level-1].zip(state) : []
+          bind  = grp.zip(state)
+#          bind  = (level > 0) ? grp[0..level-1].zip(state) : []
           bind.each { |col, val| yield(col, val) }
           proj  = (level < cols.size) ? grp.last : "NULL::TEXT"
           
@@ -61,7 +65,7 @@ module Repertoire
           end
 
           if aggregate
-            rel.project('collect(signature) AS signature')
+            rel.project('signature AS signature')
           else
             # arel 2.0 has no documented way to alias a column...
             rel.project("#{proj} AS #{facet_name}", index[:signature])

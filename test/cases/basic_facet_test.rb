@@ -12,8 +12,7 @@ class BasicFacetTest < ActiveSupport::TestCase
     @nobelists    = Arel::Table.new('nobelists')
     @affiliations = Arel::Table.new('affiliations')
     
-    @connection   = ActiveRecord::Base.connection
-    @connection.update_indexed_facets(Nobelist, [])
+    Nobelist.update_indexed_facets([])
   end
 
   def test_signature
@@ -47,7 +46,7 @@ class BasicFacetTest < ActiveSupport::TestCase
   end
 
   def test_indexed_signature
-    @connection.update_indexed_facets(Nobelist, [:discipline])
+    Nobelist.update_indexed_facets(:discipline)
     @discipline = Arel::Table.new('_nobelists_discipline_facet')
 
     sig  = Nobelist.facets[:discipline].drill([])
@@ -57,7 +56,7 @@ class BasicFacetTest < ActiveSupport::TestCase
   end
 
   def test_indexed_refined_signature
-    @connection.update_indexed_facets(Nobelist, [:discipline])
+    Nobelist.update_indexed_facets(:discipline)
     @discipline = Arel::Table.new('_nobelists_discipline_facet')
     
     sig  = Nobelist.facets[:discipline].signature(['Economics'])
@@ -67,7 +66,7 @@ class BasicFacetTest < ActiveSupport::TestCase
   end
   
   def test_facet_indexing
-    @connection.update_indexed_facets(Nobelist, [:discipline])
+    Nobelist.update_indexed_facets(:discipline)
     
     arel1 = @nobelists.group('discipline').project('discipline', 'signature(_packed_id)')
     arel2 = Arel::Table.new('_nobelists_discipline_facet').project('discipline', 'signature')
@@ -76,7 +75,7 @@ class BasicFacetTest < ActiveSupport::TestCase
   end
   
   def test_joined_facet_indexing
-    @connection.update_indexed_facets(Nobelist, [:degree])
+    Nobelist.update_indexed_facets(:degree)
     
     arel1 = @nobelists.join(@affiliations).on(@nobelists[:id].eq(@affiliations[:nobelist_id]))
                       .group('degree').project('degree', 'signature(_packed_id)')

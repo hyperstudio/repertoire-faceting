@@ -18,6 +18,38 @@ module Repertoire
           facets.key?(name.to_sym)
         end
         
+        def facet_names
+          facets.keys
+        end
+        
+        # Drops any unused facet indices, updates its packed ids, then recreates indices 
+        # for the facets with the provided names.  If no names are provided, then the existing 
+        # facet indices are refreshed.
+        def update_indexed_facets(*facet_names)
+          facet_names.flatten!
+          
+          # drop old facet indices
+          indexed_facets = connection.indexed_facets(table_name)
+          indexed_facets.each do |name|
+            table = connection.facet_table_name(table_name, name)
+            connection.drop_table(table)
+          end
+
+          # update the model packed id
+          connection.renumber_table(table_name)
+
+          # re-create the facet indices
+          connection.transaction do
+            (facet_names || indexed_facets).each do |name|
+              raise "Unknown facet #{name}" unless facet?(name)
+              facets[name].create_index
+            end
+          end
+          
+          # return the successfully created facets
+          connection.indexed_facets(table_name)
+        end
+        
         protected
         def facet(name, rel=nil)
           name = name.to_sym

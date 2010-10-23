@@ -21,17 +21,21 @@ module Repertoire
     module PostgreSQLAdapter
       
       # Creates (or recreates) the packed id column on a given table
-      def renumber_table(table_name, silent=false)
+      def renumber_table(table_name)
         sql = "SELECT renumber_table('#{table_name}', '_packed_id')"
-        execute(sql) unless silent
-        sql
+        execute(sql)
       end
       
       # Creates (recreates) a table with the specified select statement
-      def recreate_table(table_name, sql, silent=false)
+      def recreate_table(table_name, sql)
         sql = "SELECT recreate_table('#{table_name}', $$#{sql}$$)"
-        execute(sql) unless silent
-        sql
+        execute(sql)
+      end
+      
+      # Expands nested faceting for the specified table (once)
+      def expand_nesting(table_name)
+        sql = "SELECT expand_nesting('#{table_name}')"
+        execute(sql)
       end
       
       def population(facet, masks, signatures)
