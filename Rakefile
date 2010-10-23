@@ -2,8 +2,12 @@
 
 require 'rake/testtask'
 require 'rake/rdoctask'
+require 'pathname'
 
-require __FILE__ + '/../lib/repertoire-faceting/version'
+dir = Pathname.new(__FILE__).dirname
+
+require dir + 'lib/repertoire-faceting/version'
+load dir + 'lib/repertoire-faceting/tasks.rake'
 
 gemspec = eval(File.read("repertoire-faceting.gemspec"))
 

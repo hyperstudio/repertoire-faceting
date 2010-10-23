@@ -1,8 +1,12 @@
 module Repertoire
   module Faceting
+    
+    # Include this module in your controller to add faceting webservices.
     module Controller
-      extend ActiveSupport::Concern
       
+      # Web-service to return value, count pairs for a given facet, given existing filter refinements
+      # on other facets in the context.  Over-ride this method if you need to specify additional 
+      # query params for faceting.
       def counts
         facet  = params[:facet]
         filter = params[:filter] || {}
@@ -13,6 +17,8 @@ module Repertoire
         render :json => @counts.to_a
       end
 
+      # Web-service to return the results of a query, given existing filter requirements.  Over-ride
+      # this method if you need to specify additional query parms for faceting results.
       def results
         filter = params[:filter] || {}
 
@@ -26,6 +32,7 @@ module Repertoire
       
       protected
       
+      # Over-ride the base method in your controller to specify the base model for facet counts and results.
       def base
         raise "Override the base() method in your controller to define the faceting model/context"
       end

@@ -5,7 +5,7 @@ module Repertoire
     module PostgreSQLColumn
           
       # TODO.  still not clear how ActiveRecord adapters support adding custom SQL data types...
-      #        feels like a monkey-patch, but there's no documented procedure
+      #        feels like a monkey-patch, but there's no documented way to accomplish this simple task
       def simplified_type(field_type)
         case field_type
           # Bitset signature type
@@ -20,28 +20,30 @@ module Repertoire
     
     module PostgreSQLAdapter
       
-      # Helpers for renumbering and re-creating tables
-      
-      def renumber_table(table_name)
+      # Creates (or recreates) the packed id column on a given table
+      def renumber_table(table_name, silent=false)
         sql = "SELECT renumber_table('#{table_name}', '_packed_id')"
-        execute(sql)
+        execute(sql) unless silent
+        sql
       end
       
-      def recreate_table(table_name, sql)
+      # Creates (recreates) a table with the specified select statement
+      def recreate_table(table_name, sql, silent=false)
         sql = "SELECT recreate_table('#{table_name}', $$#{sql}$$)"
-        execute(sql)
+        execute(sql) unless silent
+        sql
       end
-      
-      # Facet counts and results
       
       def population(facet, masks, signatures)
-        # Would be nice to use Arel here... but it isn't up to subqueries/outer joins of this complexity, 
-        # despite best-effort attempts
-        exprs = masks.map { |mask| "(#{mask.to_sql})" }
+        # Would be nice to use Arel here... but recent versions (~ 2.0.1) have removed the property of closure under
+        # composition (e.g. joining two select managers / sub-selects)... why?!?
+        sigs  = [ 'facet.signature' ]
+        exprs = masks.map{|mask| "(#{mask.to_sql})"}
+        sigs << 'mask.signature' unless masks.empty?
         
-        sql  = "SELECT facet.#{facet.facet_name}, count(facet.signature & mask.signature) "
-        sql += "FROM (SELECT (#{exprs.join(' & ')}) AS signature) AS mask, "
-        sql += "     (#{signatures.to_sql}) AS facet "
+        sql  = "SELECT facet.#{facet.facet_name}, count(#{ sigs.join(' & ')}) "
+        sql += "FROM (#{signatures.to_sql}) AS facet "
+        sql += ", (SELECT (#{exprs.join(' & ')}) AS signature) AS mask " unless masks.empty?
         sql += "ORDER BY #{facet.order_values.join(', ')} " if facet.order_values.present?
         sql += "OFFSET #{facet.offset_value} "              if facet.offset_value.present?
         sql += "LIMIT #{facet.limit_value} "                if facet.limit_value.present?

@@ -1,10 +1,68 @@
+== Updating Indices
+
+Depending on how frequently you need to update facet indices, there are several options.
+
+(1) UNIX crontab, periodic, or launchd
+
+  Writing a rake task to update the facet indices for a given model is the simplest way to go.  In your application's
+  rake task file, use something like the following:
+
+    task :reindex => :environment do
+      conn = ActiveRecord::Base.connection
+      conn.update_indexed_facets(Nobelist, [:degree, :discipline])
+    end
+  
+  Configure your system-level crontab task to run 'rake reindex' at the required interval.
+  
+(2) Using Repertoire's postgresql-crontab functionality
+
+  If your project uses the Repertoire in-database crontab system, you can use migrations to insert SQL calls that
+  re-index your model.  However, since the database has no access to rails you will need to call the plpgsql
+  index maintenance functions directly.  In your application's indexing migration, use something like the following:
+  
+  class IndexFacets < ActiveRecord::Migration
+    def self.up
+      execute<<-SQL
+      SQL
+    end
+
+    def self.down
+      execute<<-SQL
+      SQL
+    end
+  end
+  
+(3) Using a one-time Rails migration
+
+  If your facets' contents will not change, then you can create a rake task as in step 1 and run it by hand.  Or
+  create a migration with the same calls as the rake task.  
+  
+  
+  
+  
+  
+
+
 Rails3 documentation revisions
 
 - requires ruby 1.9.2 (ordered hashes)
 - include_root_in_json = false
-- rake faceting:postgres_install
+- rake faceting:postgres:install, :load
 
 To cover in the README:
+
+- special features
+  - persistent facet indices ( no separate server )
+  - scalability
+  - nested facets
+  - facet visualizations
+  - extensible facet widgets ( e.g. visualization )
+  - pluggable facet implementations
+  - easy learning curve:
+    - 'training wheels' mode
+    - automatic index generation and detection
+      [ no SQL necessary ]
+
 - how facet indices work
 - why in-database
 

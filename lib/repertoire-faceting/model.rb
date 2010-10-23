@@ -1,5 +1,6 @@
 module Repertoire
   module Faceting
+    # Include this module in your model before declaring any facets.
     module Model
       extend ActiveSupport::Concern
       

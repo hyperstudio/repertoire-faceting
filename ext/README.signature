@@ -24,11 +24,9 @@
 --
 -- Installation
 --
---    (1) gem install repertoire-faceting [ builds c extensions automatically ]
---    (3) [ optional ] install Repertoire crontab support [ see wiki ]
---    (2) psql -Upostgres <your database> -f ext/signature.sql [ installs SQL wrapper functions in your database ]
---        [ you probably want to put this in an early database migration in your project]
---  
+--    (1) gem install repertoire-faceting
+--    (2) rake faceting:postgres:install
+--    (3) rake faceting:postgres:load
 --
 -- The bitset PostgreSQL extension follows standards for C-language extensions:
 --  http://www.postgresql.org/docs/current/static/xfunc-c.html

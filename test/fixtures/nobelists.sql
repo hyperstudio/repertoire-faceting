@@ -176,29 +176,3 @@ COPY affiliations (id, nobelist_id, detail, degree, year) FROM stdin;
 56	56	MIT S.B. 1948	S.B.	1948
 63	63	MIT Ph.D. 1956	Ph.D.	1956
 \.
-
-
----
---- SET UP FACET INDICES
----
-
-SELECT renumber_table('nobelists', '_packed_id');
-
--- facet values in entity table column
-SELECT recreate_table('_nobelists_nobel_year_facet', 
-											'SELECT nobel_year, signature(_packed_id) FROM nobelists GROUP BY nobel_year');
-SELECT recreate_table('_nobelists_discipline_facet', 
- 											'SELECT discipline, signature(_packed_id) FROM nobelists GROUP BY discipline');
-
--- computed facet values
-SELECT recreate_table('_nobelists_birthdate_facet', 
- 											'SELECT birthdate, signature(_packed_id) FROM (SELECT (EXTRACT(year FROM birthdate)::integer / 10::integer) * 10 AS birthdate, _packed_id from nobelists) AS computed GROUP by birthdate');
-
--- nested, computed facet values  											
-SELECT recreate_table('_nobelists_birth_place_facet', 
- 											'SELECT ARRAY[ birth_country, birth_state, birth_city ] AS birth_place, signature(_packed_id) FROM nobelists GROUP BY birth_country, birth_state, birth_city');
-SELECT expand_nesting('_nobelists_birth_place_facet', 'birth_place');
-
--- facet values in linked table (multivalued)
-SELECT recreate_table('_nobelists_degree_facet', 
- 											'SELECT degree, signature(_packed_id) FROM nobelists JOIN affiliations ON (nobelist_id = nobelists.id) GROUP BY degree');

@@ -31,12 +31,11 @@ module Repertoire
           base = except(:order, :limit, :offset)
           masks = []
           
+          masks << base.only(:where, :join).select('signature(_packed_id)').arel  if base.where_values.present?
           refine_value.each do |name, values|
             raise QueryError, "Unkown facet #{name} on #{klass.name}"             unless @klass.facet?(name)
             masks << @klass.facets[name].signature(values)
           end
-          masks << base.only(:where, :join).select('signature(_packed_id)').arel  if base.where_values.present?
-          masks << @klass.scoped.select('signature(_packed_id)').arel             if masks.empty?
           
           masks
         end

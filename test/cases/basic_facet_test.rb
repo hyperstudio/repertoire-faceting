@@ -16,14 +16,6 @@ class BasicFacetTest < ActiveSupport::TestCase
     @connection.update_indexed_facets(Nobelist, [])
   end
 
-  def test_bare_mask
-    arel  = @nobelists.project('signature(_packed_id)')
-    masks = Nobelist.scoped.masks
-    
-    assert_equal 1, masks.size
-    assert_tuples arel, masks.first
-  end
-
   def test_signature
     sig  = Nobelist.facets[:discipline].drill([])
     arel = @nobelists.group('discipline').project('discipline', 'signature(_packed_id)')

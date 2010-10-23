@@ -1,6 +1,9 @@
 module Repertoire
   module Faceting
     module Facets
+      
+      # Basic facet implementation for non-nested, single-valued facets.  By default, all facets
+      # that have a single group column will follow this behavior.
       module BasicFacet
         include AbstractFacet
         include Arel
