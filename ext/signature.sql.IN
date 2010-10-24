@@ -280,7 +280,7 @@ CREATE OR REPLACE FUNCTION nest_levels(tbl TEXT) RETURNS SETOF TEXT AS $$
   SELECT quote_ident(a.attname::TEXT)
     FROM pg_attribute a LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
     WHERE a.attrelid = $1::regclass
-      AND format_type(a.atttypid, a.atttypmod) != 'signature'
+      AND NOT a.attname IN ('signature', 'level')
       AND a.attnum > 0 AND NOT a.attisdropped
     ORDER BY a.attnum;
 $$ LANGUAGE sql;
@@ -320,10 +320,14 @@ BEGIN
   -- expand each level in turn
   FOR i IN REVERSE (len-1)..1 LOOP
     aggr := array_to_string(cols[1:i], ', ');
-    EXECUTE 'INSERT INTO ' || quote_ident(tbl) || '(' || aggr || ', signature)'
-         || ' SELECT ' || aggr || ', collect(signature)'
+    EXECUTE 'INSERT INTO ' || quote_ident(tbl) || '(' || aggr || ', level, signature)'
+         || ' SELECT ' || aggr || ', ' || i || ' AS level, collect(signature)'
          || ' FROM ' || quote_ident(tbl)
          || ' GROUP BY ' || aggr;
   END LOOP;
+  
+  -- root node
+  EXECUTE 'INSERT INTO ' || quote_ident(tbl) || '(level, signature)'
+       || ' SELECT 0 AS level, collect(signature) FROM ' || quote_ident(tbl);
 END;
 $$ LANGUAGE plpgsql;

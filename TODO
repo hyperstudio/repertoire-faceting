@@ -1,8 +1,8 @@
 rails3.
 
-- check nested indexed facet queries
+- check nested indexed facet queries              DONE
 - integration with postgresql crontab
-- test harness: unindexed / indexed for same test
+- test harness: unindexed / indexed for same test DONE
 
 - optimize count query: (a) empty base query      DONE
                         (b) join masks rather than looping  NOT NECESSARY

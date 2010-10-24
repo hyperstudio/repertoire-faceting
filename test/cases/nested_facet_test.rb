@@ -3,19 +3,27 @@ require "active_support/core_ext/exception"
 
 require "models/nobelist"
 
-class NestedFacetTest < ActiveSupport::TestCase
+class NestedFacetTest < MultiplePassTestCase
   
-  # comparing trees of relational algebra queries for equivalence is a hard problem, so
-  # we run the queries and compare results as a shorthand
+  include TuplesTestHelper
+  
+  def passes
+    [ :unindexed, :indexed ]
+  end
     
   def setup
     @nobelists    = Arel::Table.new('nobelists')
     @affiliations = Arel::Table.new('affiliations')
     
-    Nobelist.update_indexed_facets([])
+    case @pass
+    when :unindexed
+      Nobelist.update_indexed_facets([])
+    when :indexed
+      Nobelist.update_indexed_facets(Nobelist.facet_names)
+    end
   end
     
-  def test_nested_signature
+  def test_drill
     sig  = Nobelist.facets[:birth_place].drill([])
     arel = @nobelists.group(:birth_country)
                      .project('birth_country', 'signature(_packed_id)')
@@ -23,7 +31,14 @@ class NestedFacetTest < ActiveSupport::TestCase
     assert_tuples arel, sig
   end
 
-  def test_nested_refined_signature
+  def test_refined_drill
+    sig  = Nobelist.facets[:birth_place].drill(['British India'])
+    arel = @nobelists.group(@nobelists[:birth_country], @nobelists[:birth_state])
+                     .where(@nobelists[:birth_country].eq('British India'))
+                     .project(@nobelists[:birth_state], 'signature(_packed_id)')
+
+    assert_tuples arel, sig
+      
     sig  = Nobelist.facets[:birth_place].drill(['British India', 'Punjab'])
     arel = @nobelists.group(@nobelists[:birth_country], @nobelists[:birth_state], @nobelists[:birth_city])
                      .where(@nobelists[:birth_country].eq('British India'))
@@ -32,28 +47,47 @@ class NestedFacetTest < ActiveSupport::TestCase
 
     assert_tuples arel, sig
   end
-
-  def test_indexed_nested_refined_signature
-    Nobelist.update_indexed_facets(:birth_place)
-    @birth_place = Arel::Table.new('_nobelists_birth_place_facet')
-    
-    sig  = Nobelist.facets[:birth_place].drill(['British India', 'Punjab'])
-    arel = @birth_place.where(@birth_place[:birth_place1].eq('British India'))
-                       .where(@birth_place[:birth_place2].eq('Punjab'))
-                       .group(@birth_place[:birth_place1], @birth_place[:birth_place2], @birth_place[:birth_place3])
-                       .project(@birth_place[:birth_place3], 'collect(signature) AS signature')
+  
+  def test_fully_refined_drill
+    sig  = Nobelist.facets[:birth_place].drill(['British India', 'Punjab', 'Multan'])
+    arel = @nobelists.group(@nobelists[:birth_country], @nobelists[:birth_state], @nobelists[:birth_city])
+                     .where(@nobelists[:birth_country].eq('British India'))
+                     .where(@nobelists[:birth_state].eq('Punjab'))
+                     .where(@nobelists[:birth_city].eq('Multan'))
+                     .project('NULL::TEXT', 'signature(_packed_id)')
 
     assert_tuples arel, sig
-  end  
-  
-  private
-  
-  def assert_tuples(x, y, order_by='signature')
-    conn = ActiveRecord::Base.connection
+  end
+
+  def test_empty_signature
+    sig  = Nobelist.facets[:birth_place].signature([])
+    arel = @nobelists.project('signature(_packed_id)')
+
+    assert_tuples arel, sig
+  end
+
+  def test_refined_signature
+    sig  = Nobelist.facets[:birth_place].signature(['United States of America'])
+    arel = @nobelists.where(@nobelists[:birth_country].eq('United States of America'))
+                     .project('signature(_packed_id)')
+
+    assert_tuples arel, sig
     
-    x = conn.select_rows(x.order(order_by).to_sql)
-    y = conn.select_rows(y.order(order_by).to_sql)
-    
-    assert_equal x, y
+    sig  = Nobelist.facets[:birth_place].signature(['United States of America', 'New York'])
+    arel = @nobelists.where(@nobelists[:birth_country].eq('United States of America'))
+                     .where(@nobelists[:birth_state].eq('New York'))
+                     .project('signature(_packed_id)')
+
+    assert_tuples arel, sig
+  end
+  
+  def test_fully_refined_signature
+    sig  = Nobelist.facets[:birth_place].signature(['United States of America', 'New York', 'New York City'])
+    arel = @nobelists.where(@nobelists[:birth_country].eq('United States of America'))
+                     .where(@nobelists[:birth_state].eq('New York'))
+                     .where(@nobelists[:birth_city].eq('New York City'))
+                     .project('signature(_packed_id)')
+
+    assert_tuples arel, sig
   end
 end

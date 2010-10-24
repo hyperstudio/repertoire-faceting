@@ -7886,7 +7886,7 @@ $$ LANGUAGE plpgsql;
 DROP INDEX IF EXISTS citizens_fulltext_ndx;  -- to speed up row creation
 DROP INDEX IF EXISTS citizens_last_name_ndx;
 
-SELECT populate(500000);  									 -- this will take about 20-30 minutes
+SELECT populate(1000000);  									 -- this will take about 20-30 minutes
 
 CREATE INDEX citizens_fulltext_ndx ON citizens USING gin(_fulltext);
 CREATE INDEX citizens_last_name_ndx ON citizens(last_name);

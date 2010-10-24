@@ -3,26 +3,32 @@ require "active_support/core_ext/exception"
 
 require "models/nobelist"
 
-class BasicFacetTest < ActiveSupport::TestCase
-  
-  # comparing trees of relational algebra queries for equivalence is a hard problem, so
-  # we run the queries and compare results as a shorthand
+class BasicFacetTest < MultiplePassTestCase
+ 
+  include TuplesTestHelper
+ 
+  def passes
+    [:unindexed, :indexed]
+  end
     
   def setup
     @nobelists    = Arel::Table.new('nobelists')
     @affiliations = Arel::Table.new('affiliations')
-    
-    Nobelist.update_indexed_facets([])
+    names = case(@pass)
+    when :unindexed then []
+    when :indexed   then Nobelist.facet_names
+    end
+    Nobelist.update_indexed_facets(names)
   end
 
-  def test_signature
+  def test_drill
     sig  = Nobelist.facets[:discipline].drill([])
     arel = @nobelists.group('discipline').project('discipline', 'signature(_packed_id)')
     
     assert_tuples arel, sig
   end
 
-  def test_joined_signature
+  def test_joined_drill
     sig  = Nobelist.facets[:degree].drill([])
     arel = @nobelists.join(@affiliations).on(@nobelists[:id].eq(@affiliations[:nobelist_id]))
                      .group('degree').project('degree', 'signature(_packed_id)')
@@ -44,55 +50,24 @@ class BasicFacetTest < ActiveSupport::TestCase
     
     assert_tuples arel, sig
   end
-
-  def test_indexed_signature
-    Nobelist.update_indexed_facets(:discipline)
-    @discipline = Arel::Table.new('_nobelists_discipline_facet')
-
-    sig  = Nobelist.facets[:discipline].drill([])
-    arel = @discipline.project('discipline', 'signature')
-
-    assert_tuples arel, sig
-  end
-
-  def test_indexed_refined_signature
-    Nobelist.update_indexed_facets(:discipline)
-    @discipline = Arel::Table.new('_nobelists_discipline_facet')
-    
-    sig  = Nobelist.facets[:discipline].signature(['Economics'])
-    arel = @discipline.where(@discipline[:discipline].in(['Economics'])).project(@discipline[:signature])
-
-    assert_tuples arel, sig
-  end
   
-  def test_facet_indexing
+  def test_indexing
     Nobelist.update_indexed_facets(:discipline)
     
     arel1 = @nobelists.group('discipline').project('discipline', 'signature(_packed_id)')
     arel2 = Arel::Table.new('_nobelists_discipline_facet').project('discipline', 'signature')
     
-    assert_tuples arel1, arel2, 'discipline'
+    assert_tuples arel1, arel2
   end
   
-  def test_joined_facet_indexing
+  def test_joined_indexing
     Nobelist.update_indexed_facets(:degree)
     
     arel1 = @nobelists.join(@affiliations).on(@nobelists[:id].eq(@affiliations[:nobelist_id]))
                       .group('degree').project('degree', 'signature(_packed_id)')
     arel2 = Arel::Table.new('_nobelists_degree_facet').project('degree', 'signature')
     
-    assert_tuples arel1, arel2, 'degree'
-  end
-  
-  private
-  
-  def assert_tuples(x, y, order_by='signature')
-    conn = ActiveRecord::Base.connection
-    
-    x = conn.select_rows(x.order(order_by).to_sql)
-    y = conn.select_rows(y.order(order_by).to_sql)
-    
-    assert_equal x, y
+    assert_tuples arel1, arel2
   end
   
 end

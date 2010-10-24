@@ -11,9 +11,9 @@ module Repertoire
       
         def signature(state)
           return read_index(state, true) if indexed?
-          rel = only(:where, :joins) 
-          bind_nest(state, group_values) do |expr, val|
-            rel = rel.where("#{expr} = #{connection.quote(val)}") if expr && val
+          rel = only(:where, :joins)
+          bind_nest(group_values, state) do |expr, val|
+            rel = rel.where("#{expr} = #{connection.quote(val)}")
           end
           rel.select('signature(_packed_id)').arel
         end
@@ -21,10 +21,10 @@ module Repertoire
         def drill(state)
           return read_index(state, false) if indexed?
           rel = only(:where, :joins)
-          grp, proj = bind_nest(state, group_values) do |expr, val|
-            rel = rel.where("#{expr} = #{connection.quote(val)}") if expr && val
+          grp = bind_nest(group_values, state) do |expr, val|
+            rel = rel.where("#{expr} = #{connection.quote(val)}")
           end
-          rel.group(grp).select(["#{proj} AS #{facet_name}", 'signature(_packed_id)']).arel
+          rel.group(grp).select(["#{grp.last} AS #{facet_name}", 'signature(_packed_id)']).arel
         end
       
         def create_index
@@ -32,7 +32,7 @@ module Repertoire
           group_values.zip(columns).each do |expr, col|
             rel = rel.select("#{expr} AS #{col}")
           end
-          sql = rel.select('signature(_packed_id)').to_sql
+          sql = rel.select(["#{group_values.size} AS level", 'signature(_packed_id)']).to_sql
           
           connection.recreate_table(facet_index_table, sql)
           connection.expand_nesting(facet_index_table)
@@ -44,15 +44,20 @@ module Repertoire
           (1..group_values.size).map { |i| "#{facet_name}#{i}"}
         end
         
-        def bind_nest(state, cols, &block)
+        # Iterates over all the columns that have state in turn, and returns
+        # a grouping of the columns one level further nested
+        def bind_nest(cols, state, &block)
           level = state.size
-          grp   = cols[0..level].map(&:to_s)
-          bind  = grp.zip(state)
-#          bind  = (level > 0) ? grp[0..level-1].zip(state) : []
-          bind.each { |col, val| yield(col, val) }
-          proj  = (level < cols.size) ? grp.last : "NULL::TEXT"
+          grp   = cols[0..level]                      # advance one nest step
+                    
+          if level > 0
+            cols[0..level-1].zip(state).each do |col, val| 
+              yield(col, val)
+            end
+          end
+          grp << "NULL::TEXT" if level >= cols.size
           
-          [ grp, proj ]
+          grp
         end
       
         def read_index(state, aggregate)
@@ -60,15 +65,17 @@ module Repertoire
           rel   = SelectManager.new Table.engine
           
           rel.from index
-          grp, proj = bind_nest(state, columns) do |col, val|
+          grp = bind_nest(columns, state) do |col, val|
             rel.where(index[col].eq(val))
           end
 
           if aggregate
+            rel.where(index[:level].eq(state.size))
             rel.project('signature AS signature')
           else
+            rel.where(index[:level].eq(grp.size)) if grp.size <= group_values.size
             # arel 2.0 has no documented way to alias a column...
-            rel.project("#{proj} AS #{facet_name}", index[:signature])
+            rel.project("#{grp.last} AS #{facet_name}", index[:signature])
           end
         end
       
