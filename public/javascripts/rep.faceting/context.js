@@ -92,7 +92,8 @@ repertoire.facet_context = function(context_name, state_fn, options) {
   // with any context-specific additions
   //
   self.params = function() {
-    return $.extend({}, { filter: self.refinements() }, state_fn());
+	var state = state_fn ? state_fn() : {};	
+    return $.extend({}, { filter: self.refinements() }, state);
   };
   
   //

@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = ">= 1.3.7"
   s.rubyforge_project         = "repertoire-faceting"
  
-  s.files        = Dir.glob("{ext,lib,public}/**/*") + %w(FAQ LICENSE README TODO)
+  s.files        = Dir.glob("{ext,lib,public}/**/*") + %w(FAQ INSTALL LICENSE README TODO)
   s.require_path = 'lib'
   
   s.add_dependency('repertoire-assets', '~> 0.2.0')

@@ -1,5 +1,7 @@
 require 'active_support/dependencies'
 
+require 'repertoire-assets'
+
 module Repertoire
   module Faceting
     

@@ -2,18 +2,21 @@ TODO
 
 - README
   * recipe for running tests
-  * recipe for adding facets to new app
-  * declaring facets
-  * faceting db api
-  * installing postgresql extensions
-  * migrations for indexing
-  * updating indices (a) postgresql-crontab (b) rake crontab
+  * recipe for adding facets to new app                         DONE
+  * declaring facets                                            DONE
+  * faceting db api                                             DONE
+  * installing postgresql extensions                            DONE
+  * migrations for indexing                                     DONE
+  * updating indices (a) postgresql-crontab (b) rake crontab    DONE
 - generate routes that don't conflict with resource routes 
-  (rails thinks /nobelists/results is the nobelist named 'results')
+  (rails thinks /nobelists/results is the nobelist named 'results')	  NOT TO DO
 - FAQ
   * "not grouped error"
   * migrations and facet decls
   * facet plugin registration (and multiple claims)
+
+- repertoire-assets loaded automatically          DONE
+- figure out the faceting context state default   DONE
 
 - get rid of annoying load warnings on test       KNOWN ISSUE
 - cannot refine on null values in facets          KNOWN ISSUE
