@@ -214,8 +214,13 @@ $$ LANGUAGE plpgsql;
 
 
 -- Utility function to add or update a packed id column on a table
+-- 
+-- If provided, the threshold indicates a percentage of acceptable wastage or "scatter" 
+-- in the ids, which keeps the packing algorithm from running until absolutely needed.
+-- 
+-- Because ids only become scattered when model rows are deleted, this means repacking
+-- will occur very infrequently.  The default threshold is 15%.
 --
-
 CREATE OR REPLACE FUNCTION renumber_table(tbl TEXT, col TEXT) RETURNS BOOLEAN AS $$
 BEGIN
   RETURN renumber_table(tbl, col, 0.15);

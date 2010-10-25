@@ -1,6 +1,6 @@
 require 'active_record/connection_adapters/postgresql_adapter'
 
-module ActiveRecord
+module ActiveRecord #:nodoc: all
   module ConnectionAdapters
     class PostgreSQLColumn
       include Repertoire::Faceting::PostgreSQLColumn

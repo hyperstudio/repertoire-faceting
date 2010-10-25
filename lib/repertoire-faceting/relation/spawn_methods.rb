@@ -1,10 +1,9 @@
 module Repertoire
   module Faceting
-    module Relation
+    module Relation  # :nodoc: all
       module SpawnMethods
-        extend ActiveSupport::Concern
 
-        # N.B. These methods over-ride/extend those defined in active_record/relation/calculations
+        # N. B. These methods over-ride/extend those defined in active_record/relation/calculations
       
         def merge(r1)
           super.tap { |r2| r2.refine_value = merge_hashes(self.refine_value, r1.refine_value) }

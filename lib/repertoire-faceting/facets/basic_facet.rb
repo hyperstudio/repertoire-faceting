@@ -1,9 +1,12 @@
-module Repertoire
-  module Faceting
-    module Facets
+module Repertoire #:nodoc:
+  module Faceting #:nodoc:
+    module Facets #:nodoc:
       
-      # Basic facet implementation for non-nested, single-valued facets.  By default, all facets
-      # that have a single group column will follow this behavior.
+      # Implementation of AbstractFacet for non-nested, single-valued facets.  By default, 
+      # all facets that have a single group column will follow this behavior.
+      #
+      # See Repertoire::Faceting::Model::ClassMethods for usage.
+      #
       module BasicFacet
         include AbstractFacet
         include Arel
@@ -17,7 +20,7 @@ module Repertoire
           col = group_values.first
           rel = only(:where, :joins)
           rel = rel.where(in_clause(col, state))     unless state.empty?
-          rel.select('signature(_packed_id)').arel
+          rel.select("signature(#{table_name}.#{faceting_id})").arel
         end
       
         def drill(state)
@@ -25,12 +28,12 @@ module Repertoire
           col = group_values.first          
           rel = only(:where, :joins, :group)
           rel = rel.where(in_clause(col, state))     unless state.empty?
-          rel.select(["#{col} AS #{facet_name}", 'signature(_packed_id)']).arel
+          rel.select(["#{col} AS #{facet_name}", "signature(#{table_name}.#{faceting_id})"]).arel
         end
       
-        def create_index
+        def create_index(faceting_id)
           col = group_values.first
-          sql = only(:where, :joins, :group).select(["#{col} AS #{facet_name}", 'signature(_packed_id)']).to_sql
+          sql = only(:where, :joins, :group).select(["#{col} AS #{facet_name}", "signature(#{table_name}.#{faceting_id})"]).to_sql
           
           connection.recreate_table(facet_index_table, sql)
         end

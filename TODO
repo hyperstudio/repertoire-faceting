@@ -1,35 +1,41 @@
-rails3.
-
-- check nested indexed facet queries              DONE
-- integration with postgresql crontab
-- test harness: unindexed / indexed for same test DONE
-
-- optimize count query: (a) empty base query      DONE
-                        (b) join masks rather than looping  NOT NECESSARY
-
-- working on rails 3.0.1?
-- push compiled gems to gemcutter
-- citizens example                                DONE
-- final level of nested faceting ~1 value         DONE
-- birth_decade has a null value                   DONE
-- sorting extension facet example not working     DONE
-- cannot refine on null values in facets          KNOWN ISSUE
-- final level of nested faceting ~1 value         DONE
-- birth_decade has a null value                   DONE
+TODO
 
 - README
+  * recipe for running tests
+  * recipe for adding facets to new app
   * declaring facets
   * faceting db api
   * installing postgresql extensions
   * migrations for indexing
   * updating indices (a) postgresql-crontab (b) rake crontab
-- generate routes that don't conflict with resource routes (rails thinks /nobelists/results is the nobelist named 'results')
+- generate routes that don't conflict with resource routes 
+  (rails thinks /nobelists/results is the nobelist named 'results')
 - FAQ
   * "not grouped error"
   * migrations and facet decls
   * facet plugin registration (and multiple claims)
 
-- get rid of annoying load warnings on test
+- get rid of annoying load warnings on test       KNOWN ISSUE
+- cannot refine on null values in facets          KNOWN ISSUE
+
+
+- integration with postgresql crontab
+- push compiled gems to gemcutter                 DONE (EXCEPT FACETING)
+
+- check nested indexed facet queries              DONE
+- test harness: unindexed / indexed for same test DONE
+
+- optimize count query: (a) empty base query      DONE
+                        (b) join masks rather than looping  NOT NECESSARY
+
+- working on rails 3.0.1?                         NOT POSSIBLE
+- citizens example                                DONE
+- final level of nested faceting ~1 value         DONE
+- birth_decade has a null value                   DONE
+- sorting extension facet example not working     DONE
+- final level of nested faceting ~1 value         DONE
+- birth_decade has a null value                   DONE
+
 
 - indexed nested facet widget not working         DONE
 - factor out facet functionality from relation    DONE
@@ -42,42 +48,30 @@ rails3.
 - results from indexes                            DONE
 - nested faceting not working                     DONE
 - remove mysql references in test suite           DONE
-
 - run all tests indexed and unindexed             DONE
 - migrations for facet indexes                    DONE
 - indexed counts                                  DONE
 - mix indexed and non-indexed                     DONE
-
 - test cases running in 'training wheels' mode    DONE
 - controller mixin with counts/results            DONE
 - routes extensions                               DONE
-
 - get ride of annoying load warnings			  DONE - MUST REDO
-
 - get core examples working                       DONE
 - 'training wheels' using plain-jane SQL          DONE
-
 - facets should inherit scope                     DONE
-
 - install procedure for new app
   * arrange to load without a generator/config file         DONE
   * check rake tasks load when installed in an app          DONE
-
 - system for checking presence of indexes         DONE
 - adapter for running indexed counts/queries      DONE
-
 - sort mode option built in to widget           NOT TO DO
 - minimum option built in to widget             NOT TO DO
 - widgets multiplex calls to count              NOT TO DO
-
 - rake task to update all indices               NOT TO DO
 - rake task to verify all indices               NOT TO DO
-
 - mysql for 'training wheels'                   NOT TO DO
 - mysql adapter for indexing                    NOT TO DO
-
 - rake task to install postgresql extensions                DONE
-
 - new method: relation.facet[:name] ...  finds the facet relation, merges with current one, and returns result          DONE
 - sorting defaults                                          NOT TO DO
 - prettier output for raw facet relations in to_s           NOT TO DO [ db dependent ]

@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.summary     = "Rails/Postgresql plugin for faceted indexing and browsing"
   s.description = "Repertoire-faceting adds scalable facet indexing, ajax facet widgets, and extras like GIS facets to Rails 3"
  
-  s.required_rubygems_version = ">= 1.3.6"
+  s.required_rubygems_version = ">= 1.3.7"
   s.rubyforge_project         = "repertoire-faceting"
  
   s.files        = Dir.glob("{ext,lib,public}/**/*") + %w(FAQ LICENSE README TODO)

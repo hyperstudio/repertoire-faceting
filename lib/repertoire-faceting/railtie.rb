@@ -3,7 +3,7 @@ require 'rails'
 
 module Repertoire
   module Faceting
-    class Railtie < Rails::Railtie
+    class Railtie < Rails::Railtie #:nodoc:
 #      no configuration options necessary
 #      config.repertoire_faceting = ActiveSupport::OrderedOptions.new
       

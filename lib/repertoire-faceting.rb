@@ -15,6 +15,7 @@ module Repertoire
 
     autoload :Model, 'repertoire-faceting/model'
     autoload :Controller, 'repertoire-faceting/controller'
+    autoload :Routing, 'repertoire-faceting/routing'
     autoload :Version, 'repertoire-faceting/version'
     
     autoload :AbstractAdapter, 'repertoire-faceting/adapters/abstract_adapter'

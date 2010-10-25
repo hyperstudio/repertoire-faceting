@@ -1,8 +1,7 @@
 module Repertoire
   module Faceting
-    module Relation
+    module Relation  # :nodoc: all
       module QueryMethods
-        extend ActiveSupport::Concern
 
         # N.B. These methods augment those defined in active_record/relation/query_methods
       
@@ -10,6 +9,10 @@ module Repertoire
       
         [:refine, :nils, :minimum].each do |attr|
           ActiveRecord::Relation::SINGLE_VALUE_METHODS << attr
+        end
+
+        def refine_value
+          @refine_value ||= {}
         end
 
         #
@@ -30,10 +33,6 @@ module Repertoire
 
         def reorder(*args)
           clone.tap { |f| f.order_values = args.flatten }
-        end
-
-        def refine_value
-          @refine_value ||= {}
         end
         
         def refined_facets?

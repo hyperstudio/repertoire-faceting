@@ -2,10 +2,15 @@ require 'active_support/core_ext/object/blank'
 
 module Repertoire
   module Faceting
-    module Facets
+    module Facets #:nodoc:
       
-      # Abstract interface all facet implementations must fulfil.  At minimum, define self.claim?,
-      # signature and drill to create a working facet.
+      # Abstract interface all facet implementations must fulfil.  At minimum, implementors should
+      # define self.claim?(), signature(), and drill() to create a new kind of facet.
+      #
+      # For indexing support, implement create_index to create your index table, detect its presence
+      # in signature() and drill(), and act accordingly.
+      #
+      # See BasicFacet and NestedFacet for examples of facet implementations.
       module AbstractFacet
         
         attr_accessor :facet_name
@@ -29,7 +34,10 @@ module Repertoire
         end
 
         # Return an arel expression describing this facet's index table, or raise an exception if indexing not supported
-        def create_index
+        #
+        # Implementations should build signatures using the faceting_id column passed in, which may not exist yet on the
+        # model table itself.
+        def create_index(faceting_id)
           raise 'Facet #{facet_name} does not support indexing'
         end
         

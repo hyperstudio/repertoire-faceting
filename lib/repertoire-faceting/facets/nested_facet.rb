@@ -1,6 +1,12 @@
 module Repertoire
   module Faceting
     module Facets
+      
+      # Implementation of AbstractFacet for facets whose values fall into a nested taxonomy.
+      # By default, all facets that group several columns will follow this behavior.
+      #
+      # See Repertoire::Faceting::Model::ClassMethods for usage.
+      #
       module NestedFacet
         include AbstractFacet
         include Arel
@@ -15,7 +21,7 @@ module Repertoire
           bind_nest(group_values, state) do |expr, val|
             rel = rel.where("#{expr} = #{connection.quote(val)}")
           end
-          rel.select('signature(_packed_id)').arel
+          rel.select("signature(#{table_name}.#{faceting_id})").arel
         end
         
         def drill(state)
@@ -24,15 +30,15 @@ module Repertoire
           grp = bind_nest(group_values, state) do |expr, val|
             rel = rel.where("#{expr} = #{connection.quote(val)}")
           end
-          rel.group(grp).select(["#{grp.last} AS #{facet_name}", 'signature(_packed_id)']).arel
+          rel.group(grp).select(["#{grp.last} AS #{facet_name}", "signature(#{table_name}.#{faceting_id})"]).arel
         end
       
-        def create_index
+        def create_index(faceting_id)
           rel = only(:where, :joins, :group)
           group_values.zip(columns).each do |expr, col|
             rel = rel.select("#{expr} AS #{col}")
           end
-          sql = rel.select(["#{group_values.size} AS level", 'signature(_packed_id)']).to_sql
+          sql = rel.select(["#{group_values.size} AS level", "signature(#{table_name}.#{faceting_id})"]).to_sql
           
           connection.recreate_table(facet_index_table, sql)
           connection.expand_nesting(facet_index_table)

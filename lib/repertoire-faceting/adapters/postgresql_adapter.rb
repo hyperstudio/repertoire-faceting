@@ -2,7 +2,7 @@ require 'active_support/ordered_hash'
 
 module Repertoire
   module Faceting
-    module PostgreSQLColumn
+    module PostgreSQLColumn #:nodoc:
           
       # TODO.  still not clear how ActiveRecord adapters support adding custom SQL data types...
       #        feels like a monkey-patch, but there's no documented way to accomplish this simple task
@@ -18,12 +18,19 @@ module Repertoire
       
     end
     
-    module PostgreSQLAdapter
+    module PostgreSQLAdapter #:nodoc:
       
       # Creates (or recreates) the packed id column on a given table
-      def renumber_table(table_name)
-        sql = "SELECT renumber_table('#{table_name}', '_packed_id')"
+      def renumber_table(table_name, faceting_id='_packed_id')
+        sql = "SELECT renumber_table('#{table_name}', '#{faceting_id}')"
         execute(sql)
+      end
+
+      # Returns the scatter quotient of the given id column
+      def signature_wastage(table_name, faceting_id='_packed_id')
+        sql    = "SELECT signature_wastage('#{table_name}', '#{faceting_id}')"
+        result = select_value(sql)
+        Float(result)
       end
       
       # Creates (recreates) a table with the specified select statement
@@ -64,9 +71,9 @@ module Repertoire
         results
       end
       
-      def mask_members_sql(masks)
+      def mask_members_sql(masks, table_name, faceting_id)
         exprs = masks.map { |mask| "(#{mask.to_sql})" }
-        "INNER JOIN members(#{exprs.join(' & ')}) AS _refinements_packed_id ON (_packed_id = _refinements_packed_id)"
+        "INNER JOIN members(#{exprs.join(' & ')}) AS _refinements_id ON (#{table_name}.#{faceting_id} = _refinements_id)"
       end
       
     end

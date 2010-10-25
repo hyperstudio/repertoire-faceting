@@ -1,6 +1,6 @@
-module Repertoire
-  module Faceting
-    class QueryError < StandardError
+module Repertoire #:nodoc:
+  module Faceting #:nodoc:
+    class QueryError < StandardError #:nodoc:
     end
   end
 end

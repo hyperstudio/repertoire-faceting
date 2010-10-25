@@ -1,7 +1,11 @@
 module Repertoire
-  module Faceting
+  module Faceting #:nodoc:
     
-    # Include this module in your controller to add faceting webservices.
+    # Include this mixin in your controller to add faceting webservices for use with the javascript
+    # widgets.  In general you will only need to over-ride base() to specify the model over which your
+    # faceted browser searches.  
+    #
+    # However, for more complex behavior you can over-ride counts() and results() as well.
     module Controller
       
       # Web-service to return value, count pairs for a given facet, given existing filter refinements
@@ -32,7 +36,7 @@ module Repertoire
       
       protected
       
-      # Over-ride the base method in your controller to specify the base model for facet counts and results.
+      # Over-ride in your controller to specify the base model for facet counts and results.
       def base
         raise "Override the base() method in your controller to define the faceting model/context"
       end

@@ -8,7 +8,7 @@ Depending on how frequently you need to update facet indices, there are several 
   rake task file, use something like the following:
 
     task :reindex => :environment do
-      Nobelist.update_indexed_facets(:degree, :discipline)
+      Nobelist.update_indexed_facets([:degree, :discipline])
     end
   
   Configure your system-level crontab task to run 'rake reindex' at the required interval.
@@ -51,16 +51,17 @@ Rails3 documentation revisions
 To cover in the README:
 
 - special features
-  - persistent facet indices ( no separate server )
   - scalability
   - nested facets
   - facet visualizations
-  - extensible facet widgets ( e.g. visualization )
-  - pluggable facet implementations
+  - extensible facet widgets, pluggable implementations
   - easy learning curve:
     - 'training wheels' mode
     - automatic index generation and detection
       [ no SQL necessary ]
+  - persistent facet indices ( no separate server )
+  - cross-database
+  - packed ids
 
 - how facet indices work
 - why in-database
