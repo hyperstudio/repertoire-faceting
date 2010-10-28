@@ -174,6 +174,7 @@ module Repertoire
 
             # re-create the facet indices
             facet_names.each do |name|
+              name = name.to_sym
               raise "Unknown facet #{name}" unless facet?(name)
               facets[name].create_index('_packed_id')
             end
@@ -192,8 +193,6 @@ module Repertoire
           col ||= faceting_id
           connection.signature_wastage(table_name, col)
         end
-        
-        
         
         def should_unpack?
           (faceting_id == '_packed_id') && (signature_wastage('id') < 0.15)

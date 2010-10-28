@@ -3,8 +3,6 @@ require 'models/affiliation.rb'
 class Nobelist < ActiveRecord::Base
   include Repertoire::Faceting::Model
 
-  # see 'repertoire-faceting/test/nobelists.sql'
-
   has_many :affiliations
 
   facet :discipline

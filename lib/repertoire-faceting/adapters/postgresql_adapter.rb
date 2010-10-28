@@ -39,6 +39,18 @@ module Repertoire
         execute(sql)
       end
       
+      # Load PostgreSQL native bitset type into current database
+      def load_faceting
+        sql = File.read(Repertoire::Faceting::MODULE_PATH + '/ext/signature.sql')
+        unload_faceting
+        execute(sql)
+      end
+      
+      # Unloads PostgreSQL native bitset type
+      def unload_faceting
+        execute("DROP TYPE IF EXISTS signature CASCADE")
+      end
+      
       # Expands nested faceting for the specified table (once)
       def expand_nesting(table_name)
         sql = "SELECT expand_nesting('#{table_name}')"
@@ -74,6 +86,15 @@ module Repertoire
       def mask_members_sql(masks, table_name, faceting_id)
         exprs = masks.map { |mask| "(#{mask.to_sql})" }
         "INNER JOIN members(#{exprs.join(' & ')}) AS _refinements_id ON (#{table_name}.#{faceting_id} = _refinements_id)"
+      end
+      
+      private
+      
+      def ignoring_db_errors(&block)
+        begin
+          yield
+        rescue
+        end
       end
       
     end

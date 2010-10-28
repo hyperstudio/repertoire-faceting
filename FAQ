@@ -1,5 +1,14 @@
 = Repertoire Faceting FAQ =
 
+= Related questions
+
+Q. Rails 3 refuses to update schema.rb because with my fulltext index columns.
+
+A. Put the following line in environment.rb:
+
+  config.active_record.schema_format = :sql
+
+
 = About facet indexing and the signature SQL type = 
 
 Q. What's the scalability of this thing?
@@ -17,6 +26,12 @@ A. Did you remember to call expand_nesting(<facet index table>, <facet name>) af
 
 
 = About the ajax faceting widgets =
+
+Q. A web page from the default Rails app refuses to load the faceting widgets.
+
+A. Repertoire Faceting widgets are based on JQuery, which is incompatible with Prototype.  You should remove
+   prototype.js and rails.js from the javascripts directory, and delete the <%= javascript_include_tag :defaults %>
+	 line from application.html.erb.
 
 Q. How do I send page-specific data (for example, a search field) to the webservice with the facet widgets' data?
 

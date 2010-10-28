@@ -25,8 +25,8 @@
 -- Installation
 --
 --    (1) gem install repertoire-faceting
---    (2) rake faceting:postgres:install
---    (3) rake faceting:postgres:load
+--    (2) rake db:faceting:install
+--    (3) rake db:faceting:load
 --
 -- The bitset PostgreSQL extension follows standards for C-language extensions:
 --  http://www.postgresql.org/docs/current/static/xfunc-c.html

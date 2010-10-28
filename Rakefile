@@ -4,10 +4,13 @@ require 'rake/testtask'
 require 'rake/rdoctask'
 require 'pathname'
 
-dir = Pathname.new(__FILE__).dirname
+require 'bundler'
+Bundler.require(:default)
 
-require dir + 'lib/repertoire-faceting/version'
-load dir + 'lib/repertoire-faceting/tasks.rake'
+dir = Pathname.new(__FILE__).dirname
+load dir + 'lib/repertoire-faceting/tasks/all.rake'
+
+$:.unshift File.expand_path(dir + 'test')
 
 gemspec = eval(File.read("repertoire-faceting.gemspec"))
 
@@ -25,6 +28,7 @@ def run_without_aborting(*tasks)
   abort "Errors running #{errors.join(', ')}" if errors.any?
 end
 
+desc 'Build the gem'
 task :build => "#{gemspec.full_name}.gem"
 
 file "#{gemspec.full_name}.gem" => gemspec.files + ["repertoire-faceting.gemspec"] do
@@ -51,7 +55,7 @@ end
   end
 end
 
-desc 'Generate documentation for Repertoire Faceting.'
+desc 'Generate documentation'
 Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
   rdoc.title    = 'Repertoire Faceting'
@@ -59,4 +63,21 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include('README')
   rdoc.rdoc_files.include('FAQ')
   rdoc.rdoc_files.include('lib/**/*.rb')
+end
+
+namespace :db do
+  
+  desc 'Build the PostgreSQL test databases'
+  task :create do
+    %x( createdb -E UTF8 repertoire_testing
+        createlang plpgsql repertoire_testing
+        psql repertoire_testing -f #{dir}/ext/signature.sql
+     )
+  end
+
+  desc 'Drop the PostgreSQL test databases'
+  task :drop do
+    %x( dropdb repertoire_testing )
+  end
+  
 end

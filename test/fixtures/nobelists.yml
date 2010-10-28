@@ -1,0 +1,1074 @@
+#
+# Testing data for faceting : MIT Nobel prize winners example
+#
+
+richter: 
+  birth_city: New York City
+  birth_country: United States of America
+  birth_state: New York
+  birthdate: 1931-03-22 00:00:00 Z
+  co_winner: Samuel C.C. Ting
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1976/richter_thumb.jpg
+  last_name: Richter
+  name: Burton Richter
+  nobel_year: 1976
+  shared: true
+  url: 
+ 
+akerlof: 
+  birth_city: New Haven
+  birth_country: United States of America
+  birth_state: Connecticut
+  birthdate: 1940-06-17 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/2001/akerlof_thumb.jpg
+  last_name: Akerlof
+  name: George A. Akerlof
+  nobel_year: 2001
+  shared: true
+  url: 
+ 
+shockley: 
+  birth_city: London
+  birth_country: England
+  birth_state: 
+  birthdate: 1910-02-13 00:00:00 Z
+  co_winner: 
+  deathdate: 1989-08-12 00:00:00 Z
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1956/shockley_thumb.jpg
+  last_name: Shockley
+  name: William Shockley
+  nobel_year: 1956
+  shared: true
+  url: 
+ 
+tsui: 
+  birth_city: 
+  birth_country: People's Republic of China
+  birth_state: Henan
+  birthdate: 1939-02-28 00:00:00 Z
+  co_winner: "Horst L. St\xC3\xB6rmer, Robert B. Laughlin"
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1998/tsui_thumb.jpg
+  last_name: Tsui
+  name: Daniel C. Tsui
+  nobel_year: 1998
+  shared: true
+  url: 
+ 
+corey: 
+  birth_city: Methuen
+  birth_country: United States of America
+  birth_state: Massachusetts
+  birthdate: 1928-07-12 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Chemistry
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/chemistry/laureates/1990/corey_thumb.jpg
+  last_name: Corey
+  name: Elias J. Corey Jr.
+  nobel_year: 1990
+  shared: false
+  url: 
+ 
+störmer: 
+  birth_city: Frankfurt
+  birth_country: Germany
+  birth_state: 
+  birthdate: 1949-04-06 00:00:00 Z
+  co_winner: Robert B. Laughlin, Daniel C. Tsui
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1998/stormer_thumb.jpg
+  last_name: "Störmer"
+  name: "Horst L. Störmer"
+  nobel_year: 1998
+  shared: true
+  url: 
+ 
+purcell: 
+  birth_city: Taylorville
+  birth_country: United States of America
+  birth_state: Illinois
+  birthdate: 1912-08-30 00:00:00 Z
+  co_winner: 
+  deathdate: 1997-03-07 00:00:00 Z
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1952/purcell_thumb.jpg
+  last_name: Purcell
+  name: Edward M. Purcell
+  nobel_year: 1952
+  shared: true
+  url: 
+ 
+sharp: 
+  birth_city: Falmouth
+  birth_country: United States of America
+  birth_state: Kentucky
+  birthdate: 1944-06-06 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Medicine/Physiology
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/medicine/laureates/1993/sharp_thumb.jpg
+  last_name: Sharp
+  name: Phillip A. Sharp
+  nobel_year: 1993
+  shared: true
+  url: 
+ 
+klein: 
+  birth_city: Omaha
+  birth_country: United States of America
+  birth_state: Nebraska
+  birthdate: 1920-09-14 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/1980/klein_thumb.jpg
+  last_name: Klein
+  name: Lawrence R. Klein
+  nobel_year: 1980
+  shared: false
+  url: 
+ 
+bethe: 
+  birth_city: Strasbourg
+  birth_country: Germany
+  birth_state: Alsace-Lorraine
+  birthdate: 1906-06-02 00:00:00 Z
+  co_winner: 
+  deathdate: 2005-03-06 00:00:00 Z
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1967/bethe_thumb.jpg
+  last_name: Bethe
+  name: Hans A. Bethe
+  nobel_year: 1967
+  shared: false
+  url: 
+ 
+townes: 
+  birth_city: Greenville
+  birth_country: United States of America
+  birth_state: South Carolina
+  birthdate: 1915-07-28 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1964/townes_thumb.jpg
+  last_name: Townes
+  name: Charles H. Townes
+  nobel_year: 1964
+  shared: true
+  url: 
+ 
+sharpless: 
+  birth_city: Philadelphia
+  birth_country: United States of America
+  birth_state: Pennsylvania
+  birthdate: 1941-04-28 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Chemistry
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/chemistry/laureates/2001/sharpless_thumb.jpg
+  last_name: Sharpless
+  name: K. Barry Sharpless
+  nobel_year: 2001
+  shared: true
+  url: 
+ 
+schrock: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1945-01-04 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Chemistry
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/chemistry/laureates/2005/schrock_thumb.jpg
+  last_name: Schrock
+  name: Richard R. Schrock
+  nobel_year: 2005
+  shared: true
+  url: http://web.mit.edu/newsoffice/2005/schrock.html
+ 
+friedman: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1930-03-28 00:00:00 Z
+  co_winner: Henry W. Kendall
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1990/friedman_thumb.jpg
+  last_name: Friedman
+  name: Jerome I. Friedman
+  nobel_year: 1990
+  shared: true
+  url: 
+ 
+feynman: 
+  birth_city: Queens
+  birth_country: United States of America
+  birth_state: New York
+  birthdate: 1918-05-11 00:00:00 Z
+  co_winner: Julian Schwinger
+  deathdate: 1988-02-15 00:00:00 Z
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1965/feynman_thumb.jpg
+  last_name: Feynman
+  name: Richard P. Feynman
+  nobel_year: 1965
+  shared: true
+  url: 
+ 
+thomas: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1920-03-15 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Medicine/Physiology
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/medicine/laureates/1990/thomas_thumb.jpg
+  last_name: Thomas
+  name: E. Donnall Thomas
+  nobel_year: 1990
+  shared: true
+  url: 
+ 
+steinberger: 
+  birth_city: Bad Kissingen
+  birth_country: Germany
+  birth_state: 
+  birthdate: 1921-05-25 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1988/steinberger_thumb.jpg
+  last_name: Steinberger
+  name: Jack Steinberger
+  nobel_year: 1988
+  shared: true
+  url: 
+ 
+khorana: 
+  birth_city: Multan
+  birth_country: British India
+  birth_state: Punjab
+  birthdate: 1922-01-19 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Medicine/Physiology
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/medicine/laureates/1968/khorana_thumb.jpg
+  last_name: Khorana
+  name: Har Gobind Khorana
+  nobel_year: 1968
+  shared: true
+  url: 
+ 
+stiglitz: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1943-02-09 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/2001/stiglitz_thumb.jpg
+  last_name: Stiglitz
+  name: Joseph E. Stiglitz
+  nobel_year: 2001
+  shared: true
+  url: 
+ 
+gell-mann: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1929-09-15 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1969/gell-mann_thumb.jpg
+  last_name: Gell-Mann
+  name: Murray Gell-Mann
+  nobel_year: 1969
+  shared: false
+  url: 
+ 
+nash: 
+  birth_city: Bluefield
+  birth_country: United States of America
+  birth_state: West Virginia
+  birthdate: 1928-06-13 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/1994/nash_thumb.jpg
+  last_name: Nash
+  name: John Forbes Nash, Jr.
+  nobel_year: 1994
+  shared: true
+  url: 
+ 
+luria: 
+  birth_city: Lexington
+  birth_country: United States of America
+  birth_state: Massachusetts
+  birthdate: 1912-08-13 00:00:00 Z
+  co_winner: 
+  deathdate: 1991-02-06 00:00:00 Z
+  deceased: 
+  discipline: Medicine/Physiology
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/medicine/laureates/1969/luria_thumb.jpg
+  last_name: Luria
+  name: Salvador E. Luria
+  nobel_year: 1969
+  shared: true
+  url: 
+ 
+weinberg: 
+  birth_city: New York City
+  birth_country: United States of America
+  birth_state: New York
+  birthdate: 1933-05-03 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1979/weinberg_thumb.jpg
+  last_name: Weinberg
+  name: Steven Weinberg
+  nobel_year: 1979
+  shared: true
+  url: 
+ 
+samuelson: 
+  birth_city: Gary
+  birth_country: United States of America
+  birth_state: Indiana
+  birthdate: 1915-05-15 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/1970/samuelson_thumb.jpg
+  last_name: Samuelson
+  name: Paul A. Samuelson
+  nobel_year: 1970
+  shared: false
+  url: 
+ 
+schrieffer: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1931-05-31 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1972/schrieffer_thumb.jpg
+  last_name: Schrieffer
+  name: John Robert Schrieffer
+  nobel_year: 1972
+  shared: true
+  url: 
+ 
+tonegawa: 
+  birth_city: Nagoya
+  birth_country: Japan
+  birth_state: 
+  birthdate: 1939-09-06 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Medicine/Physiology
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/medicine/laureates/1987/tonegawa_thumb.jpg
+  last_name: Tonegawa
+  name: Susumu Tonegawa
+  nobel_year: 1987
+  shared: false
+  url: 
+ 
+baltimore: 
+  birth_city: New York City
+  birth_country: United States of America
+  birth_state: New York
+  birthdate: 1938-03-07 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Medicine/Physiology
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/medicine/laureates/1975/baltimore_thumb.jpg
+  last_name: Baltimore
+  name: David Baltimore
+  nobel_year: 1975
+  shared: true
+  url: 
+ 
+mcmillan: 
+  birth_city: Redondo Beach
+  birth_country: United States of America
+  birth_state: California
+  birthdate: 1907-09-18 00:00:00 Z
+  co_winner: 
+  deathdate: 1991-09-07 00:00:00 Z
+  deceased: 
+  discipline: Chemistry
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/chemistry/laureates/1951/mcmillan_thumb.jpg
+  last_name: McMillan
+  name: Edwin M. McMillan
+  nobel_year: 1951
+  shared: true
+  url: 
+ 
+scholes: 
+  birth_city: Timmons
+  birth_country: Canada
+  birth_state: Ontario
+  birthdate: 1941-07-01 00:00:00 Z
+  co_winner: Robert C. Merton
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/1997/scholes_thumb.jpg
+  last_name: Scholes
+  name: Myron S. Scholes
+  nobel_year: 1997
+  shared: true
+  url: 
+ 
+schwinger: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1918-02-12 00:00:00 Z
+  co_winner: Richard P. Feynman
+  deathdate: 1994-07-16 00:00:00 Z
+  deceased: true
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1965/schwinger_thumb.jpg
+  last_name: Schwinger
+  name: Julian Schwinger
+  nobel_year: 1965
+  shared: true
+  url: 
+ 
+cornell: 
+  birth_city: Palo Alto
+  birth_country: United States of America
+  birth_state: California
+  birthdate: 1961-12-19 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/2001/cornell_thumb.jpg
+  last_name: Cornell
+  name: Eric A. Cornell
+  nobel_year: 2001
+  shared: true
+  url: 
+ 
+mcfadden: 
+  birth_city: Raleigh
+  birth_country: United States of America
+  birth_state: North Carolina
+  birthdate: 1937-07-29 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/2000/mcfadden_thumb.jpg
+  last_name: McFadden
+  name: Daniel L. McFadden
+  nobel_year: 2000
+  shared: true
+  url: 
+ 
+ketterle: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1957-10-21 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/2001/ketterle_thumb.jpg
+  last_name: Ketterle
+  name: Wolfgang Ketterle
+  nobel_year: 2001
+  shared: true
+  url: 
+ 
+modigliani: 
+  birth_city: Rome
+  birth_country: Italy
+  birth_state: 
+  birthdate: 1918-06-18 00:00:00 Z
+  co_winner: 
+  deathdate: 2003-09-25 00:00:00 Z
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/1985/modigliani_thumb.jpg
+  last_name: Modigliani
+  name: Franco Modigliani
+  nobel_year: 1985
+  shared: false
+  url: 
+ 
+wieman: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1951-03-26 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/2001/wieman_thumb.jpg
+  last_name: Wieman
+  name: Carl E. Wieman
+  nobel_year: 2001
+  shared: true
+  url: 
+ 
+pedersen: 
+  birth_city: Busan
+  birth_country: Korea
+  birth_state: 
+  birthdate: 1904-10-03 00:00:00 Z
+  co_winner: 
+  deathdate: 1989-10-26 00:00:00 Z
+  deceased: 
+  discipline: Chemistry
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/chemistry/laureates/1987/pedersen_thumb.jpg
+  last_name: Pedersen
+  name: Charles J. Pedersen
+  nobel_year: 1987
+  shared: true
+  url: 
+ 
+chivian: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Peace
+  image_credit: http://mitworld.mit.edu/video/63/
+  image_url: http://people.csail.mit.edu/dfhuynh/projects/nobelists/images/eric-chivian.png
+  last_name: Chivian
+  name: Eric S. Chivian
+  nobel_year: 1985
+  shared: false
+  url: 
+ 
+molina: 
+  birth_city: Mexico City
+  birth_country: Mexico
+  birth_state: 
+  birthdate: 1943-03-19 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Chemistry
+  image_credit: http://mitworld.mit.edu/video/63/
+  image_url: http://people.csail.mit.edu/dfhuynh/projects/nobelists/images/mario-j-molina.png
+  last_name: Molina
+  name: Mario J. Molina
+  nobel_year: 1995
+  shared: true
+  url: 
+ 
+woodward: 
+  birth_city: Cambridge
+  birth_country: United States of America
+  birth_state: Massachusetts
+  birthdate: 1917-04-10 00:00:00 Z
+  co_winner: 
+  deathdate: 1979-07-08 00:00:00 Z
+  deceased: 
+  discipline: Chemistry
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/chemistry/laureates/1965/woodward_thumb.jpg
+  last_name: Woodward
+  name: Robert Burns Woodward
+  nobel_year: 1965
+  shared: false
+  url: 
+ 
+laughlin: 
+  birth_city: Visalia
+  birth_country: United States of America
+  birth_state: California
+  birthdate: 1950-11-01 00:00:00 Z
+  co_winner: "Horst L. St\xC3\xB6rmer, Daniel C. Tsui"
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1998/laughlin_thumb.jpg
+  last_name: Laughlin
+  name: Robert B. Laughlin
+  nobel_year: 1998
+  shared: true
+  url: 
+ 
+fire: 
+  birth_city: Palo Alto
+  birth_country: United States of America
+  birth_state: California
+  birthdate: 1959-04-27 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Medicine/Physiology
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/medicine/laureates/2006/fire_thumb.jpg
+  last_name: Fire
+  name: Andrew Fire
+  nobel_year: 2006
+  shared: true
+  url: http://web.mit.edu/newsoffice/2006/fire.html
+ 
+solow: 
+  birth_city: Brooklyn
+  birth_country: United States of America
+  birth_state: New York
+  birthdate: 1924-08-23 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/1987/solow_thumb.jpg
+  last_name: Solow
+  name: Robert M. Solow
+  nobel_year: 1987
+  shared: false
+  url: 
+ 
+mulliken: 
+  birth_city: Arlington
+  birth_country: United States of America
+  birth_state: Virginia
+  birthdate: 1896-06-07 00:00:00 Z
+  co_winner: 
+  deathdate: 1986-10-31 00:00:00 Z
+  deceased: 
+  discipline: Chemistry
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/chemistry/laureates/1966/mulliken_thumb.jpg
+  last_name: Mulliken
+  name: Robert S. Mulliken
+  nobel_year: 1966
+  shared: false
+  url: 
+ 
+annan: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1938-05-08 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Peace
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/peace/laureates/2001/annan_thumb.jpg
+  last_name: Annan
+  name: Kofi Annan
+  nobel_year: 2001
+  shared: true
+  url: 
+ 
+cech: 
+  birth_city: Chicago
+  birth_country: United States of America
+  birth_state: Illinois
+  birthdate: 1947-12-08 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Chemistry
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/chemistry/laureates/1989/cech_thumb.jpg
+  last_name: Cech
+  name: Thomas R. Cech
+  nobel_year: 1989
+  shared: true
+  url: 
+ 
+ting: 
+  birth_city: Ann Arbor
+  birth_country: United States of America
+  birth_state: Michigan
+  birthdate: 1936-01-27 00:00:00 Z
+  co_winner: Burton Richter
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1976/ting_thumb.jpg
+  last_name: Ting
+  name: Samuel C.C. Ting
+  nobel_year: 1976
+  shared: true
+  url: 
+ 
+rabi: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1898-07-29 00:00:00 Z
+  co_winner: 
+  deathdate: 1988-01-11 00:00:00 Z
+  deceased: true
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1944/rabi_thumb.jpg
+  last_name: Rabi
+  name: Isidor Isaac Rabi
+  nobel_year: 1944
+  shared: false
+  url: 
+ 
+alvarez: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1913-06-13 00:00:00 Z
+  co_winner: 
+  deathdate: 1988-09-01 00:00:00 Z
+  deceased: true
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1968/alvarez_thumb.jpg
+  last_name: Alvarez
+  name: Luis W. Alvarez
+  nobel_year: 1968
+  shared: false
+  url: 
+ 
+ciechanover: 
+  birth_city: Haifa
+  birth_country: British Mandate of Palestine
+  birth_state: 
+  birthdate: 1947-10-01 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Chemistry
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/chemistry/laureates/2004/ciechanover_thumb.jpg
+  last_name: Ciechanover
+  name: Aaron Ciechanover
+  nobel_year: 2004
+  shared: true
+  url: http://nobelprize.org/chemistry/laureates/2004/index.html
+ 
+shull: 
+  birth_city: Pittsburgh
+  birth_country: United States of America
+  birth_state: Pennsylvania
+  birthdate: 1915-09-23 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1994/shull_thumb.jpg
+  last_name: Shull
+  name: Clifford G. Shull
+  nobel_year: 1994
+  shared: true
+  url: 
+ 
+ramsey: 
+  birth_city: Washington
+  birth_country: United States of America
+  birth_state: District of Columbia
+  birthdate: 1915-08-27 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1989/ramsey_thumb.jpg
+  last_name: Ramsey
+  name: Norman F. Ramsey
+  nobel_year: 1989
+  shared: false
+  url: 
+ 
+wilkinson: 
+  birth_city: Springside
+  birth_country: England
+  birth_state: 
+  birthdate: 1921-07-14 00:00:00 Z
+  co_winner: 
+  deathdate: 1996-09-26 00:00:00 Z
+  deceased: 
+  discipline: Chemistry
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/chemistry/laureates/1973/wilkinson_thumb.jpg
+  last_name: Wilkinson
+  name: Geoffrey Wilkinson
+  nobel_year: 1973
+  shared: true
+  url: 
+ 
+wilczek: 
+  birth_city: Mineola
+  birth_country: United States of America
+  birth_state: New York
+  birthdate: 1951-05-15 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/2004/wilczek_thumb.jpg
+  last_name: Wilczek
+  name: Frank Wilczek
+  nobel_year: 2004
+  shared: true
+  url: http://web.mit.edu/newsoffice/2004/nobel-wilczek.html
+ 
+altman: 
+  birth_city: Montreal
+  birth_country: Canada
+  birth_state: Quebec
+  birthdate: 1939-05-07 00:00:00 Z
+  co_winner: Thomas R. Cech
+  deathdate: 
+  deceased: 
+  discipline: Chemistry
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/chemistry/laureates/1989/altman_thumb.jpg
+  last_name: Altman
+  name: Sidney Altman
+  nobel_year: 1989
+  shared: true
+  url: 
+ 
+hartwell: 
+  birth_city: Los Angeles
+  birth_country: United States of America
+  birth_state: California
+  birthdate: 1939-10-30 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Medicine/Physiology
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/medicine/laureates/2001/hartwell_thumb.jpg
+  last_name: Hartwell
+  name: Leland H. Hartwell
+  nobel_year: 2001
+  shared: true
+  url: 
+ 
+kendall: 
+  birth_city: Boston
+  birth_country: United States of America
+  birth_state: Massachusetts
+  birthdate: 1926-12-09 00:00:00 Z
+  co_winner: Jerome I. Friedman
+  deathdate: 1999-02-15 00:00:00 Z
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1990/kendall_thumb.jpg
+  last_name: Kendall
+  name: Henry W. Kendall
+  nobel_year: 1990
+  shared: true
+  url: 
+ 
+smoot: 
+  birth_city: Yukon
+  birth_country: United States of America
+  birth_state: Florida
+  birthdate: 1945-02-20 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/2006/smoot_thumb.jpg
+  last_name: Smoot
+  name: George Smoot
+  nobel_year: 2006
+  shared: true
+  url: http://web.mit.edu/newsoffice/2006/smoot.html
+ 
+aumann: 
+  birth_city: Frankfurt Am Main
+  birth_country: Germany
+  birth_state: 
+  birthdate: 1930-06-08 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/2005/aumann_thumb.jpg
+  last_name: Aumann
+  name: Robert J. Aumann
+  nobel_year: 2005
+  shared: true
+  url: http://nobelprize.org/economics/laureates/2005/press.html
+ 
+merton: 
+  birth_city: New York City
+  birth_country: United States of America
+  birth_state: New York
+  birthdate: 1944-07-31 00:00:00 Z
+  co_winner: Myron S. Scholes
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/1997/merton_thumb.jpg
+  last_name: Merton
+  name: Robert C. Merton
+  nobel_year: 1997
+  shared: true
+  url: 
+ 
+engle: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1942-11-10 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/2003/engle_thumb.jpg
+  last_name: Engle
+  name: Robert Engle
+  nobel_year: 2003
+  shared: true
+  url: http://nobelprize.org/economics/laureates/2003/index.html
+ 
+phillips: 
+  birth_city: Wilkes-Barre
+  birth_country: United States of America
+  birth_state: Pennsylvania
+  birthdate: 1948-11-05 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Physics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/physics/laureates/1997/phillips_thumb.jpg
+  last_name: Phillips
+  name: William D. Phillips
+  nobel_year: 1997
+  shared: true
+  url: 
+ 
+horvitz: 
+  birth_city: 
+  birth_country: 
+  birth_state: 
+  birthdate: 1947-05-08 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Medicine/Physiology
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/medicine/laureates/2002/horvitz_thumb.jpg
+  last_name: Horvitz
+  name: H. Robert Horvitz
+  nobel_year: 2002
+  shared: true
+  url: http://web.mit.edu/newsoffice/2002/horvitz-nobel.html
+ 
+mundell: 
+  birth_city: Kingston
+  birth_country: Canada
+  birth_state: Ontario
+  birthdate: 1932-10-24 00:00:00 Z
+  co_winner: 
+  deathdate: 
+  deceased: 
+  discipline: Economics
+  image_credit: 
+  image_url: http://nobelprize.org/nobel_prizes/economics/laureates/1999/mundell_thumb.jpg
+  last_name: Mundell
+  name: Robert A. Mundell
+  nobel_year: 1999
+  shared: false
+  url: 

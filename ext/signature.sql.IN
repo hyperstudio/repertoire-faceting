@@ -265,16 +265,20 @@ END;
 $$ LANGUAGE plpgsql;
 
 
--- Utility function to measure how many elements in a loosely-packed id column are wasted
---   returns a float between 0 (no waste) and 1.0 (all waste)
+-- Utility function to measure how many bits from a loosely-packed id column would be wasted,
+-- if they were all collected into a bitset signature. Returns a float between 0 (no waste) 
+-- and 1.0 (all waste).
 --
 CREATE OR REPLACE FUNCTION signature_wastage(tbl TEXT, col TEXT) RETURNS REAL AS $$
 DECLARE
-  histogram signature;
+  max REAL;
+  count REAL;
 BEGIN
-  EXECUTE 'SELECT signature(' || quote_ident(col) || ') FROM ' || quote_ident(tbl)
-          INTO histogram;
-  RETURN 1.0 - (count(histogram)::REAL / sig_length(histogram)::REAL);
+  EXECUTE 'SELECT count(*) FROM ' || quote_ident(tbl)
+          INTO count;
+  EXECUTE 'SELECT max(' || quote_ident(col) || ') FROM ' || quote_ident(tbl)
+          INTO max;
+  RETURN 1.0 - (count / (COALESCE(max, 0) + 1));
 END;
 $$ LANGUAGE plpgsql;
 

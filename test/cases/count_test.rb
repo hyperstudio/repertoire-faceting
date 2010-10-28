@@ -3,11 +3,10 @@ require "active_support/core_ext/exception"
 
 require "models/nobelist"
 
-class CountTest < MultiplePassTestCase
- 
-  def passes
-    [ :unindexed, :partial1, :partial2, :indexed ]
-  end
+class CountTest < FacetingTestCase
+
+  fixtures :nobelists, :affiliations
+  passes   :unindexed, :partial1, :partial2, :indexed
   
   def setup
     names = case(@pass)

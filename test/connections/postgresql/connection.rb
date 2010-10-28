@@ -4,7 +4,7 @@ require 'logger'
 ActiveRecord::Base.logger = Logger.new("debug.log")
 
 ActiveRecord::Base.configurations = {
-  'reptest' => {
+  'test' => {
     :adapter  => 'postgresql',
     :database => 'repertoire_testing',
     :username => 'postgres',
@@ -12,4 +12,4 @@ ActiveRecord::Base.configurations = {
   }
 }
 
-ActiveRecord::Base.establish_connection 'reptest'
+ActiveRecord::Base.establish_connection 'test'

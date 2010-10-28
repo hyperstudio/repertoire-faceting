@@ -1,3 +1,30 @@
+== Deployment
+
+* repertoire-assets compression
+
+* deploying native extensions to server
+
+* sub-uris
+
+* do NOT use schema.rb with repertoire-faceting
+
+
+== Running unit tests
+
+You can run the unit tests from the module's root directory.  You will need a
+local PostgreSQL superuser role with your unix username (use 'createuser -Upostgres').
+
+  $ bundle install
+  $ rake db:faceting:build				{ sudo will prompt for your password }
+  $ rake db:create
+  $ rake test
+
+
+== Known issues
+
+- Running the unit tests issues warnings about a circular require.  These can be ignored.
+
+
 == Updating Indices
 
 Depending on how frequently you need to update facet indices, there are several options.
@@ -11,7 +38,7 @@ Depending on how frequently you need to update facet indices, there are several 
       Nobelist.update_indexed_facets([:degree, :discipline])
     end
   
-  Configure your system-level crontab task to run 'rake reindex' at the required interval.
+  Then configure your system-level crontab task to run 'rake reindex' at the required interval.
   
 (2) Using Repertoire's postgresql-crontab functionality
 
@@ -37,7 +64,17 @@ Depending on how frequently you need to update facet indices, there are several 
   create a migration with the same calls as the rake task.  
   
   
-  
+
+== Deployment
+
+Because repertoire-faceting depends on a native shared library loaded by the 
+PostgreSQL server, the first time you deploy you will need to build and install
+the extension.
+
+<server>$ bundle install --deployment
+<server>$ export RAILS_ENV=production
+<server>$ rake db:facetinginstall
+<server>$ rake db:facetingload 
   
   
 
@@ -46,7 +83,7 @@ Rails3 documentation revisions
 
 - requires ruby 1.9.2 (ordered hashes)
 - include_root_in_json = false
-- rake faceting:postgres:install, :load
+- rake db:facetingpostgres:install, :load
 
 To cover in the README:
 
@@ -88,145 +125,6 @@ API for faceted browsing within PostgreSQL, with extensions for Merb and jquery 
 - each facet has own index table (named _{table}_{facet}_facet, of facet value -> signature)
 - nested facet values kept as arrays
 - update facet index (a) explicitly, (b) using Repertoire's crontab sweeper, or (c) both
-
-
-===== Installation =====
-
--Proviso-.  You must already have PostgreSQL installed, and pg_config should display the correct values for the version of postgres you intend to use.
-
-1. Install the repertoire-faceting gem from source
-[ once it's released open-source, this will be possible from github or rubyforge ]
-
-2. Install Repertoire crontab support
-[ see documentation for the repertoire-devtools gem for this ]
-
-3. Load the faceting sql extensions into your project's database
-
-  - If your project shares the database with others (as in Repertoire), it's best to install by hand.
-
-  psql -Upostgres <your database> -f /opt/local/share/postgresql84/contrib/signature.sql
-
-  Note that the sql extensions are global to your entire database, since they land in the public schema.
-
-  - If your project owns the entire database, you can use a migration:
-
-		migration 1, :install_signature do
-		  sharedir = /SHAREDIR = (.*)/.match(`pg_config`)[1]			# e.g. "/opt/local/share/postgresql84"
-  
-		  up do
-		    execute File.read("#{sharedir}/contrib/signature.sql")
-		  end
-		  down do
-		    execute File.read("#{sharedir}/contrib/uninstall_signature.sql")
-		  end
-		end
-
-
-===== DataMapper extensions =====
-
-*Setup*
-
--Proviso-.  The faceting library does not yet support automigration.  The best approach is to maintain your facet indices using
-explicit migrations as your datamapper models change.
-
-Make sure the columns you wish to facet over are indexed.  For a complete description, see the section "PostgreSQL extensions."  Simple example for use in a datamapper migration:
-
-migration 5, :add_facet_indices do
-  up do
-    execute <<-SQL.compress_lines
-      INSERT INTO crontab(notice, role, task, interval) 
-	        VALUES ('Update Project facets', NULL, $$ 
-				    SELECT renumber_table('project', '_packed_id');
-				    SELECT recreate_table('_project_status_facet', 'SELECT status, signature(_packed_id) FROM project GROUP BY status');
-				    $$, '5 minutes');
-    SQL
-  end
-  down do
-    execute <<-SQL.compress_lines
-      DELETE FROM crontab WHERE notice = 'Update Project facets';
-    SQL
-  end
-end
-
-A later version of this package may include generator macros to ease the task of defining new facet indices.  However, this will 
-have to wait until DataMapper can reliably transform expressions like Project.all(:field => 'science').status into a single SQL join query (currently it issues two queries in turn).  Until then, the SQL expressions must be produced by hand.
-
-*In your model*
-
-= declaring facets:
-
-class Project
-  is :faceted, :genre,
-               :published => :nested,            # default :logic for this facet
-               :birthdate => :nested
-	  		       [ etc. ]
-end
-
-[ N.B. your facets don't have to be DataMapper properties!  they can be any SQL computed value. this merely names the facets -
-definitions belong in a database migration. ]
-
-*In your controller*
-
-= to do a facet value count [ facet indices are used automatically where available ]
-
-Film.facet_count(:location, :genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:location, :count.desc] )
-
-# provides facet to count, facet filter selections, a base query, and order for the facet value counts.  you can also specify 
-# :minimum, :offset, :limit, :type, and :nullable.  see the specs for usage
-
-= to do a facet results query [ facet indices are used automatically where available ]
-
-Film.facet_results(:genre => 'tragedy', :published => [2008, 11], :title.like => '%Death%', :order => [:title, :author], :offset => 0, :limit => 20)
-
-# to alter the way that a facet is refined, provide :logic (options are :or, :and, :nested; default is :and)
-Film.facet_results(:genre => ['tragedy', 'comedy'], :published => [2008, 11], 
-                   :logic => { :genre => :or, :published => :nested })
-
-
-===== Merb extensions =====
-
-in controller...
-
-def counts(facet, search, filter={})
-  provides :js
-  counts = Project.facet_count(facet, :refinements => filter, :conditions => ["_fulltext @@ to_tsquery(?)", search])
-  display counts
-end
-
-def results(search, filter={})
-  provides :html
-  results = Project.facet_result(:refinements => filter, :conditions => ["_fulltext @@ to_tsquery(?)", search])
-  display results
-end
-
-in routes...
-
-match('/:controller/counts/:facet').to(:action => 'counts')
-match('/:controller/results').to(:action => 'results')
-
-in view.... (index.html.erb):  (make sure to load rep.faceting.js in your header)
-
-<script language='javascript'>
-$().ready(function() { 
-   $('#plays').facet_context();
-   $('.facet').facet();
-   $('.nested_facet').nested_facet();
-   $('#results').results();
- });
-</script>
- ...
-<div id='plays'>
-    <div id='genre' class='facet'></div>
-    <div id='published' class='nested_facet'></div>
-    <div id='results' class='facet'></div>
-</div>
-
-The facet count data is served via JSON from the URL defined by the routes and method signatures above.  The webservice URL
-is derived from the element ids (e.g. '/plays/counts/genre' above), or set via the 'url' option.
-
-For a complete description of how to use the ajax widgets, their options, and how to write new widgets that extend the base
-functionality, see the in-line documentation in rep.faceting.js and its associated FAQ.
-
 
 ===== PostgreSQL extensions =====
 

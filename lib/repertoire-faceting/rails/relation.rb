@@ -1,5 +1,5 @@
 require 'active_support/core_ext'
-require 'active_record/relation'
+require 'active_record'
 
 module ActiveRecord #:nodoc: all
   class Relation

@@ -3,24 +3,19 @@ require "active_support/core_ext/exception"
 
 require "models/nobelist"
 
-class NestedFacetTest < MultiplePassTestCase
-  
-  include TuplesTestHelper
-  
-  def passes
-    [ :unindexed, :indexed ]
-  end
+class NestedFacetTest < FacetingTestCase
+
+  fixtures :nobelists, :affiliations
+  passes   :unindexed, :indexed
     
   def setup
     @nobelists    = Arel::Table.new('nobelists')
     @affiliations = Arel::Table.new('affiliations')
-    
-    case @pass
-    when :unindexed
-      Nobelist.update_indexed_facets([])
-    when :indexed
-      Nobelist.update_indexed_facets(Nobelist.facet_names)
+    names = case(@pass)
+    when :unindexed then []
+    when :indexed then   Nobelist.facet_names
     end
+    Nobelist.update_indexed_facets(names)
   end
     
   def test_drill

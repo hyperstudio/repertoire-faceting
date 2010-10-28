@@ -7,53 +7,55 @@
 
   { install native bitset extensions }
   $ bundle install
-  $ rake faceting:postgres:install   { & provide sudo your password }
-  $ createlang plpgsql <database> -U<username> 
-  $ psql -f $(pg_config --sharedir)/contrib/signature.sql -U<username> <database>
+  $ rake db:faceting:build                                   { provide sudo your password }
+  $ rake db:faceting:load
 
   { in ./app/models/some_model.rb }
   	class SomeModel
-	    include Repertoire::Faceting::Model                            // 2
-	    facet :some_column                                             // 3
+	    include Repertoire::Faceting::Model                          // 2
+	    facet :some_column                                           // 3
 	  end
 
   { in ./app/controllers/some_controller]
 		class SomeController
-		  include Repertoire::Faceting::Controller                       // 4
-		  def base; return SomeModel; end                                // 5
+		  include Repertoire::Faceting::Controller                   // 4
+		  def base; return SomeModel; end                            // 5
 		end
 		
   { in ./config/routes.rb }
     SomeApp::Application.routes.draw do
-	    faceting_for :some_model                                        // 6
+	    faceting_for :some_model                                     // 6
 	  end
 	
 	{ in ./public/javascripts/application.js }
-	  //= require <rep.faceting>                                        // 7
+	  //= require <rep.faceting>                                     // 7
 
   { in ./app/views/some_controller/index.html.erb }
     <script language="javascript">
       $().ready(function() {
-        $('#paintings').facet_context(function() { return { } });     // 8
-        $('.facet').facet();                                          // 9
-        $('#results').results();                                      // 10
+        $('#paintings').facet_context();                             // 8
+        $('.facet').facet();                                         // 9
+        $('#results').results();                                     // 10
       });
     </script>
-    <div id='paintings'>
-      <div id='genre' class='facet'></div>
-      <div id='results'></div> 
+    <div id='paintings'>                                             // 11
+      <div id='genre' class='facet'></div>                           // 12
+      <div id='results'></div>                                       // 13
     </div>
 
-	... that's a complete faceted browser in only 10 new lines of code in your app!
+	... that's a complete faceted browser in only 13 new lines of code in your app!
 
-  In production, you will want to start compressing the facet widgets:
+  In production, you will want to compress the javascript facet widgets:
 
   { in ./config/environments/production.rb }
     config.repertoire_assets.compress = true
 
-  And to add facet indexing (scalable to a million items out of the box):
+  Additionally, you may wish to index the facets.  At the console or in a migration:
 
-  $ rails generate migration add_facet_index
+  SomeModel.update_indexed_facets([:some_column])
+
+  The faceting subsystem automatically detects available facet indices and uses 
+  them when appropriate.
 
 
 == Detailed version.
@@ -64,7 +66,8 @@ Start with a working Rails 3 application with a PostgreSQL database.
 
   gem 'repertoire-faceting'
 
-* Make sure you use Rails version 3.0.2+, which adopted Arel 2.0.1.  If necessary you can pull rails, arel, and rack from git.
+* Make sure you use Rails version 3.0.2+, which adopted Arel 2.0.1.  If necessary
+  you can pull rails, arel, and rack from git.
 
   gem 'rails', :git => 'git://github.com/rails/rails.git'
   gem 'arel',  :git => 'git://github.com/rails/arel.git'
@@ -74,29 +77,31 @@ Start with a working Rails 3 application with a PostgreSQL database.
 
   $ bundle install
 
-* From your application root, build and install the repertoire-faceting native extensions to PostgreSQL.  These provide
-  a bitwise signature type used to index facets.
+* From your application root, build and install the repertoire-faceting native 
+  extensions to PostgreSQL.  These provide a bitwise signature type used to 
+  index and count facets.
 
-  $ rake faceting:postgres:install     { sudo will prompt you for your password }
+  $ rake db:faceting:build     { sudo will prompt you for your password }
 
-* Load the extension into application database.  Change depending on your postgres configuration:
+* Load the extension into your local application database.  This ensures the
+  plpgsql language is installed, and loads (or re-loads) the new bitset signature
+  type.
 
-  $ createlang plpgsql <database> -U<username> 
-  $ psql -f $(pg_config --sharedir)/contrib/signature.sql -U<username> <database>
+  $ rake db:faceting:load
 
-  You can confirm the module installed as follows.  The database server may need to be restarted first.
+  You can confirm the module is installed as follows.
 
   $ psql -c "SELECT count('101010101'::signature);" -U<username> <database>
- 
-  If the module installed correctly, psql will respond with "5".
 
-* Install the faceting mixin in your Rails model and declare a facet on an existing database column.  (See the README for complete
-  configuration options for facets.)  [ ./app/models/painting.rb ]
+* Install the faceting mixin in your Rails model and declare a facet on an 
+  existing database column.  (See the README for complete configuration options 
+  for facets.)  
 
-  class Painting
-    include Repertoire::Faceting::Model
-    facet :genre
-  end
+  { ./app/models/painting.rb }
+    class Painting
+      include Repertoire::Faceting::Model
+      facet :genre
+    end
 
 * Test doing facet count and result queries:
 
@@ -112,60 +117,71 @@ Start with a working Rails 3 application with a PostgreSQL database.
   > Painting.where(["title like ?", 'Moon%']).count(:genre)
   => {"Impressionist"=>1} 
 
-* Add faceting webservices to your controller and define base() to indicate which model to base queries on [ ./app/controllers/paintings_controller]
+* Add faceting webservices to your controller and define base() to indicate which model to base queries on 
 
-  class PaintingsController
-    include Repertoire::Faceting::Controller
+  { ./app/controllers/paintings_controller }
+    class PaintingsController
+      include Repertoire::Faceting::Controller
 
-    def base
-      search = "%#{params[:search]}%"
-      Painting.where(["title like ?", search])
+      def base
+        search = "%#{params[:search]}%"
+        Painting.where(["title like ?", search])
+      end
     end
-  end
 
-* Add faceting routes to your application.  [ ./config/routes.rb ]
+* Add faceting routes to your application.  
 
-  PaintingsApp::Application.routes.draw do
-    faceting_for :paintings         # NB must be BEFORE any resources!
-    ...
-  end
+  { ./config/routes.rb }
+
+    PaintingsApp::Application.routes.draw do
+      faceting_for :paintings         # NB must be BEFORE any resources!
+      ...
+    end
 
   Confirm they load:
 
   $ rake routes
-  ...
-                           /paintings/counts/:facet(.:format) {:controller=>"paintings", :action=>"counts"}
-  paintings_results        /paintings/results(.:format)       {:controller=>"paintings", :action=>"results"}
-  ...
+    ...
+                             /paintings/counts/:facet(.:format) {:controller=>"paintings", :action=>"counts"}
+    paintings_results        /paintings/results(.:format)       {:controller=>"paintings", :action=>"results"}
+    ...
 
-* Load the javascript facet widgets in your main javascript file. The repertoire-assets subsystem will locate the
-  widgets in the repertoire-faceting rubygem and load them as appropriate. 
+* Load the javascript facet widgets in your main javascript file. The 
+  repertoire-assets subsystem will locate the widgets in your application's
+  rubygems, and load them as appropriate.
 
-  [ ./public/javascripts/application.js ]
+  { ./public/javascripts/application.js }
     ...
     //= require <rep.faceting>
     ...
 
-* Add facet count and result widgets to your HTML page. The facet context div collects widgets that affect the same
-  query together. (For complete options, see the README ) 
+  N.B. Repertoire Faceting widgets are based on JQuery, which is incompatible 
+       with Prototype.  If you have not already done so, you should remove 
+       prototype.js and rails.js from the javascripts directory, and delete the 
+       "<%= javascript_include_tag :defaults %>" line from application.html.erb.
 
-  [ ./app/views/paintings/index.html.erb ]
+* Add facet count and result widgets to your HTML page. The facet context div 
+  collects widgets that affect the same query together. (For complete options, 
+  see the README ) 
 
-		<script language="javascript">
-		$().ready(function() {
-		  $('#paintings').facet_context(function() { return { } });
-		  $('.facet').facet();
-		  $('#results').results();
+  { ./app/views/paintings/index.html.erb }
+
+      <script language="javascript">
+        $().ready(function() {
+          $('#paintings').facet_context();
+          $('.facet').facet();
+          $('#results').results();
 		});
 		</script>
 	  <div id='paintings'>
-	    <div id='genre' class='facet'></div>
-	    <div id='results'></div> 
-	  </div>
+        <div id='genre' class='facet'></div>
+        <div id='results'></div> 
+      </div>
 	
-* If you don't already have one, create a partial for displaying your model in results lists.
+* If you don't already have one, create a partial for displaying your model in 
+  results lists.
 
-  [ ./app/views/paintings/_painting.html.erb ]
+  { ./app/views/paintings/_painting.html.erb }
 	
 	<div class='painting' style='width:235px; margin-bottom:5px; padding:2px; border:dotted 1px;'>
 	  <div>Title: <%= painting.title %></div>
@@ -173,29 +189,38 @@ Start with a working Rails 3 application with a PostgreSQL database.
 		<div>Genre: <%= painting.genre %></div>
 	</div>
 
-* Configure the repertoire-assets module that loads the javascript faceting widgets to compress in
-  production. [ ./config/environments/production.rb ]
+* [ Optional ] Configure the repertoire-assets module that loads the javascript 
+  faceting widgets to compress the widget code in production. 
 
-  PaintingsApp::Application.configure do
-    ...
-    config.repertoire_assets.compress = true
-    ...
-  end
+  { ./config/environments/production.rb }
 
-* [ Optional ] Add bitset indexes to some facets on your model.  The module will automatically
-  use facet indexes when they are available.
+    PaintingsApp::Application.configure do
+      ...
+      config.repertoire_assets.compress = true
+      ...
+    end
 
-	class AddFacetIndex < ActiveRecord::Migration
-	  def self.up
-	    Painting.update_indexed_facets([:genre])
-	  end
+* [ Optional ] Add bitset indexes to some facets on your model.  The module will 
+  automatically use facet indexes when they are available.  Facet indexes scale 
+  out of the box to over a million model items, and require no additional 
+  configuration.
 
-	  def self.down
-	    Painting.update_indexed_facets
-	  end
-	end
+  $ rails generate migration AddFacetIndex
+  
+  { ./db/migrate/<your date>add_facet_index.rb   }
+		class AddFacetIndex < ActiveRecord::Migration
+		  def self.up
+		    Painting.update_indexed_facets([:genre])
+		  end
 
-* [ Optional ] Periodically update indexes via a crontab task. [ ./lib/tasks/update_facets.rake ]
+		  def self.down
+		    Painting.update_indexed_facets
+		  end
+		end
+
+* [ Optional ] Periodically update indexes via a crontab task. 
+
+  { ./lib/tasks/update_facets.rake }
 
   task :reindex_facets => :environment do
 	  Painting.update_indexed_facets

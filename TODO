@@ -1,7 +1,17 @@
 TODO
 
+- make rake tasks smarter about detecting whether to run       NOT NECESSARY
+- make rake tasks automatically choose task dep on db type     NOT TO DO
+
+- make sure example app can be set up and deployed via rake    DONE
+- fulltext indexing for citizens in migration
+
+- facet index for citizens... migration or rake task?
+- gender not getting generated right
+
 - README
-  * recipe for running tests
+  * recipe for running tests                                    DONE
+  * deployment
   * recipe for adding facets to new app                         DONE
   * declaring facets                                            DONE
   * faceting db api                                             DONE
@@ -20,7 +30,6 @@ TODO
 
 - get rid of annoying load warnings on test       KNOWN ISSUE
 - cannot refine on null values in facets          KNOWN ISSUE
-
 
 - integration with postgresql crontab
 - push compiled gems to gemcutter                 DONE (EXCEPT FACETING)

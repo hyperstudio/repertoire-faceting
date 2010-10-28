@@ -9,7 +9,8 @@ module Repertoire
       
       rake_tasks do
         dir = Pathname(__FILE__).dirname.expand_path
-        load dir + "tasks.rake"
+        load dir + "tasks/all.rake"
+        load dir + "tasks/client.rake"
       end
       
     end

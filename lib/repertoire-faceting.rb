@@ -5,6 +5,8 @@ require 'repertoire-assets'
 module Repertoire
   module Faceting
     
+    MODULE_PATH = File.expand_path('../../', __FILE__)
+    
     module Relation
       autoload :SpawnMethods, 'repertoire-faceting/relation/spawn_methods'
       autoload :QueryMethods, 'repertoire-faceting/relation/query_methods'

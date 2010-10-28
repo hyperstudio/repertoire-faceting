@@ -3,13 +3,10 @@ require "active_support/core_ext/exception"
 
 require "models/nobelist"
 
-class BasicFacetTest < MultiplePassTestCase
- 
-  include TuplesTestHelper
- 
-  def passes
-    [:unindexed, :indexed]
-  end
+class BasicFacetTest < FacetingTestCase
+  
+  fixtures :nobelists, :affiliations
+  passes :unindexed, :indexed
     
   def setup
     @nobelists    = Arel::Table.new('nobelists')

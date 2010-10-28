@@ -32,8 +32,8 @@ Gem::Specification.new do |s|
   to build and install the native PostgreSQL extension:
 
     cd <my-rails-app>
-    rake faceting:postgres:install
-
+    rake db:faceting:build
+    
   See the repertoire-faceting README for details.
   #{'*'*80}
   POST_INSTALL_MESSAGE

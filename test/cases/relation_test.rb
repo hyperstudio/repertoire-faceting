@@ -3,7 +3,8 @@ require "active_support/core_ext/exception"
 
 require "models/nobelist"
 
-class RelationTest < ActiveSupport::TestCase
+class RelationTest < FacetingTestCase
+  fixtures :nobelists, :affiliations
   
   def test_inherit_facet_refinements
     query    = Nobelist.refine(:degree => 'Ph.D', :discipline => 'Medicine').refine(:discipline => 'Economics')
