@@ -1,18 +1,18 @@
 GIT
   remote: git://github.com/rack/rack.git
-  revision: dda892d60daff0fe7289008a4153fa628dcc8d11
+  revision: 3e4833b55d253b7877c078adf59f394e09ec6e99
   specs:
     rack (1.2.1)
 
 GIT
   remote: git://github.com/rails/arel.git
-  revision: f515283f5190096cd3b1cfe0312c723cdeb542c1
+  revision: 01e7ceef453e3dc976dc0d12002bb6d4a66f1252
   specs:
     arel (2.0.1.20101020171639)
 
 GIT
   remote: git://github.com/rails/rails.git
-  revision: 47ceb135c6b75988f2712bc44db397b992c1c731
+  revision: 3cf85fb4fcdae65a4d5a1a5c418492ea0cf9ad6d
   specs:
     actionmailer (3.1.0.beta)
       actionpack (= 3.1.0.beta)
@@ -58,7 +58,7 @@ GIT
 PATH
   remote: .
   specs:
-    repertoire-faceting (0.5.1)
+    repertoire-faceting (0.5.3.dev)
       pg (~> 0.9.0)
       rails (~> 3.1.0)
       rep.ajax.toolkit (~> 0.3.0)

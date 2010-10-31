@@ -21,13 +21,13 @@ module Repertoire
     module PostgreSQLAdapter #:nodoc:
       
       # Creates (or recreates) the packed id column on a given table
-      def renumber_table(table_name, faceting_id='_packed_id')
-        sql = "SELECT renumber_table('#{table_name}', '#{faceting_id}')"
+      def renumber_table(table_name, faceting_id, wastage)
+        sql = "SELECT renumber_table('#{table_name}', '#{faceting_id}', #{wastage})"
         execute(sql)
       end
 
       # Returns the scatter quotient of the given id column
-      def signature_wastage(table_name, faceting_id='_packed_id')
+      def signature_wastage(table_name, faceting_id)
         sql    = "SELECT signature_wastage('#{table_name}', '#{faceting_id}')"
         result = select_value(sql)
         Float(result)
@@ -86,15 +86,6 @@ module Repertoire
       def mask_members_sql(masks, table_name, faceting_id)
         exprs = masks.map { |mask| "(#{mask.to_sql})" }
         "INNER JOIN members(#{exprs.join(' & ')}) AS _refinements_id ON (#{table_name}.#{faceting_id} = _refinements_id)"
-      end
-      
-      private
-      
-      def ignoring_db_errors(&block)
-        begin
-          yield
-        rescue
-        end
       end
       
     end

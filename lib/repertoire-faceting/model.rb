@@ -3,6 +3,10 @@ module Repertoire
     module Model #:nodoc:
       extend ActiveSupport::Concern
       
+      SIGNATURE_WASTAGE_THRESHOLD = 0.15
+      DEFAULT_SIGNATURE_COLUMN    = 'id'
+      PACKED_SIGNATURE_COLUMN     = '_packed_id'
+      
       included do |base|
         base.singleton_class.delegate :refine, :minimum, :nils, :reorder, :to_sql, :to => :scoped
       end
@@ -137,26 +141,44 @@ module Repertoire
           facets.keys
         end
         
-        # Drops any unused facet indices, updates its packed ids, then recreates indices 
-        # for the facets with the provided names.  If no names are provided, then the existing 
-        # facet indices are refreshed.  For example:
+        # Drops any unused facet indices, updates its packed ids, then recreates 
+        # indices for the facets with the provided names.  If no names are provided, 
+        # then the existing facet indices are refreshed.
+        #
+        # If a signature id column name is provided, it will be used to build the 
+        # bitset indices. Otherwise the indexer will add or remove a new packed 
+        # id column as appropriate.
+        #
+        # Examples:
         #
         # === Refresh existing facet indices
         #
         #   Nobelist.update_indexed_facets
         #
-        # === Drop all facet indices
-        #
-        #   Nobelist.update_indexed_facets([])
-        #
         # === Adjust which facets are indexed
         #
         #   Nobelist.update_indexed_facets([:degree, :nobel_year])
         #
-        def update_indexed_facets(facet_names=nil)
+        # === Drop all facet indices, but add/remove packed id as necessary
+        #
+        #   Nobelist.update_indexed_facets([])
+        #
+        # === Drop absolutely everything, force manual faceting using 'id' 
+        #     column
+        #
+        #   Nobelist.udpate_indexed_facets([], 'id')
+        #
+        def update_indexed_facets(facet_names=nil, signature_column=nil)
           # default: update existing facets
           indexed_facets = connection.indexed_facets(table_name)
           facet_names ||= indexed_facets
+          
+          # determine best column for signature bitsets, unless set manually
+          signature_column ||= if signature_wastage('id') < SIGNATURE_WASTAGE_THRESHOLD
+            DEFAULT_SIGNATURE_COLUMN
+          else
+            PACKED_SIGNATURE_COLUMN
+          end
           
           connection.transaction do
             # drop old facet indices
@@ -165,18 +187,14 @@ module Repertoire
               connection.drop_table(table)
             end
             
-            # update or drop the model packed id column
-            if (facet_names.empty? && should_unpack?)
-              connection.remove_column(table_name, '_packed_id')
-            else 
-              connection.renumber_table(table_name, '_packed_id')
-            end
+            # create or remove packed signature column as necessary
+            ensure_numbering(signature_column)
 
             # re-create the facet indices
             facet_names.each do |name|
               name = name.to_sym
               raise "Unknown facet #{name}" unless facet?(name)
-              facets[name].create_index('_packed_id')
+              facets[name].create_index(signature_column)
             end
           end
           
@@ -186,7 +204,7 @@ module Repertoire
         # Returns the name of the id column to use for constructing bitset signatures
         # over this model.
         def faceting_id
-          ['_packed_id', 'id'].detect { |c| column_names.include?(c) }
+          [PACKED_SIGNATURE_COLUMN, DEFAULT_SIGNATURE_COLUMN].detect { |c| column_names.include?(c) }
         end
         
         def signature_wastage(col=nil)
@@ -194,9 +212,14 @@ module Repertoire
           connection.signature_wastage(table_name, col)
         end
         
-        def should_unpack?
-          (faceting_id == '_packed_id') && (signature_wastage('id') < 0.15)
+        def ensure_numbering(signature_column)
+          if signature_column == DEFAULT_SIGNATURE_COLUMN
+            connection.remove_column(table_name, PACKED_SIGNATURE_COLUMN) if column_names.include?(PACKED_SIGNATURE_COLUMN)
+          else
+            connection.renumber_table(table_name, PACKED_SIGNATURE_COLUMN, SIGNATURE_WASTAGE_THRESHOLD)
+          end
         end
+        
       end
     end
   end
