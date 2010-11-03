@@ -33,8 +33,8 @@ module Repertoire
       #
       #   facet :discipline, group(:discipline)
       #
-      # and the grouping on degree could be left out.  You can use this to construct a facet from differently-
-      # named columns:
+      # and the grouping on degree could be left out.  You can use this behavior to construct a facet 
+      # from differently-named columns:
       #
       #   facet :balloon_color, group(:color)
       #
@@ -46,13 +46,13 @@ module Repertoire
       #
       # == Nested facets
       #
-      # Facets can be constructed into a nested hierarchy of values by providing multiple group columns.  In this
+      # Facets can be built from a nested hierarchy of values by providing multiple group columns.  In this
       # case, value counts are aggregated at each level in turn.
       #
       #   facet :birth_place, group(:birth_country, :birth_state, :birth_city)
       #
-      # As for basic facets, nested facets can be constructed from SQL expressions.  This is particularly useful in
-      # faceting over data in more complex types such as dates or geographical regions.
+      # As for basic facets, nested facets may consist of SQL expressions.  This is particularly useful in
+      # faceting over data in more complex types such as dates or geographical regions:
       #
       #   facet :birth_date, group('EXTRACT(year FROM birthdate)', 'EXTRACT(month FROM birthdate)', 'EXTRACT(day FROM birthdate)')
       #

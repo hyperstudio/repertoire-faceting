@@ -1,13 +1,29 @@
+DESIRED FEATURES / IMPROVEMENTS.
+
+-- mysql support
+   [ design: mysql has a count function and bitwise operators for blobs.
+     Adding support is a matter of defining the adapter and moving signature()
+     calls into the postgresql adapter ]
+
+-- modify widgets to multiplex ajax calls to work around 2 call limit 
+   in many browsers
+   [ design: fetch() queues ajax calls; update() implementations request 
+     queue  and merge current webservice call with ones already in the queue.
+     on controller side, receive multiple facet names, iterate, and bundle.
+     fetch() then unbundles the results can dispatches them to appropriate
+     callbacks ]
+
+
 TODO
+
+- deploy to menzinga, document process
+- make sure works with postgresql-crontab
+- check formatting of all docs                                 DONE
 
 - make rake tasks smarter about detecting whether to run       NOT NECESSARY
 - make rake tasks automatically choose task dep on db type     NOT TO DO
 
 - make sure example app can be set up and deployed via rake    DONE
-- fulltext indexing for citizens in migration
-
-- facet index for citizens... migration or rake task?
-- gender not getting generated right
 
 - README
   * recipe for running tests                                    DONE
@@ -71,7 +87,7 @@ TODO
 - get core examples working                       DONE
 - 'training wheels' using plain-jane SQL          DONE
 - facets should inherit scope                     DONE
-- install procedure for new app
+- install procedure for new app                   DONE
   * arrange to load without a generator/config file         DONE
   * check rake tasks load when installed in an app          DONE
 - system for checking presence of indexes         DONE
@@ -87,30 +103,3 @@ TODO
 - new method: relation.facet[:name] ...  finds the facet relation, merges with current one, and returns result          DONE
 - sorting defaults                                          NOT TO DO
 - prettier output for raw facet relations in to_s           NOT TO DO [ db dependent ]
-
-
-Changes in this version
-
-- the 'type' parameter, which cast facet values to a given type, is gone
-- query execution is delayed until results are wanted
-- type specific formatters
-
-
-KNOWN PROBLEMS.
-
--- none at the moment
-
-
-DESIRED FEATURES / IMPROVEMENTS.
-
--- "training-wheels" mode using SQL group statements instead of bitsets
--- migrations using DM facet declarations
-
--- clean up sql generation in postgres adapter  DONE
--- determine exact memory requirements of postgres scalability example  DONE
--- optimise queries up to 1,000,000 scalability target DONE
-
--- modify widgets to multiplex ajax calls to work around 2 call limit in many browsers
-   [ design: fetch() queues ajax calls; update() implementations request queue and merge current webservice call with
-             ones already in the queue.  on controller side, receive multiple facet names, iterate, and bundle.  fetch()
-             then unbundles the results can dispatches them to appropriate callbacks ]

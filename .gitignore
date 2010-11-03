@@ -16,3 +16,4 @@ TAGS
 *.tmproj
 .#*
 .bundle
+doc/*

@@ -1,429 +1,217 @@
-== Deployment
+=== Repertoire Faceting README
 
-* repertoire-assets compression
+Repertoire Faceting is highly scalable and extensible module for creating database-driven faceted browsers in Rails 3. It consists of three components: (1) a native PostgreSQL data type for constructing fast bitset indices over controlled vocabularies; (2) Rails 3 model and controller mixins that add a faceting API to your existing application; and (3) a set of extensible javascript widgets for building user-interfaces. In only 10-15 lines of new code you can implement a fully-functional faceted browser for your existing Rails data models, with scalability out of the box to over 1,000,000 items.
 
-* deploying native extensions to server
+== Features
 
-* sub-uris
+Several features distinguish Repertoire Faceting from other faceting systems such as Simile Exhibit, Endeca, and Solr.
 
-* do NOT use schema.rb with repertoire-faceting
+Repertoire Faceting is an end-to-end solution that works with your existing database schema and Rails models. There's no need to munge your data into a proprietary format, run a separate facet index server, or construct your own user-interface widgets. (Conversely, however, your project needs to use Rails 3, PostgreSQL, and JQuery.)
+
+The module works equally well on small and large data sets, which means there's a low barrier to entry but existing projects can grow easily. In 'training wheels' mode, the module produces SQL queries for facet counts directly from declarations in your model so you can get a project up and running quickly. Then, after your dataset grows beyond a thousand items or so, just add indices as necessary. The module detects and uses these automatically, with no changes to your code or additional SQL necessary.
+
+Unlike some faceting systems, hierarchical vocabularies are supported out of the box. Using familiar SQL expressions you can decompose a date field into a drillable year / month / day facet. Or you can combine several columns into a single nested facet, for example from countries to states to cities.
+
+Both facet widgets and indexes are pluggable and extensible. You can subclass the javascript widgets to build drillable data visualizations, for example using bar graphs, donut and scatter charts or heat-maps to display the current search state and results.
+
+Similarly, you can write new facet implementations for novel data types, which automatically detect and index appropriate columns. For example, the module has been used to do facet value counts over GIS data points on a map, by drilling down through associated GIS layers using spatial logic relations.
+
+For an out-of-the box example using Repertoire Faceting, which demonstrates the module's visualization and scalability features, see the example application (http://github.com/yorkc/repertoire-faceting-example).
+
+
+== Installation
+
+See the INSTALL document for a description of how to install the module and build a basic faceted browser for your existing Rails app.
 
 
 == Running unit tests
 
-You can run the unit tests from the module's root directory.  You will need a
-local PostgreSQL superuser role with your unix username (use 'createuser -Upostgres').
+You can run the unit tests from the module's root directory. You will need a local PostgreSQL superuser role with your unix username (use 'createuser -Upostgres').
 
   $ bundle install
-  $ rake db:faceting:build				{ sudo will prompt for your password }
+  $ rake db:faceting:build    { sudo will prompt for your password }
   $ rake db:create
   $ rake test
+  
+
+== Generating documentation
+
+All API documentation, both ruby or javascript, is inline.  To generate:
+
+  $ rake doc
+
+For the javascript API documentation, please look in the source files.
+
+
+== Faceting declarations (Model API)
+
+See Repertoire::Faceting::Model::ClassMethods
+
+
+== Faceting webservices (Controller API)
+
+See Repertoire::Faceting::Controller
+
+
+== Facet widgets / HTML (User Interface API)
+
+See rep.faceting.js inline documentation in the source tree
+
+
+== Custom facet implementations
+
+See Repertoire::Faceting::Facets::AbstractFacet
+
+
+== Updating Facet Indices
+
+It is very useful to create a rake task to update your application's indices. In the project's rake task file:
+
+  task :reindex => :environment do
+    Painting.update_indexed_facets([:genre, :era])
+  end
+  
+Then run 'rake reindex' whenever you need to update indices manually.
+
+*static* If the facet data is unchanging, use a rake task like the one above to create indices manually while developing or deploying.
+
+*crontab* The easiest way to update indices periodically is to run a rake task like the one above via a UNIX tool such as launchd, periodic, or crontab. See the documentation for your tool of choice.
+
+
+== Deployment
+
+Because repertoire-faceting depends on a native shared library loaded by the PostgreSQL server, the first time you deploy you will need to build and install the extension.
+
+  <server>$ bundle install --deployment
+  <server>$ export RAILS_ENV=production
+  <server>$ rake db:faceting:build
+  <server>$ # ... from here, follow normal deployment procedure
+
+
+== How the module works
+
+It is helpful to think of faceted data as a set of model items categorised by one or more controlled vocabularies, as this eliminates confusion from the start. (A faceted classification is neither object-oriented nor relational, though it can be represented in either.) For example, one might categorise Shakespeare's plays by a controlled vocabulary of genres -- comedy, history, tragedy, or romance. Counting the total number of plays for each vocabulary item in this "genre" facet, we see 13 comedies, 10 histories, 10 tragedies, and 4 romances.
+
+There are three direct implementations for faceted classifications like this in an SQL database. The controlled vocabulary can be listed explicitly in a separate table, or implicit in the range of values in a column on the central table (for single-valued facets) or on a join table (for multi-valued facets). Repertoire Faceting supports all of these configurations.
+
+*1:* Explicit controlled vocabulary, multiple valued facet
+
+    genres            plays_genres            plays                      
+  ----+---------    ---------+----------    ----+------------------+---------
+   id | name         play_id | genre_id      id | title            | date ...
+  ----+---------    ---------+----------    ----+------------------|---------
+    1 | comedy             1 | 4              1 | The Tempest      |
+    2 | tragedy            2 | 3              2 | Henry 4, pt 1    |
+    3 | history            3 | 3              3 | Henry 4, pt 2    |
+    4 | romance            4 | 3              4 | Henry 5          |
+                           5 | 1              5 | As You Like It   |
+                           6 | 1              6 | Comedy of Errors |
+                           7 | 2              7 | Macbeth          |
+                           8 | 2              8 | Hamlet           |
+                               ...                ....
+
+*2:* Implicit vocabulary, multiple valued facet
+
+    plays_genres            plays                      
+  ---------+----------    ----+------------------+---------
+   play_id | genre_id      id | title            | date ...
+  ---------+----------    ----+------------------|---------
+         1 | romance        1 | The Tempest      |
+         2 | history        2 | Henry 4, pt 1    |
+         3 | history        3 | Henry 4, pt 2    |
+         4 | history        4 | Henry 5          |
+         5 | comedy         5 | As You Like It   |
+         6 | comedy         6 | Comedy of Errors |
+         7 | tragedy        7 | Macbeth          |
+         8 | tragedy        8 | Hamlet           |
+             ...                ....
+
+*3:* Implicit vocabulary, single valued facet
+  
+    plays                      
+  ----+-----------------+---------+---------
+   id | title           | genre   | date ...
+  ----+-----------------|---------+---------
+   1 | The Tempest      | romance |
+   2 | Henry 4, pt 1    | history |
+   3 | Henry 4, pt 2    | history |
+   4 | Henry 5          | history |
+   5 | As You Like It   | comedy  |
+   6 | Comedy of Errors | comedy  |
+   7 | Macbeth          | tragedy |
+   8 | Hamlet           | tragedy |
+       ...                ....                                                
+
+For all of these representations, Repertoire Faceting works by constructing an inverted bitset index from the controlled vocabulary to your central model. Each bit represents a distinct model row (plays.id in this example). 1 indicates the play is in the category, and 0 that it is not:
+
+    _plays_genre_facet
+  ---------+-----------
+    genre  | signature 
+  ---------+-----------
+   comedy  | 00001100
+   history | 01110000
+   romance | 10000000
+   tragedy | 00000011
+
+From these bitset "signatures", Repertoire Faceting can easily count the number of member plays for each category, even in combination with other facets and a base query. For example, the bitset signature for all plays whose title contains the search word "Henry" is 0110000. Masking this (via bitwise "and") with each signature in the genre index above, we see that there are 2 histories that match the base search - Henry 4 parts 1 & 2 - a none in the other categories:
+
+  ---------+------------------
+    genre  | signature & base 
+  ---------+------------------
+   comedy  | 00000000         
+   history | 01100000         
+   romance | 00000000
+   tragedy | 00000000
+
+Refinements on other facets are processed similarly, by looking up the relevant bitset signature for the refined value, and masking it against each potential value in the facet to be enumerated.
+
+As you may have noticed, this scheme depends on play ids being sequential. Otherwise many bits corresponding to no-existent ids are wasted in every signature. To address this issue, Repertoire Faceting examines the projected wastage in constructing bitset signatures from the primary key id of your model table. If more than a predefined amount (e.g. 15%) of the signature would be wasted, the module instead adds a new column of sequentially packed ids that are used only for faceted searches. When the model's facets are re-indexed, the ids are examined and repacked if too much space is wasted.
+
+References on faceted search:
+
+- http://flamenco.berkeley.edu/pubs.html
+- http://en.wikipedia.org/wiki/Controlled_vocabulary
 
 
 == Known issues
 
-- Running the unit tests issues warnings about a circular require.  These can be ignored.
+- Running the unit tests issues warnings about a circular require. These can be ignored.
 
 
-== Updating Indices
+== PostgreSQL C extensions
 
-Depending on how frequently you need to update facet indices, there are several options.
-
-(1) UNIX crontab, periodic, or launchd
-
-  Writing a rake task to update the facet indices for a given model is the simplest way to go.  In your application's
-  rake task file, use something like the following:
-
-    task :reindex => :environment do
-      Nobelist.update_indexed_facets([:degree, :discipline])
-    end
-  
-  Then configure your system-level crontab task to run 'rake reindex' at the required interval.
-  
-(2) Using Repertoire's postgresql-crontab functionality
-
-  If your project uses the Repertoire in-database crontab system, you can use migrations to insert SQL calls that
-  re-index your model.  However, since the database has no access to rails you will need to call the plpgsql
-  index maintenance functions directly.  In your application's indexing migration, use something like the following:
-  
-  class IndexFacets < ActiveRecord::Migration
-    def self.up
-      execute<<-SQL
-      SQL
-    end
-
-    def self.down
-      execute<<-SQL
-      SQL
-    end
-  end
-  
-(3) Using a one-time Rails migration
-
-  If your facets' contents will not change, then you can create a rake task as in step 1 and run it by hand.  Or
-  create a migration with the same calls as the rake task.  
-  
-  
-
-== Deployment
-
-Because repertoire-faceting depends on a native shared library loaded by the 
-PostgreSQL server, the first time you deploy you will need to build and install
-the extension.
-
-<server>$ bundle install --deployment
-<server>$ export RAILS_ENV=production
-<server>$ rake db:facetinginstall
-<server>$ rake db:facetingload 
-  
-  
-
-
-Rails3 documentation revisions
-
-- requires ruby 1.9.2 (ordered hashes)
-- include_root_in_json = false
-- rake db:facetingpostgres:install, :load
-
-To cover in the README:
-
-- special features
-  - scalability
-  - nested facets
-  - facet visualizations
-  - extensible facet widgets, pluggable implementations
-  - easy learning curve:
-    - 'training wheels' mode
-    - automatic index generation and detection
-      [ no SQL necessary ]
-  - persistent facet indices ( no separate server )
-  - cross-database
-  - packed ids
-
-- how facet indices work
-- why in-database
-
-- faceting: controlled vocabularies
-            relational representations
-
-- maintaining facet indices
-- via migration
-- via rake task
-
-- ordering goes by facet name (not original column)
-- default grouping: column with facet name on last join
-
-=====
-
-API for faceted browsing within PostgreSQL, with extensions for Merb and jquery ajax widgets
-
-===== Strategy =====
-
-- faceting only on individual tables (table is context)
-- packed id (0..n) kept for each model with facets
-- faceting tables kept in each project schema
-- each facet has own index table (named _{table}_{facet}_facet, of facet value -> signature)
-- nested facet values kept as arrays
-- update facet index (a) explicitly, (b) using Repertoire's crontab sweeper, or (c) both
-
-===== PostgreSQL extensions =====
-
-= The following code leads you through an example of the SQL calls to set up and execute
-= a faceted navigation.
-
-= You can either use this SQL interface directly, or the Datamapper model and migration extensions
-= above (which wrap the SQL interface).
-
-== Setup ==
-
-= creating facet indices =
-
-CREATE TABLE _project_status_facet AS SELECT status, signature(id) FROM project;
-
-[ This creates an inverted bitmap index of facet values and project ids. ]
-[ However, it wastes space since even unused id numbers occupy a bit in each entry.  Let's use packed ids beginning at 1 instead. ]
-
-SELECT renumber_table('project', '_packed_id');
-CREATE TABLE _project_status_facet AS SELECT status, signature(_packed_id) FROM project GROUP BY status;
-
-[ Now the inverted index contains packed bitmaps that refer to a new column on the base table ]
-[ But what if we're refreshing an existing facet index instead of creating one from scratch? ]
-
-SELECT renumber_table('project', '_packed_id');
-SELECT recreate_table('_project_status_facet', 'SELECT status, signature(_packed_id) FROM project GROUP BY status');
-
-[ Now we can run this pair of commands to regenerate the facet indices periodically (uses Repertoire's crontab): ]
-
-INSERT INTO crontab(notice, role, task, interval) 
-            VALUES ('Update Project facets', 'web', $$ 
-			    SELECT renumber_table('project', '_packed_id');
-			    SELECT recreate_table('_project_status_facet', 'SELECT status, signature(_packed_id) FROM project GROUP BY status');
-			  $$, '10 seconds');
-
-[ Simply declare any other facet indices in separate recreate_table statements and set the refresh cycle time ]
-[ But what if you have a complex data model whose facet values are defined by a join? This example indexes a multivalued many-to-many join ]
-
-... SELECT recreate_table('_project_feature_facet', 
-       'SELECT features.name AS feature, signature(project._packed_id) ' ||
-       'FROM project JOIN project_features ON (project_id = project.id) JOIN features ON (feature_id = features.id) ' ||
-       'GROUP BY features.name');
-
-[ Finally, to index nested facets collect the values into an array.  Then call expand_nesting to post-process the facet index.
-  (This adds entries for interior nodes in the nesting tree.) ]
-
-... SELECT recreate_table('_project_start_facet',
-       'SELECT ARRAY[ EXTRACT(year FROM date), EXTRACT(month FROM date), EXTRACT(day FROM date) ] AS start, signature(_packed_id) ' || 
-       'FROM project GROUP BY date');
-    SELECT expand_nesting('_project_start_facet', 'start');
-
-
-== Faceted Navigation ==
-
-= to get a context base signature (via fulltext search):
-
-SELECT signature(_packed_id) FROM project WHERE _fulltext @@ to_tsquery('Bush');
-
-= to get refinement filter signature (using indices declared above):
-
-SELECT filter(signature) FROM 
-  (SELECT signature FROM _project_feature_facet WHERE feature = 'visualize'
-   UNION 
-   SELECT signature FROM _project_status_facet WHERE status = 'in progress') AS filter
-  ...
-
-= assuming you have the base and refinement signatures already calculated, get facet value counts with
-
-SELECT feature, count FROM
-  (SELECT feature, count(<base> & <filter> & signature)
-   FROM _project_feature_facet) AS facet
-WHERE count > 0 ORDER BY count DESC, feature ASC;
-
-= or, to get facet results (e.g.):
-
-SELECT * FROM project WHERE contains(base & filter, _packed_id) ...;          -- option 1: contains(signature, int) -> boolean
-SELECT * FROM project, members(base & filter) WHERE _packed_id = members ...; -- option 2: members(signature) -> set of int
-
-[ of these, the second will generally be faster since it allows Postgres to do a merge join rather than a nested loop ]
-
-= a variation: to get counts for a facet with nested values, send in an array
-
-SELECT start_date, count FROM
-  (SELECT start_date, count(<base> & <filter> & signature)
-   FROM _project_start_date_facet
-   WHERE start_date[1:2] = ARRAY [ '1993', '12' ]) AS facet
-WHERE count > 0 ORDER BY count DESC, start_date ASC;
-       
-= putting it all together - if you're querying directly using SQL, you'll probably use sub-selects to compute the base and filter
-  signatures: 
-  { this is a count query on the facet 'region', base query 'Bush', filter feature=browse&pi=Fendt, ordered by count descending }
-
-SELECT facet.region, count(base.signature & filter.signature & facet.signature) FROM _projects_region_facet,
-  (SELECT signature(_packed_id) FROM project WHERE fulltext @@ to_tsquery('Bush')) AS base,
-  (SELECT filter(signature) AS signature FROM
-    (SELECT signature FROM _project_feature_facet WHERE feature = 'browse' 
-     UNION
-     SELECT signature FROM _project_pi_facet      WHERE pi = 'Fendt')) AS filter
-  WHERE count > 0 ORDER BY count DESC, facet.region ASC;
-
-= by using standard SQL WHERE and ORDER BY clauses, you can achieve most standard facet value configurations
-  [ order by count, order by facet value, include/exclude zero values, etc. ]
-  
-
-===== PostgreSQL C data types =====
+Repertoire Faceting adds a native data type supporting bitwise operations and population count to PostgreSQL. For API details, see ext/signature.sql.IN.
 
 Signature: an auto-sizing bitset with the following functions
 
-count(a)            => { count of 1s in a }
-contains(a, i)      => { true if the ith bit of a set }
+- count(a)            => { count of 1s in a }
+- contains(a, i)      => { true if the ith bit of a set }
+- members(a)          => { set of integers corresponding to set bits }
 
-sig_in, sig_out     => { mandatory I/O functions }
-sig_and(a, b)    	  => a & b
-sig_or(a, b)     	  => a | b
-sig_xor(a)       	  => ~a
-sig_length(a)	      => { number of bits in a }
-sig_min(a)       	  => { lowest 1 in a, a.length }
-sig_get(a, i)       => { ith bit of a, or 0 }
-sig_set(a, i, n)    => { sets ith bit of a to n }
-sig_resize(a, n)    => { resizes a to hold n bits }
+- sig_in, sig_out     => { mandatory I/O functions }
+- sig_and(a, b)    	=> a & b
+- sig_or(a, b)     	=> a | b
+- sig_xor(a)       	=> ~a
+- sig_length(a)	    => { number of bits in a }
+- sig_min(a)       	=> { lowest 1 in a, a.length }
+- sig_get(a, i)       => { ith bit of a, or 0 }
+- sig_set(a, i, n)    => { sets ith bit of a to n }
+- sig_resize(a, n)    => { resizes a to hold n bits }
 
 Bitwise signature operators:  &, |
 
 Bitwise aggregates:
 
-signature(int)      => assemble ints into a signature
-collect(signature)  => 'or' signature results together
-filter(signature)   => 'and' signature results together
+- signature(int)      => assemble ints into a signature
+- collect(signature)  => 'or' signature results together
+- filter(signature)   => 'and' signature results together
 
+Helper functions:
 
-===== Future extensions =====
+- renumber_table(table, column, threshold)
 
-= FUTURE: to declare a faceting index using a datamapper hook rather than a postgresql crontab,
-=    provide a block that returns a hash.  (This example is functionally equivalent to the above.)
+Check what percentage of signature bits constructed from the specified table and column would be wasted. If higher than the threshold, drop and re-add the column with a packed, contiguous integer id.
 
-is :faceted do |model|
-{ :genre     => model.genre,
-  :published => [ model.date.year, model.date.month, model.date.day ] }
-end
+- signature_wastage(table, column)
 
-
-===== Using facets with GIS =====
-
-The repertoire-faceting module provides optional support for faceting over
-data associated with GIS features or points. For example, rather than
-selecting the words 'USA', 'Massachusetts', and 'Boston' successively to
-refine on the nested values of a textual facet, the user could drill down by
-clicking on a map. From a GIS perspective, this involves selecting
-intersecting features from a series of GIS layers (in this case, 'countries',
-'states', and 'cities'). At each stage, the display colors features in the map
-according to a choropleth distribution of results given other selected values.
-
-From a conceptual standpoint a GIS facet behaves exactly the same way as a
-nested textual facet. However, standard GIS operations can be used to
-affiliate items in the result set with map features: for example, if faceting
-over a person's city of residence, only points in the final layer ('cities')
-need be directly connected to items in the result set. The remainder of the
-associations are computed using spatial logic operators in the database.
-
-Textual facets can either derive the range of facet values from data in your
-tables or can use a separate controlled vocabulary. Because when you view
-facet values in a map you generally want entire entire map to appear but with
-those features associated to items highlighted, GIS facets nearly always use a
-controlled vocabulary. (Otherwise the widget would only display a fragmented
-map of values associated with items in the current result set.) Hence, the
-process of preparing data for faceted GIS browsing generally involves two
-steps: (a) marshalling a complete set of GIS data for all layers into a single
-table and preparing it for display on the web; and (b) creating a faceted
-index over the association between your result items and the GIS features.
-
-N.B. - You must be familiar with GIS concepts, be proficient with the
-PostgreSQL GIS extension (PostGIS), and your GIS data needs to be in good form
-before considering faceted indexing or browsing. Repertoire-faceting builds
-faceted browsing on top of your existing GIS, rather than automating GIS
-upload and display. You should be conversant with GIS databases and your data
-needs to be in good form before even considering faceted indexing or browsing.
-Ensure that each GIS layer has the correct SRID for its existing projection
-and that you can transform the layers into a common SRID and render them
-successfully. Also consider whether you need to simplify or combine geometries
-using ST_Union(), ST_Simplify(), ST_Transform(), etc. in order to render the
-features on the web with appropriate detail for the altitude you anticipate
-viewing each layer. If your layers display together correctly using a standard
-WMS (GeoServer is suggested) and rendered in Google Earth or Open Layers, then
-you are probably ready to proceed. Be aware you must use the EPSG:4269 (NAD
-83) projection with Google Earth.
-
-- Preparing your system, a rough recipe:
-
-1. Install PostGIS into your database
-
-sudo port install postgis
-psql -Upostgres hyperstudio_development -f /opt/local/share/postgresql84/contrib/postgis.sql
-psql -Upostgres repertoire_testing -f /opt/local/share/postgresql84/contrib/spatial_ref_sys.sql
-
-2. Install Google Earth + Plugin
-
-3. Install GeoServer (suggested for testing, not deployment)
-
-4. load GIS data into PostgreSQL, using shp2pgsql, ogr2ogr, and other tools.
-(Make sure you know and set the SRID).
-
-5. ensure GIS layers display together using GeoServer + Google Earth
-
-- Preparing your project to use GIS faceting
-
-1. Register with Google for an Earth API key and add a script element to load
-it in your layout. (Since Google requires your API key, you must add this even
-though the remainder of the project may use repertoire-assets to load
-scripts.)
-
-<script src="http://www.google.com/jsapi?key=<your key code here>" type="text/javascript"></script>
-
-2. In your database, create a table to hold the controlled vocabulary of
-features from every layer you may facet over. 'layer' is an integer indicating
-the nesting order of GIS layers (e.g. countries to states to cities). 'label'
-identifies the feature, e.g. 'California'. (The label needn't be unique.)
-'full_geom' holds the complete geometry for that facet value, translated to a
-common projection (e.g. EPSG:4269). 'display_geom' holds the geometry that
-should actually be rendered when the feature is displayed in the facet (a
-simplified version of full_geom). For example:
-
-CREATE TABLE my_gis_vocab(id SERIAL, label TEXT, layer INTEGER);
-SELECT AddGeometryColumn('my_gis_vocab', 'display_geom', 4269, 'GEOMETRY', 2);
-SELECT AddGeometryColumn('my_gis_vocab', 'full_geom', 4269, 'GEOMETRY', 2);
-INSERT INTO my_gis_vocab(label, layer, display_geom, full_geom)
-  SELECT country_name, 1, ST_SimplifyPreserveTopology(ST_Transform(the_geom, 4269), 0.002), the_geom FROM countries;
-INSERT INTO my_gis_vocab(label, layer, display_geom, full_geom)
-  SELECT state_name, 2, ST_Transform(the_geom, 4269), the_geom FROM states;
-...
-
-(Note that it is not strictly necessary to create a separate table for the
-controlled vocabulary, as it is also possible to do similar GIS
-transformations when creating a GIS facet value index and then UNION the
-results together. However, the SQL is simpler and this route allows you to
-verify and tweak the controlled vocabulary table using GeoServer.)
-
-3. Generate the actual GIS facet index. Whereas normal facet indices have two
-columns, the value and the signature, GIS indices have five: an md5 checksum
-of the full geometry, and the fields in the controlled vocabulary (label,
-layer number, display geometry, and full geometry).
-
-Because the result item probably links to a GIS table rather than including
-the geometry as a column, we join these in a subselect (*a below). We then use
-the ST_Within spatial operator to find all of the features in the GIS
-controlled vocabulary that contain this feature (*b). Because there should be
-an index entry for every feature in the controlled vocabulary regardless of
-whether it is used by one of the items, we use a left outer join to combine
-the vocabulary with the signatures (*c) and coalesce to make sure the empty
-entries also have a signature (*d).
-
-SELECT recreate_table('_people_birthplace_facet', $$
-  SELECT md5(full_geom::bytea) AS birthplace, label, layer, 
-                                  --- (*d)
-         display_geom, full_geom, coalesce(signature, '0'::signature) AS signature
-  FROM my_gis_vocab
---- (*c)
-    LEFT OUTER JOIN
-    (SELECT my_gis_vocab.id AS vocab_id, signature(_packed_id)
---- (*a)
-     FROM my_gis_vocab,
-          nobelists JOIN nobelist_cities ON (birth_city_id = nobelist_cities.id)
---- (*b)
-     WHERE ST_Within(nobelist_cities.the_geom, my_gis_vocab.full_geom)
-     GROUP BY my_gis_vocab.id) AS signatures
-  ON (vocab_id = my_gis_vocab.id)
-$$);
-
-Finally, a PostGIS index esnures that facet nesting queries are efficient:
-
-CREATE INDEX _nobelists_birthplace_facet_ndx ON _nobelists_birthplace_facet USING gist(full_geom);
-
-4. In your model, declare that your facet uses 'geom' logic, e.g.:
-
-is :faceted, :birthplace => :geom
-
-5. Usage in your controller and models is identical to traditional facets.
-
-6. In your view, use the GIS widget, e.g.:
-
-$().ready(function() {
-  $('#people').facet_context();
-  $('#occupation').facet();
-  $("#birthplace").earth_facet( { 
-    title: 'Location',
-    camera: { lat: 37, long: -94, tilt: 4, altitude: 4000000, speed: 0.2 }
-  });
-});
-
-Available options are documented in the earth faceting widget. You can set the
-initial camera position, the number of categories and coloring for choropleth
-maps, and other visual characteristics.
-
-7. In the future, a helper that automatically assembles the controlled
-vocabulary and creates the facet index may be added. It would accept a select
-statement associating items ids and their geometries; and a series of layer
-definitions.  E.g.:
-
--- SELECT recreate_gis_facet('people', 'birthplace',
---	"SELECT _packed_id, the_geom FROM people JOIN cities ON (people.birth_city_id = cities.id)",
---	"SELECT city, the_geom, the_geom FROM nobelist_cities",
---	"SELECT country, the_geom, ST_SimplifyPreserveTopology(the_geom, 0.02) FROM nobelist_countries")
--- $$);
+Returns a real number representing the percentage of bits that would be wasted in signatures constructed from the specified column.

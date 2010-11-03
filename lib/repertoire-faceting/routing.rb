@@ -1,15 +1,18 @@
 module Repertoire
   module Faceting #:nodoc:
+    #
+    # Standard routing extensions for Repertoire Faceting webservices.
+    #
+    #   Example::Application.routes.draw do
+    #     faceting_for :paintings
+    #   end
+    #
+    # N.B. Include faceting routes before any resources!
+    #
     module Routing
       
       #
       # Add routes for the faceting webservices provided by the Controller mixin.
-      #
-      #   Example::Application.routes.draw do
-      #     faceting_for :nobelists
-      #   end
-      #
-      # N.B. Include faceting routes before any resources!
       #
       def faceting_for(*controllers)
         options = controllers.extract_options!
@@ -25,4 +28,3 @@ module Repertoire
     end
   end
 end
-    

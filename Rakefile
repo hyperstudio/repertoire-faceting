@@ -55,13 +55,16 @@ end
   end
 end
 
+
+# [TODO] Some way to generate documentation for js sources
+
 desc 'Generate documentation'
-Rake::RDocTask.new(:rdoc) do |rdoc|
-  rdoc.rdoc_dir = 'rdoc'
+Rake::RDocTask.new(:doc) do |rdoc|
+  rdoc.rdoc_dir = 'doc'
   rdoc.title    = 'Repertoire Faceting'
   rdoc.options << '--line-numbers' << '--inline-source'
-  rdoc.rdoc_files.include('README')
-  rdoc.rdoc_files.include('FAQ')
+  rdoc.main     = 'README'
+  rdoc.rdoc_files.include %w(FAQ INSTALL LICENSE README TODO)
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 

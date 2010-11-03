@@ -2,10 +2,43 @@ module Repertoire
   module Faceting #:nodoc:
     
     # Include this mixin in your controller to add faceting webservices for use with the javascript
-    # widgets.  In general you will only need to over-ride base() to specify the model over which your
-    # faceted browser searches.  
+    # widgets.  Implementors should over-ride base() to specify the model for the faceted browser.
     #
-    # However, for more complex behavior you can over-ride counts() and results() as well.
+    #   class PaintingsController
+    #     include Repertoire::Faceting::Controller
+    #     def base
+    #       Painting
+    #     end
+    #   end
+    #
+    # By default two web services are defined, one for the facet value count widgets and another for
+    # the result widget.  Each builds on the model returned by base():
+    #
+    #   counts  ==> base.refine(params[:filter]).count(params[:facet])
+    #   results ==> base.refine(params[:filter]).to_a
+    #
+    # If desired, you can use the Model API to specify a query that limits the faceting context to
+    # a subset of the available items from the start:
+    #
+    #     def base
+    #       q = "#{params[:search]}%"
+    #       Painting.where(["title like ?", q])
+    #     end
+    #
+    # Finally, you are free to over-ride the counts() and results() webservices.  Here we 
+    # reorder the facet value counts depending on another webservice param:
+    #
+    #     def counts
+    #       facet   = params[:facet]
+    #       filter  = params[:filter] || {}
+    #       sorting = case params[:order]
+    #                   when 'alphanumeric' then ["#{facet} ASC"]
+    #                   when 'count'        then ["count DESC", "#{facet} ASC"]
+    #                 end
+    #       @counts = base.refine(filter).order(sorting).count(facet)
+    #       render :json => @counts.to_a
+    #     end
+    #
     module Controller
       
       # Web-service to return value, count pairs for a given facet, given existing filter refinements
