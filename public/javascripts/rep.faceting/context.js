@@ -77,7 +77,7 @@ repertoire.facet_context = function(context_name, state_fn, options) {
   // Convenience function for constructing faceting urls
   //
   self.facet_url = function(action, facet, ext, params) {
-    var paths = [context_name, action]    
+    var paths = [context_name, action]
     if (facet)
       paths.push(facet)
     var url = self.default_url(paths, ext);
@@ -86,16 +86,32 @@ repertoire.facet_context = function(context_name, state_fn, options) {
     else
       return url;
   };
-    
+
   //
   // Return the state for the entire faceting context (group of widgets),
   // with any context-specific additions
   //
   self.params = function() {
-	var state = state_fn ? state_fn() : {};	
+    var state = state_fn ? state_fn() : {};
     return $.extend({}, { filter: self.refinements() }, state);
   };
-  
+
+
+  //
+  // Added to allow facet widgets to pass arguments to context.
+  //
+  // ( Have to revisit with Christopher, it seems like he had an
+  //   pre_update() function in mind for this kind of behavior,
+  //   But I'm not sure how he envisioned it functioning. )
+  //
+  self.update_state = function(new_state) {
+    var current_state = state_fn ? state_fn() : {};
+    state_fn = function () {
+      return $.extend({}, current_state, new_state);
+    }
+  };
+
+
   //
   // Return the identifying name for this context (usually the model class, pluralized)
   //
