@@ -30,7 +30,7 @@
 
 //= require <jquery>
 
-//= require <rep.widgets/widget>
+//= require <rep.widgets>
 
 //= require "context"
 

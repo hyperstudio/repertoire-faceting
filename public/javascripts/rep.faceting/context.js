@@ -23,7 +23,7 @@
 
 //= require <jquery>
 
-//= require <rep.widgets/model>
+//= require <rep.widgets>
 
 repertoire.facet_context = function(context_name, state_fn, options) {
   var self = repertoire.model(options);
