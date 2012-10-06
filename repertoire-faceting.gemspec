@@ -19,12 +19,12 @@ Gem::Specification.new do |s|
   s.files        = Dir.glob("{ext,lib,public}/**/*") + %w(FAQ INSTALL LICENSE README TODO)
   s.require_path = 'lib'
   
-  s.add_dependency('repertoire-assets', '~> 0.2.0')
+  s.add_dependency('repertoire-assets', '~> 0.2.2')
   s.add_dependency('rep.jquery', '~>1.4.3')
-  s.add_dependency('rep.ajax.toolkit', '~>0.3.0')
+  s.add_dependency('rep.ajax.toolkit', '~>0.3.3')
   
-  s.add_dependency('rails', '~>3.0.3')
-  s.add_dependency('pg', '~>0.9.0')
+  s.add_dependency('rails', '~>3.2.0')
+  s.add_dependency('pg', '~>0.14.1')
   
   s.post_install_message = <<-POST_INSTALL_MESSAGE
   #{'*'*80}
