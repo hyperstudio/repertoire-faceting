@@ -8,7 +8,10 @@ module Repertoire
       PACKED_SIGNATURE_COLUMN     = '_packed_id'
       
       included do |base|
-        base.singleton_class.delegate :refine, :minimum, :nils, :reorder, :to_sql, :to => :scoped
+        base.singleton_class.delegate :refine, :minimum, :nils, :reorder, :to_sql, :to => :scoped_all
+
+        base.class_attribute(:facets)
+        base.facets = {}
       end
       
       #
@@ -118,17 +121,12 @@ module Repertoire
           name = name.to_sym
 
           # default: group by column with facet name, order by count descending
-          rel ||= scoped
+          rel ||= scoped_all
           rel = rel.group(name)                           if rel.group_values.empty?
           rel = rel.order(["count DESC", "#{name} ASC"])  if rel.order_values.empty?
 
           # locate facet implementation that can handle relation
           facets[name] = Facets::AbstractFacet.mixin(name, rel)
-        end
-        
-        # Accessor for the facet definitions
-        def facets
-          read_inheritable_attribute(:facets) || write_inheritable_attribute(:facets, {})
         end
         
         # Is there a facet by this name?
@@ -220,6 +218,13 @@ module Repertoire
           end
         end
         
+        # Once clients have migrated to Rails 4, delete and replace with 'all' where this is called
+        #
+        # c.f. http://stackoverflow.com/questions/18198963/with-rails-4-model-scoped-is-deprecated-but-model-all-cant-replace-it
+        def scoped_all
+          where(nil)
+        end
+
       end
     end
   end

@@ -1,5 +1,5 @@
 require "cases/helper"
-require "active_support/core_ext/exception"
+# require "active_support/core_ext/exception"
 
 require "models/nobelist"
 
@@ -46,7 +46,7 @@ class CountTest < FacetingTestCase
     expected = {"Economics" => 5}
     counts = Nobelist.where("name like '%Robert%'").minimum(3).count(:discipline)
     assert_equal expected, counts
-  end    
+  end
   
   def test_count_refinements_1
     expected = {"Chemistry" => 1, "Economics" => 1, "Medicine/Physiology" => 1}

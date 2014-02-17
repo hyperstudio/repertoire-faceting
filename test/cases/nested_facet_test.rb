@@ -1,5 +1,5 @@
 require "cases/helper"
-require "active_support/core_ext/exception"
+# require "active_support/core_ext/exception"
 
 require "models/nobelist"
 

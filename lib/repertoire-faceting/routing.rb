@@ -20,8 +20,8 @@ module Repertoire
         controllers.map!(&:to_sym)
 
         controllers.each do |ctlr|
-            match "/#{ctlr}/counts/:facet", :controller => ctlr, :action => 'counts'
-            match "/#{ctlr}/results",       :controller => ctlr, :action => 'results'
+            get "/#{ctlr}/counts/:facet", :controller => ctlr, :action => 'counts'
+            get "/#{ctlr}/results",       :controller => ctlr, :action => 'results'
         end
       end
         

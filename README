@@ -1,12 +1,12 @@
 === Repertoire Faceting README
 
-Repertoire Faceting is highly scalable and extensible module for creating database-driven faceted browsers in Rails 3. It consists of three components: (1) a native PostgreSQL data type for constructing fast bitset indices over controlled vocabularies; (2) Rails 3 model and controller mixins that add a faceting API to your existing application; and (3) a set of extensible javascript widgets for building user-interfaces. In only 10-15 lines of new code you can implement a fully-functional faceted browser for your existing Rails data models, with scalability out of the box to over 1,000,000 items.
+Repertoire Faceting is highly scalable and extensible module for creating database-driven faceted browsers in Rails 3 & 4. It consists of three components: (1) a native PostgreSQL data type for constructing fast bitset indices over controlled vocabularies; (2) Rails model and controller mixins that add a faceting API to your existing application; and (3) a set of extensible javascript widgets for building user-interfaces. In only 10-15 lines of new code you can implement a fully-functional faceted browser for your existing Rails data models, with scalability out of the box to over 1,000,000 items.
 
 == Features
 
 Several features distinguish Repertoire Faceting from other faceting systems such as Simile Exhibit, Endeca, and Solr.
 
-Repertoire Faceting is an end-to-end solution that works with your existing database schema and Rails models. There's no need to munge your data into a proprietary format, run a separate facet index server, or construct your own user-interface widgets. (Conversely, however, your project needs to use Rails 3, PostgreSQL, and JQuery.)
+Repertoire Faceting is an end-to-end solution that works with your existing database schema and Rails models. There's no need to munge your data into a proprietary format, run a separate facet index server, or construct your own user-interface widgets. (Conversely, however, your project needs to use Rails, PostgreSQL, and JQuery.)
 
 The module works equally well on small and large data sets, which means there's a low barrier to entry but existing projects can grow easily. In 'training wheels' mode, the module produces SQL queries for facet counts directly from declarations in your model so you can get a project up and running quickly. Then, after your dataset grows beyond a thousand items or so, just add indices as necessary. The module detects and uses these automatically, with no changes to your code or additional SQL necessary.
 

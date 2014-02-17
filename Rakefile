@@ -1,7 +1,7 @@
 # encoding: UTF-8
 
 require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rdoc/task'
 require 'pathname'
 
 require 'bundler'

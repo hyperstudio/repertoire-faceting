@@ -9,9 +9,15 @@ module Repertoire
         def count(name = nil, options = {})
           if name.present? && @klass.facet?(name)
             name       = name.to_sym
-            facet      = @klass.facets[name].merge(self)
+            parent     = @klass.facets[name]
+            facet      = parent.merge(self)
             state      = refine_value[name] || []
             signatures = facet.drill(state)
+
+            # See ActiveRecord::Relation::HashMerger
+            facet.minimum_value = self.minimum_value || parent.minimum_value
+            facet.nils_value    = self.nils_value    || parent.nils_value
+
             connection.population(facet, masks, signatures)
           else
             super

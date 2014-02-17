@@ -2,6 +2,7 @@ module Repertoire
   module Faceting
     module Relation  # :nodoc: all
       module QueryMethods
+        extend ActiveSupport::Concern
 
         # N.B. These methods augment those defined in active_record/relation/query_methods
       
@@ -27,8 +28,8 @@ module Repertoire
           clone.tap { |f| f.minimum_value = count }
         end
 
-        def nils(value=true)
-          clone.tap { |f| f.nils_value = value }
+        def nils(include_nils=true)
+          clone.tap { |f| f.nils_value = (if include_nils then :include else :exclude end) }
         end
 
         def reorder(*args)

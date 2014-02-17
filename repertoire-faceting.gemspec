@@ -2,7 +2,7 @@ lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
 
 require 'repertoire-faceting/version'
- 
+
 Gem::Specification.new do |s|
   s.name        = "repertoire-faceting"
   s.version     = Repertoire::Faceting::VERSION.dup
@@ -11,7 +11,9 @@ Gem::Specification.new do |s|
   s.email       = ["yorkc@mit.edu"]
   s.homepage    = "http://github.com/repertoire/repertoire-faceting"
   s.summary     = "Rails/Postgresql plugin for faceted indexing and browsing"
-  s.description = "Repertoire-faceting adds scalable facet indexing, ajax facet widgets, and extras like GIS facets to Rails 3"
+  s.description = "Repertoire-faceting adds scalable facet indexing, ajax facet widgets, and extras like GIS facets to Rails 3 & 4"
+ 
+  s.required_ruby_version = ">= 2.0.0"
  
   s.required_rubygems_version = ">= 1.3.7"
   s.rubyforge_project         = "repertoire-faceting"
@@ -19,12 +21,12 @@ Gem::Specification.new do |s|
   s.files        = Dir.glob("{ext,lib,public}/**/*") + %w(FAQ INSTALL LICENSE README TODO)
   s.require_path = 'lib'
   
-  s.add_dependency('repertoire-assets', '~> 0.2.2')
-  s.add_dependency('rep.jquery', '~>1.4.3')
-  s.add_dependency('rep.ajax.toolkit', '~>0.3.3')
+  s.add_dependency('repertoire-assets', '~> 0.2', '>=0.2.2')
+  s.add_dependency('rep.jquery', '~>1.4', '>=1.4.3')
+  s.add_dependency('rep.ajax.toolkit', '~>0.3', '>=0.3.3')
   
-  s.add_dependency('rails', '~>3.2.0')
-  s.add_dependency('pg', '~>0.14.1')
+  s.add_dependency('rails', '>=3.2.11', '<4.1')
+  s.add_dependency('pg', '>=0.11', '<0.18')
   
   s.post_install_message = <<-POST_INSTALL_MESSAGE
   #{'*'*80}

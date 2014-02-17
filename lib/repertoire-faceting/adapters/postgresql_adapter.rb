@@ -75,10 +75,10 @@ module Repertoire
         results = query(sql)
         results = results.map { |key, count| [ key, count.to_i] }
         results = ActiveSupport::OrderedHash[results]
-        
+
         # minimums and nils
-        results = results.reject { |key, count| count < (facet.minimum_value || 1) }
-        results.delete(nil)                           if facet.nils_value == false
+        results.reject! { |key, count| count < (facet.minimum_value || 1) }
+        results.delete(nil)            if facet.nils_value == :exclude
         
         results
       end

@@ -2,7 +2,7 @@
 
 == General questions
 
-*Q* Can I use Rails 3 migrations with Repertoire Faceting?
+*Q* Can I use Rails migrations with Repertoire Faceting?
 
 *A* In general, yes. However, Rails' developers recommend you use the database's native dump format rather than schema.rb. Put the following line in environment.rb:
 
@@ -34,7 +34,7 @@
 == About the ajax faceting widgets
 
 
-*Q* Rails 3 is sending JSON data in a format that my javascript widgets don't understand.
+*Q* Rails is sending JSON data in a format that my javascript widgets don't understand.
 
 *A* Put the following line in config/application.rb:
 
