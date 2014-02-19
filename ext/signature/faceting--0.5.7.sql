@@ -1,15 +1,18 @@
-SET search_path TO 'public';
+-- complain if script is sourced in psql, rather than via CREATE EXTENSION
+\echo Use "CREATE EXTENSION faceting" to load this the native faceting API. Or, on shared hosts source bit.sql and utils.sql to load the basic API. \quit
+
+-- functions for bitmap indices using datatype written in C
 
 CREATE TYPE signature;
 
 -- basic i/o functions for signatures
 
-CREATE OR REPLACE FUNCTION sig_in(cstring)
+CREATE FUNCTION sig_in(cstring)
   RETURNS signature
   AS 'signature.so', 'sig_in'
   LANGUAGE C STRICT;
 
-CREATE OR REPLACE FUNCTION sig_out(signature)
+CREATE FUNCTION sig_out(signature)
   RETURNS cstring
   AS 'signature.so', 'sig_out'
   LANGUAGE C STRICT;
@@ -25,92 +28,92 @@ CREATE TYPE signature (
 
 -- functions for signatures
 
-CREATE OR REPLACE FUNCTION sig_resize( signature, INT )
+CREATE FUNCTION sig_resize( signature, INT )
   RETURNS signature
   AS 'signature.so', 'sig_resize'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION sig_set( signature, INT, INT )
+CREATE FUNCTION sig_set( signature, INT, INT )
   RETURNS signature
   AS 'signature.so', 'sig_set'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION sig_set( signature, INT )
+CREATE FUNCTION sig_set( signature, INT )
   RETURNS signature
   AS 'signature.so', 'sig_set'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION sig_get( signature, INT )
+CREATE FUNCTION sig_get( signature, INT )
   RETURNS INT
   AS 'signature.so', 'sig_get'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION sig_length( signature )
+CREATE FUNCTION sig_length( signature )
 	RETURNS INT
 	AS 'signature.so', 'sig_length'
 	LANGUAGE C STRICT IMMUTABLE;
 	
-CREATE OR REPLACE FUNCTION sig_min( signature )
+CREATE FUNCTION sig_min( signature )
 	RETURNS INT
 	AS 'signature.so', 'sig_min'
 	LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION sig_and( signature, signature )
+CREATE FUNCTION sig_and( signature, signature )
   RETURNS signature
   AS 'signature.so', 'sig_and'
   LANGUAGE C STRICT IMMUTABLE;	
 
-CREATE OR REPLACE FUNCTION sig_or( signature, signature )
+CREATE FUNCTION sig_or( signature, signature )
   RETURNS signature
   AS 'signature.so', 'sig_or'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION sig_xor( signature )
+CREATE FUNCTION sig_xor( signature )
   RETURNS signature
   AS 'signature.so', 'sig_xor'
   LANGUAGE C STRICT IMMUTABLE;
  
-CREATE OR REPLACE FUNCTION count( signature )
+CREATE FUNCTION count( signature )
 	RETURNS INT
 	AS 'signature.so', 'count'
 	LANGUAGE C STRICT IMMUTABLE;
 	
-CREATE OR REPLACE FUNCTION contains( signature, INT )
+CREATE FUNCTION contains( signature, INT )
   RETURNS BOOL
   AS 'signature.so', 'contains'
   LANGUAGE C STRICT IMMUTABLE;	
 	
-CREATE OR REPLACE FUNCTION members( signature )
+CREATE FUNCTION members( signature )
 RETURNS SETOF INT
 AS 'signature.so', 'members'
 LANGUAGE C STRICT IMMUTABLE;
   
-CREATE OR REPLACE FUNCTION sig_cmp( signature, signature )
+CREATE FUNCTION sig_cmp( signature, signature )
   RETURNS INT
   AS 'signature.so', 'sig_cmp'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION sig_lt( signature, signature )
+CREATE FUNCTION sig_lt( signature, signature )
   RETURNS BOOL
   AS 'signature.so', 'sig_lt'
   LANGUAGE C STRICT IMMUTABLE;
  
-CREATE OR REPLACE FUNCTION sig_lte( signature, signature )
+CREATE FUNCTION sig_lte( signature, signature )
   RETURNS BOOL
   AS 'signature.so', 'sig_lte'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION sig_eq( signature, signature )
+CREATE FUNCTION sig_eq( signature, signature )
   RETURNS BOOL
   AS 'signature.so', 'sig_eq'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION sig_gt( signature, signature )
+CREATE FUNCTION sig_gt( signature, signature )
   RETURNS BOOL
   AS 'signature.so', 'sig_gt'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION sig_gte( signature, signature )
+CREATE FUNCTION sig_gte( signature, signature )
   RETURNS BOOL
   AS 'signature.so', 'sig_gte'
   LANGUAGE C STRICT IMMUTABLE;
@@ -180,13 +183,6 @@ CREATE OPERATOR CLASS signature_ops
 
 -- aggregate functions for faceting
 
-CREATE AGGREGATE signature( INT )
-(
-	sfunc = sig_set,
-	stype = signature,
-  initcond = '0'
-);
-
 CREATE AGGREGATE collect( signature )
 (
 	sfunc = sig_or,
@@ -199,11 +195,23 @@ CREATE AGGREGATE filter( signature )
    stype = signature
 );
 
+CREATE AGGREGATE signature( INT )
+(
+	sfunc = sig_set,
+	stype = signature,
+  initcond = '0'
+);
+
+
+-- TODO. code is shared with bit.sql implementation. avoid reduplication while maintaining
+-- postgres extension compatibility.
+
+
 -- utility functions for maintaining facet indices
 
 -- Utility function to drop and recreate a table, given an sql select statement
 --
-CREATE OR REPLACE FUNCTION recreate_table(tbl TEXT, select_expr TEXT) RETURNS VOID AS $$
+CREATE FUNCTION recreate_table(tbl TEXT, select_expr TEXT) RETURNS VOID AS $$
 BEGIN
   SET client_min_messages = warning;
   EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(tbl);
@@ -211,7 +219,6 @@ BEGIN
   RESET client_min_messages;
 END;
 $$ LANGUAGE plpgsql;
-
 
 -- Utility function to add or update a packed id column on a table
 -- 
@@ -221,14 +228,14 @@ $$ LANGUAGE plpgsql;
 -- Because ids only become scattered when model rows are deleted, this means repacking
 -- will occur very infrequently.  The default threshold is 15%.
 --
-CREATE OR REPLACE FUNCTION renumber_table(tbl TEXT, col TEXT) RETURNS BOOLEAN AS $$
+CREATE FUNCTION renumber_table(tbl TEXT, col TEXT) RETURNS BOOLEAN AS $$
 BEGIN
   RETURN renumber_table(tbl, col, 0.15);
 END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION renumber_table(tbl TEXT, col TEXT, threshold REAL) RETURNS BOOLEAN AS $$
+CREATE FUNCTION renumber_table(tbl TEXT, col TEXT, threshold REAL) RETURNS BOOLEAN AS $$
 DECLARE
   seq TEXT;
   wastage REAL;
@@ -269,7 +276,7 @@ $$ LANGUAGE plpgsql;
 -- if they were all collected into a bitset signature. Returns a float between 0 (no waste) 
 -- and 1.0 (all waste).
 --
-CREATE OR REPLACE FUNCTION signature_wastage(tbl TEXT, col TEXT) RETURNS REAL AS $$
+CREATE FUNCTION signature_wastage(tbl TEXT, col TEXT) RETURNS REAL AS $$
 DECLARE
   max REAL;
   count REAL;
@@ -285,7 +292,7 @@ $$ LANGUAGE plpgsql;
 
 -- Utility function to identify columns for a nested facet index
 --
-CREATE OR REPLACE FUNCTION nest_levels(tbl TEXT) RETURNS SETOF TEXT AS $$
+CREATE FUNCTION nest_levels(tbl TEXT) RETURNS SETOF TEXT AS $$
   SELECT quote_ident(a.attname::TEXT)
     FROM pg_attribute a LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
     WHERE a.attrelid = $1::regclass
@@ -312,7 +319,7 @@ $$ LANGUAGE sql;
 -- N.B. expand_nesting may only be called once on a table
 --      it refuses to add internal node duplicates
 --
-CREATE OR REPLACE FUNCTION expand_nesting(tbl TEXT) RETURNS VOID AS $$
+CREATE FUNCTION expand_nesting(tbl TEXT) RETURNS VOID AS $$
 DECLARE
   cols  TEXT[];
   len   INT;

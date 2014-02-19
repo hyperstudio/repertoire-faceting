@@ -9,19 +9,12 @@
 #-------------------------------------------------------------------------
  
 MODULES = signature
-DATA_built = signature.sql uninstall_signature.sql
-# DOCS = README.signature                           # TODO. postgres 8.3 & 8.4 look for doc files in different places;
-                                                    #       temporarily commented out until we have migrated
+EXTENSION = faceting
+DATA = ./faceting--0.5.7.sql # TODO...  ../utils/utils.sql
+DOCS = README.faceting
 
 SHLIB_LINK = $(BE_DLLLIBS)
  
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
-
-#-- Repertoire specific targets
-signature.sql:
-	cp signature.sql.IN signature.sql
-
-uninstall_signature.sql:
-	cp uninstall_signature.sql.IN uninstall_signature.sql

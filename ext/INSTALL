@@ -1,0 +1,21 @@
+This directory contains two bindings for the PostgreSQL in-database faceting API:
+
+- 'signature', a C datatype extension to PostgreSQL. The standard API.
+
+  To load, either follow the directions in the gem-wide INSTALL (the recommended path)
+      or, to install by hand:
+    $   cd ext/signature
+    $   sudo make install
+    $   psql -Upostgres <your-database>
+    #=  CREATE EXTENSION faceting;
+
+- 'bit', based on Postgres BIT data type. The API for use on shared hosts.
+
+  To load, either follow the directions in the gem-wide INSTALL
+      or, to install by hand:
+
+    $   psql -Upostgres <your-database>
+    $   \i ext/bit/bit.sql
+    $   \i ext/utils.sql
+
+See the gem README for more information on using the API.
