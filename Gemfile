@@ -1,5 +1,6 @@
-source 'http://rubygems.org'
+source "https://rubygems.org"
 
-# Bundler definition for unit tests: delegate to the gemspec
+ruby "2.0.0"
 
-gem "repertoire-faceting", :path => File.expand_path("..", __FILE__)
+gemspec
+

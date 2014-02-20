@@ -2,5 +2,5 @@
 # Bundles up the signature C-level data type
  
 comment = 'A bitset index data type for faceted indexing and queries'
-default_version = '0.5.7'
+default_version = '0.6.0'
 relocatable = true

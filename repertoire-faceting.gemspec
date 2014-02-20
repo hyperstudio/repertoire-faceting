@@ -12,30 +12,30 @@ Gem::Specification.new do |s|
   s.homepage    = "http://github.com/repertoire/repertoire-faceting"
   s.summary     = "Rails/Postgresql plugin for faceted indexing and browsing"
   s.description = "Repertoire-faceting adds scalable facet indexing, ajax facet widgets, and extras like GIS facets to Rails 3 & 4"
- 
+
   s.required_ruby_version = ">= 2.0.0"
- 
+
   s.required_rubygems_version = ">= 1.3.7"
   s.rubyforge_project         = "repertoire-faceting"
- 
-  s.files        = Dir.glob("{ext,lib,public}/**/*") + %w(FAQ INSTALL LICENSE README TODO)
+
+  s.files        = Dir.glob("{ext,lib,vendor}/**/*") + %w(FAQ INSTALL LICENSE README TODO)
   s.require_path = 'lib'
-  
-  s.add_dependency('repertoire-assets', '~> 0.2', '>=0.2.2')
-  s.add_dependency('rep.jquery', '~>1.4', '>=1.4.3')
-  s.add_dependency('rep.ajax.toolkit', '~>0.3', '>=0.3.3')
-  
+
   s.add_dependency('rails', '>=3.2.11', '<4.1')
+  s.add_dependency('jquery-rails')
   s.add_dependency('pg', '>=0.11', '<0.18')
-  
+
   s.post_install_message = <<-POST_INSTALL_MESSAGE
   #{'*'*80}
   If this is the first time you have installed Repertoire faceting, you need
   to build and install the native PostgreSQL extension:
 
     cd <my-rails-app>
-    rake db:faceting:build
-    
+    rake db:faceting:signature:install
+
+    [ or, for Heroku deployment use ]
+    [ rake db:faceting:bit:install  ]
+
   See the repertoire-faceting README for details.
   #{'*'*80}
   POST_INSTALL_MESSAGE

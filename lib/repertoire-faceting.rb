@@ -1,7 +1,5 @@
 require 'active_support/dependencies'
 
-require 'repertoire-assets'
-
 module Repertoire
   module Faceting
     
@@ -31,6 +29,7 @@ end
 # rails hook-in code
 
 require 'repertoire-faceting/errors'
+require 'repertoire-faceting/rails/engine'
 require 'repertoire-faceting/rails/relation'
 require 'repertoire-faceting/rails/routes'
 require 'repertoire-faceting/rails/postgresql_adapter'

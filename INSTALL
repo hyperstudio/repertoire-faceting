@@ -32,7 +32,7 @@ N.B.  Repertoire Faceting requires Rails 3.2+, Ruby 2.0.0+, and JQuery 1.3.2+.
       end
     
     { in ./public/javascripts/application.js }
-      //= require <rep.faceting>                           // 7
+      //= require rep.faceting                             // 7
 
   { in ./app/views/some_controller/index.html.erb }
     <script language="javascript">
@@ -48,11 +48,6 @@ N.B.  Repertoire Faceting requires Rails 3.2+, Ruby 2.0.0+, and JQuery 1.3.2+.
     </div>
 
     ... that's a complete faceted browser in only 13 new lines of code in your app!
-
-  In production, you will want to compress the javascript facet widgets:
-
-  { in ./config/environments/production.rb }
-    config.repertoire_assets.compress = true
 
   Additionally, you may wish to index the facets.  At the console or in a migration:
 
@@ -158,20 +153,6 @@ Start with a working Rails application with a PostgreSQL database.
         paintings_results        /paintings/results(.:format)       {:controller=>"paintings", :action=>"results"}
         ...
 
-    * Load the javascript facet widgets in your main javascript file. The 
-      repertoire-assets subsystem will locate the widgets in your application's
-      rubygems, and load them as appropriate.
-
-      { ./public/javascripts/application.js }
-        ...
-        //= require <rep.faceting>
-        ...
-
-      N.B. Repertoire Faceting widgets are based on JQuery, which is incompatible 
-           with Prototype.  If you have not already done so, you should remove 
-           prototype.js and rails.js from the javascripts directory, and delete the 
-           "<%= javascript_include_tag :defaults %>" line from application.html.erb.
-
     * Add facet count and result widgets to your HTML page. The facet context div 
       collects widgets that affect the same query together. (For complete options, 
       see the README ) 
@@ -201,20 +182,9 @@ Start with a working Rails application with a PostgreSQL database.
             <div>Genre: <%= painting.genre %></div>
         </div>
 
-    * [ Optional ] Configure the repertoire-assets module that loads the javascript 
-      faceting widgets to compress the widget code in production. 
-
-      { ./config/environments/production.rb }
-
-        PaintingsApp::Application.configure do
-          ...
-          config.repertoire_assets.compress = true
-          ...
-        end
-
     * [ Optional ] Add bitset indexes to some facets on your model.  The module will 
       automatically use facet indexes when they are available.  Facet indexes scale 
-      out of the box to over a million model items, and require no additional 
+      out of the box to over a million model items, and requires no additional 
       configuration.
 
       $ rails generate migration AddFacetIndex
