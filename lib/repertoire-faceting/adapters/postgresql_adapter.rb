@@ -28,44 +28,50 @@ module Repertoire
       
       # Returns the currently active faceting API binding (only when installed as an extension)
       def current_api_binding
-        sql = "SELECT name FROM pg_extensions WHERE name LIKE 'faceting%';"
+        sql = "SELECT name FROM pg_extension WHERE name LIKE 'faceting%';"
         select_value(sql)
       end
     
       # Creates (or recreates) the packed id column on a given table
       def renumber_table(table_name, faceting_id, wastage)
-        sql = "SELECT renumber_table('#{table_name}', '#{faceting_id}', #{wastage})"
+        sql = "SELECT facet.renumber_table('#{table_name}', '#{faceting_id}', #{wastage})"
         execute(sql)
       end
 
       # Returns the scatter quotient of the given id column
       def signature_wastage(table_name, faceting_id)
-        sql    = "SELECT signature_wastage('#{table_name}', '#{faceting_id}')"
+        sql    = "SELECT facet.signature_wastage('#{table_name}', '#{faceting_id}')"
         result = select_value(sql)
         Float(result)
       end
 
       # Creates (recreates) a table with the specified select statement
       def recreate_table(table_name, sql)
-        sql = "SELECT recreate_table('#{table_name}', $$#{sql}$$)"
+        sql = "SELECT facet.recreate_table('#{table_name}', $$#{sql}$$)"
         execute(sql)
+        
+        puts "SQL : #{sql}"
+        puts "SHould be a new table: #{table_name}.  Trying..."
+        
+        indexed = ActiveRecord::Base.connection.select_value("SELECT count(*) FROM #{table_name}");
+        puts "INDExED #{indexed}"
       end
       
       # Returns path to the named PostgreSQL API binding file
-      def faceting_api_sql(api_name = :signature, schema = 'public')
+      def faceting_api_sql(api_name = :signature)
         api_name = api_name.to_sym
         raise "Use 'CREATE EXTENSION faceting' to load the default facet api" if api_name == :signature
         
         path = Repertoire::Faceting::MODULE_PATH
-        version = Repertoire::Faceting::VERSION        
-        sql = File.load("#{path}/ext/faceting_#{api_name}--#{version}.sql").replace('@extschema@', schema)
+        version = Repertoire::Faceting::VERSION
+        sql << File.load("#{path}/ext/faceting_#{api_name}--#{version}.sql").replace('@extschema@', 'facet')
         
         sql
       end
 
       # Expands nested faceting for the specified table (once)
       def expand_nesting(table_name)
-        sql = "SELECT expand_nesting('#{table_name}')"
+        sql = "SELECT facet.expand_nesting('#{table_name}')"
         execute(sql)
       end
 
@@ -97,7 +103,7 @@ module Repertoire
 
       def mask_members_sql(masks, table_name, faceting_id)
         exprs = masks.map { |mask| "(#{mask.to_sql})" }
-        "INNER JOIN members(#{exprs.join(' & ')}) AS _refinements_id ON (#{table_name}.#{faceting_id} = _refinements_id)"
+        "INNER JOIN facet.members(#{exprs.join(' & ')}) AS _refinements_id ON (#{table_name}.#{faceting_id} = _refinements_id)"
       end
       
     end

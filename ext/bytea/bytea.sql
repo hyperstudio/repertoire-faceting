@@ -39,7 +39,7 @@ END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
 
 CREATE FUNCTION @extschema@.sig_set( sig BYTEA, pos INT) RETURNS BYTEA AS $$
 BEGIN
-  RETURN sig_set(sig, pos, 1);
+  RETURN @extschema@.sig_set(sig, pos, 1);
 END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
 
 CREATE FUNCTION @extschema@.sig_get( sig BYTEA, pos INT ) RETURNS INT AS $$
@@ -122,21 +122,21 @@ $$ LANGUAGE plv8 STRICT IMMUTABLE;
 CREATE OPERATOR @extschema@.& (
     leftarg = BYTEA,
     rightarg = BYTEA,
-    procedure = sig_and,
+    procedure = @extschema@.sig_and,
     commutator = &
 );
 
 CREATE OPERATOR @extschema@.| (
     leftarg = BYTEA,
     rightarg = BYTEA,
-    procedure = sig_or,
+    procedure = @extschema@.sig_or,
     commutator = |
 );
 
 CREATE OPERATOR @extschema@.+ (
     leftarg = BYTEA,
     rightarg = int,
-    procedure = sig_set
+    procedure = @extschema@.sig_set
 );
 
 
@@ -144,19 +144,19 @@ CREATE OPERATOR @extschema@.+ (
 
 CREATE AGGREGATE @extschema@.collect( BYTEA )
 (
-	sfunc = sig_or,
+	sfunc = @extschema@.sig_or,
 	stype = BYTEA
 );
 
 CREATE AGGREGATE @extschema@.filter( BYTEA )
 (
-   sfunc = sig_and,
+   sfunc = @extschema@.sig_and,
    stype = BYTEA
 );
 
 CREATE AGGREGATE @extschema@.signature( INT )
 (
-	sfunc = sig_set,
+	sfunc = @extschema@.sig_set,
   stype = BYTEA,
   initcond = ''
 );

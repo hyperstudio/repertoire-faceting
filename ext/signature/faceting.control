@@ -2,4 +2,4 @@
  
 comment = 'API for faceted indexing and queries (based on custom C bitmap type)'
 default_version = '0.6.0'
-relocatable = false
+schema = 'facet'

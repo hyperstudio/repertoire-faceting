@@ -164,7 +164,7 @@ module Repertoire
         # === Drop absolutely everything, force manual faceting using 'id' 
         #     column
         #
-        #   Nobelist.udpate_indexed_facets([], 'id')
+        #   Nobelist.update_indexed_facets([], 'id')
         #
         def update_indexed_facets(facet_names=nil, signature_column=nil)
           # default: update existing facets
@@ -187,6 +187,10 @@ module Repertoire
             
             # create or remove packed signature column as necessary
             ensure_numbering(signature_column)
+            
+            puts "but first, the packed id (#{signature_column}). is it there?"
+            indexed = ActiveRecord::Base.connection.select_value("SELECT count(distinct #{signature_column}) FROM #{table_name}");
+            puts "YES! #{indexed}"
 
             # re-create the facet indices
             facet_names.each do |name|

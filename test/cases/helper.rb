@@ -16,49 +16,45 @@ class FacetingTestCase < ActiveSupport::TestCase
   self.fixture_path = FIXTURES_ROOT
   self.use_instantiated_fixtures  = false
   self.use_transactional_fixtures = true
-
-  def create_fixtures(*table_names, &block)
-    Fixtures.create_fixtures(FacetingTestCase.fixture_path, table_names, {}, &block)
-  end
   
   def self.passes(*names)
     @@passes = names.flatten
   end
-  
+
+  def self.apis(*names)
+    @@apis = names.flatten
+  end
+
   def run(*args)
-    conn   = ActiveRecord::Base.connection
-    apis   = conn.api_bindings
-    
-    conn.execute('CREATE SCHEMA IF NOT EXISTS "test_schema"')
-    done = apis.inject(true) do |result, api|
-      begin
-        conn.execute("CREATE EXTENSION IF NOT EXISTS #{api}")
-        puts "\nLoaded #{api}"
-        loaded = true
-      rescue 
-        puts "\nCould not load #{api}"
-        loaded = false
-      end  
-      if loaded
-        result &&= @@passes.inject(true) do |status, name| 
-          @pass = name
-          status && super
-        end
-      else
-        result = false
+    @@apis.inject(true) do |status1, api|
+      try_extension(api, status1) do
+        @api = api
+        @@passes.inject(status1) { |status2, name| @pass = name; status2 && super }
       end
-      conn.execute("DROP EXTENSION IF EXISTS #{api}")
-      
-      result
     end
-    conn.execute('DROP SCHEMA "test_schema" CASCADE')
-    
-    done
+  end
+  
+  def try_extension(api, status, &block)
+    conn   = ActiveRecord::Base.connection
+    begin
+      conn.execute("CREATE EXTENSION IF NOT EXISTS #{api}")
+    rescue
+      puts "\nSkipping API: #{api}"
+      return status
+    end
+    # in a separate rescue block, or errors are silently ignored
+    begin
+      puts "\nLoaded API (#{api}); continuing to test"
+      return yield
+    ensure
+      conn.execute("DROP EXTENSION IF EXISTS #{api} CASCADE")
+    end
   end
   
   def assert_tuples(x, y)
     conn   = ActiveRecord::Base.connection
     result = [x, y].map { |z| Set.new conn.select_rows(z.to_sql) }
+    refute_empty(result)
     assert_equal(*result)
   end
   

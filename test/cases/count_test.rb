@@ -6,6 +6,7 @@ class CountTest < FacetingTestCase
 
   fixtures :nobelists, :affiliations
   passes   :unindexed, :partial1, :partial2, :indexed
+  apis     ActiveRecord::Base.connection.api_bindings
   
   def setup
     names = case(@pass)

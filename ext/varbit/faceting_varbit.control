@@ -3,4 +3,4 @@
 comment = 'API for faceted indexing and queries (based on builtin VARBIT bit strings)'
 superuser = false
 default_version = '0.6.0'
-relocatable = false
+schema = 'facet'

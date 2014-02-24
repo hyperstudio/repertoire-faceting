@@ -21,7 +21,7 @@ $$ LANGUAGE plpgsql;
 --
 CREATE FUNCTION @extschema@.renumber_table(tbl TEXT, col TEXT) RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN renumber_table(tbl, col, 0.15);
+  RETURN @extschema@.renumber_table(tbl, col, 0.15);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -37,7 +37,7 @@ BEGIN
   -- Drop numbered column if it already exists
   SET client_min_messages = 'WARNING';
   BEGIN
-    IF signature_wastage(tbl, col) <= threshold THEN
+    IF @extschema@.signature_wastage(tbl, col) <= threshold THEN
       renumber := false;
     ELSE
       renumber := true;
@@ -117,7 +117,7 @@ DECLARE
   aggr  TEXT;
 BEGIN
   -- determine column names
-  SELECT array_agg(col) INTO cols FROM nest_levels(tbl) AS col;
+  SELECT array_agg(col) INTO cols FROM @extschema@.nest_levels(tbl) AS col;
   len := array_length(cols, 1);
   
   -- add unique index on facet value columns
@@ -128,13 +128,13 @@ BEGIN
   FOR i IN REVERSE (len-1)..1 LOOP
     aggr := array_to_string(cols[1:i], ', ');
     EXECUTE 'INSERT INTO ' || quote_ident(tbl) || '(' || aggr || ', level, signature)'
-         || ' SELECT ' || aggr || ', ' || i || ' AS level, collect(signature)'
+         || ' SELECT ' || aggr || ', ' || i || ' AS level, @extschema@.collect(signature)'
          || ' FROM ' || quote_ident(tbl)
          || ' GROUP BY ' || aggr;
   END LOOP;
   
   -- root node
   EXECUTE 'INSERT INTO ' || quote_ident(tbl) || '(level, signature)'
-       || ' SELECT 0 AS level, collect(signature) FROM ' || quote_ident(tbl);
+       || ' SELECT 0 AS level, @extschema@.collect(signature) FROM ' || quote_ident(tbl);
 END;
 $$ LANGUAGE plpgsql;

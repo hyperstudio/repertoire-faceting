@@ -21,7 +21,7 @@ module Repertoire
           bind_nest(group_values, state) do |expr, val|
             rel = rel.where("#{expr} = #{connection.quote(val)}")
           end
-          rel.select("signature(#{table_name}.#{faceting_id})").arel
+          rel.select("facet.signature(#{table_name}.#{faceting_id})").arel
         end
         
         def drill(state)
@@ -30,7 +30,7 @@ module Repertoire
           grp = bind_nest(group_values, state) do |expr, val|
             rel = rel.where("#{expr} = #{connection.quote(val)}")
           end
-          rel.group(grp).select(["#{grp.last} AS #{facet_name}", "signature(#{table_name}.#{faceting_id})"]).arel
+          rel.group(grp).select(["#{grp.last} AS #{facet_name}", "facet.signature(#{table_name}.#{faceting_id})"]).arel
         end
       
         def create_index(faceting_id)
@@ -38,7 +38,7 @@ module Repertoire
           group_values.zip(columns).each do |expr, col|
             rel = rel.select("#{expr} AS #{col}")
           end
-          sql = rel.select(["#{group_values.size} AS level", "signature(#{table_name}.#{faceting_id})"]).to_sql
+          sql = rel.select(["#{group_values.size} AS level", "facet.signature(#{table_name}.#{faceting_id})"]).to_sql
           
           connection.recreate_table(facet_index_table, sql)
           connection.expand_nesting(facet_index_table)

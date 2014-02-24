@@ -15,10 +15,7 @@ module Repertoire
       # Add routes for the faceting webservices provided by the Controller mixin.
       #
       def faceting_for(*controllers)
-        options = controllers.extract_options!
-
         controllers.map!(&:to_sym)
-
         controllers.each do |ctlr|
             get "/#{ctlr}/counts/:facet", :controller => ctlr, :action => 'counts'
             get "/#{ctlr}/results",       :controller => ctlr, :action => 'results'

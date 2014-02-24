@@ -123,21 +123,21 @@ CREATE FUNCTION @extschema@.sig_gte( signature, signature )
 CREATE OPERATOR @extschema@.& (
     leftarg = signature,
     rightarg = signature,
-    procedure = sig_and,
+    procedure = @extschema@.sig_and,
     commutator = &
 );
 
 CREATE OPERATOR @extschema@.| (
     leftarg = signature,
     rightarg = signature,
-    procedure = sig_or,
+    procedure = @extschema@.sig_or,
     commutator = |
 );
 
 CREATE OPERATOR @extschema@.+ (
     leftarg = signature,
     rightarg = int,
-    procedure = sig_set
+    procedure = @extschema@.sig_set
 );
  
 CREATE OPERATOR @extschema@.< (
@@ -185,19 +185,19 @@ CREATE OPERATOR CLASS @extschema@.signature_ops
 
 CREATE AGGREGATE @extschema@.collect( signature )
 (
-	sfunc = sig_or,
+	sfunc = @extschema@.sig_or,
 	stype = signature
 );
 
 CREATE AGGREGATE @extschema@.filter( signature )
 (
-   sfunc = sig_and,
+   sfunc = @extschema@.sig_and,
    stype = signature
 );
 
 CREATE AGGREGATE @extschema@.signature( INT )
 (
-	sfunc = sig_set,
+	sfunc = @extschema@.sig_set,
 	stype = signature,
   initcond = '0'
 );
