@@ -16,6 +16,21 @@ DESIRED FEATURES / IMPROVEMENTS.
 
 TODO
 
+-- separate git commits
+-- test harness
+   - test all extensions in order, skipping if cannot load
+-- simplify the in-database API
+   - use materialized views instead of dropping and adding tables
+   - move signature_wastage into an aggregate function
+   - remove the renumber function
+   - the only remaining function should be expand_nesting
+-- reference to the ActiveRecord API in the README
+-- revise the README to describe API layers & use
+-- 
+
+
+
+
 - deploy to menzinga, document process
 - make sure works with postgresql-crontab
 - check formatting of all docs                                 DONE

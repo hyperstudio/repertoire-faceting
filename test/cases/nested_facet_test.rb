@@ -4,7 +4,6 @@ require "models/nobelist"
 
 class NestedFacetTest < FacetingTestCase
 
-  fixtures :nobelists, :affiliations
   passes   :unindexed, :indexed
   apis     ActiveRecord::Base.connection.api_bindings
     

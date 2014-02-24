@@ -35,11 +35,10 @@ module Repertoire #:nodoc:
           col = group_values.first
           sql = only(:where, :joins, :group).select(["#{col} AS #{facet_name}", "facet.signature(#{table_name}.#{faceting_id})"]).to_sql
           
-          puts "Creating a new facet index for #{col}[#{faceting_id}]"
-          
           # TODO. change to use materialized views, use refresh instead of drop
-          # connection.execute("CREATE MATERIALIZED VIEW #{facet_index_table} AS #{sql}")         
-          connection.recreate_table(facet_index_table, sql)
+          # connection.execute("CREATE MATERIALIZED VIEW #{facet_index_table} AS #{sql}")
+          connection.create_materialized_view(facet_index_table, sql)
+#          connection.recreate_table(facet_index_table, sql)
         end
 
         private

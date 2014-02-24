@@ -19,19 +19,19 @@ module Repertoire
     end
 
     module PostgreSQLAdapter #:nodoc:
-    
+
       # Returns the available in-database faceting APIs (only when installed as an extension)
       def api_bindings
         sql = "SELECT name FROM pg_available_extensions WHERE name LIKE 'faceting%';"
         select_values(sql)
       end
-      
+
       # Returns the currently active faceting API binding (only when installed as an extension)
       def current_api_binding
         sql = "SELECT name FROM pg_extension WHERE name LIKE 'faceting%';"
         select_value(sql)
       end
-    
+
       # Creates (or recreates) the packed id column on a given table
       def renumber_table(table_name, faceting_id, wastage)
         sql = "SELECT facet.renumber_table('#{table_name}', '#{faceting_id}', #{wastage})"
@@ -49,24 +49,29 @@ module Repertoire
       def recreate_table(table_name, sql)
         sql = "SELECT facet.recreate_table('#{table_name}', $$#{sql}$$)"
         execute(sql)
-        
+
         puts "SQL : #{sql}"
         puts "SHould be a new table: #{table_name}.  Trying..."
-        
+
         indexed = ActiveRecord::Base.connection.select_value("SELECT count(*) FROM #{table_name}");
         puts "INDExED #{indexed}"
       end
-      
+
       # Returns path to the named PostgreSQL API binding file
       def faceting_api_sql(api_name = :signature)
         api_name = api_name.to_sym
         raise "Use 'CREATE EXTENSION faceting' to load the default facet api" if api_name == :signature
-        
+
         path = Repertoire::Faceting::MODULE_PATH
         version = Repertoire::Faceting::VERSION
         sql << File.load("#{path}/ext/faceting_#{api_name}--#{version}.sql").replace('@extschema@', 'facet')
-        
+
         sql
+      end
+
+      def create_materialized_view(view_name, sql)
+        sql = "CREATE MATERIALIZED VIEW #{view_name} AS #{sql}"
+        execute(sql)
       end
 
       # Expands nested faceting for the specified table (once)
@@ -105,7 +110,7 @@ module Repertoire
         exprs = masks.map { |mask| "(#{mask.to_sql})" }
         "INNER JOIN facet.members(#{exprs.join(' & ')}) AS _refinements_id ON (#{table_name}.#{faceting_id} = _refinements_id)"
       end
-      
+
     end
   end
 end

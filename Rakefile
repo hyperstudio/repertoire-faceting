@@ -1,32 +1,27 @@
 # encoding: UTF-8
 
-require 'rake/testtask'
+#
+# Rake testing tasks for Repertoire Faceting
+#
+# N.B. Tasks mirror those of a standard Rails 4 app.
+#
+
 require 'rdoc/task'
 require 'pathname'
 
 require 'bundler'
 Bundler.require(:default)
 
+# Setup
+
 dir = Pathname.new(__FILE__).dirname
 load dir + 'lib/repertoire-faceting/tasks/all.rake'
 
-$:.unshift File.expand_path(dir + 'test')
-
 gemspec = eval(File.read("repertoire-faceting.gemspec"))
 
-def run_without_aborting(*tasks)
-  errors = []
+$LOAD_PATH.unshift File.expand_path(dir + 'test')
 
-  tasks.each do |task|
-    begin
-      Rake::Task[task].invoke
-    rescue Exception
-      errors << task
-    end
-  end
-
-  abort "Errors running #{errors.join(', ')}" if errors.any?
-end
+# Tasks
 
 desc 'Build the gem'
 task :build => "#{gemspec.full_name}.gem"
@@ -37,26 +32,31 @@ file "#{gemspec.full_name}.gem" => gemspec.files + ["repertoire-faceting.gemspec
 end
 
 desc 'Default: run tests'
-task :default => :test
+task :default => "test:psql:signature"
 
-desc 'Run tests for supported databases (currently only Postgresql)'
-task :test do
-  tasks = %w(test_postgresql)
-  run_without_aborting(*tasks)
-end
+namespace 'test:psql' do
+  [:signature, :varbit, :bytea].each do |api|
 
-%w( postgresql ).each do |adapter|
-  Rake::TestTask.new("test_#{adapter}") do |t|
-    connection_path = "test/connections/#{adapter}"
-    t.libs << "test" << connection_path
-    t.test_files = Dir.glob( "test/cases/**/*_test.rb").sort
-    t.verbose = true
-    t.warning = true
+    desc "Run tests for PostgreSQL #{api} binding"
+    task api do
+      # find current PostgreSQL API binding name
+      current_api = %x( psql repertoire_testing -c'SELECT extname FROM pg_extension' ).split.grep( /(faceting\w*)/ )[0]
+
+      # determine the extension name
+      api = "faceting_#{api}".sub(/_signature/, '')
+
+      # switch into binding to test
+      %x( psql repertoire_testing -c'DROP EXTENSION #{current_api} CASCADE' ) if current_api
+      %x( psql repertoire_testing -c'CREATE EXTENSION #{api}' )
+
+      # run the tests
+      Dir.glob("test/cases/**/*_test.rb") do |file|
+        file.sub!(%r{test/}, '')
+        require file
+      end
+    end
   end
 end
-
-
-# [TODO] Some way to generate documentation for js sources
 
 desc 'Generate documentation'
 Rake::RDocTask.new(:doc) do |rdoc|
@@ -69,17 +69,36 @@ Rake::RDocTask.new(:doc) do |rdoc|
 end
 
 namespace :db do
-  
+
   desc 'Build the PostgreSQL test databases'
   task :create do
-    %x( createdb -E UTF8 repertoire_testing
-        cd ext; make; sudo make install
-     )
+    %x( createdb -E UTF8 repertoire_testing )
   end
 
   desc 'Drop the PostgreSQL test databases'
   task :drop do
     %x( dropdb repertoire_testing )
   end
-  
+
+  namespace :schema do
+    desc "Create the text database schema"
+    task :load do
+      ENV["RAILS_ENV"] = "test"
+      require 'config'
+      require 'connection'
+      load "schema/schema.rb"
+    end
+  end
+
+  namespace :fixtures do
+    desc "Load fixtures into the test database."
+    task :load do
+      require 'config'
+      %x( psql repertoire_testing -f #{FIXTURES_ROOT}/fixtures.sql )
+    end
+  end
+
+  desc "Create, load, and prepare database for test suite"
+  task :setup => [ 'db:create', 'db:schema:load', 'db:fixtures:load',
+                   'db:faceting:extensions:build', 'db:faceting:extensions:install' ]
 end

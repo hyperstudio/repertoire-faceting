@@ -2,18 +2,18 @@ module Repertoire
   module Faceting
     module Model #:nodoc:
       extend ActiveSupport::Concern
-      
+
       SIGNATURE_WASTAGE_THRESHOLD = 0.15
       DEFAULT_SIGNATURE_COLUMN    = 'id'
       PACKED_SIGNATURE_COLUMN     = '_packed_id'
-      
+
       included do |base|
         base.singleton_class.delegate :refine, :minimum, :nils, :reorder, :to_sql, :to => :scoped_all
 
         base.class_attribute(:facets)
         base.facets = {}
       end
-      
+
       #
       # == Facet declarations
       #
@@ -31,12 +31,12 @@ module Repertoire
       #   end
       #
       # Implicitly, any facet declaration is an SQL aggregate that divides the attribute values into discrete
-      # groups.  When no relation is provided, /model/.group(/facet name/) is assumed by default.  So the 
+      # groups.  When no relation is provided, /model/.group(/facet name/) is assumed by default.  So the
       # discipline facet declaration above is equivalent to
       #
       #   facet :discipline, group(:discipline)
       #
-      # and the grouping on degree could be left out.  You can use this behavior to construct a facet 
+      # and the grouping on degree could be left out.  You can use this behavior to construct a facet
       # from differently-named columns:
       #
       #   facet :balloon_color, group(:color)
@@ -83,13 +83,13 @@ module Repertoire
       # To incorporate refinements on other facets on this model, use refine:
       #
       #   Nobelist.refine(:nobel_year => 2001, :degree => 'Ph.D.').count(:discipline)
-      # 
+      #
       # If you provide multiple values for a simple facet refinement, they are interpreted as a logical "or":
       #
       #   Nobelist.refine(:nobel_year => [2000, 2001])     # => 'WHERE name IN (2000, 2001)'
       #
       # In the case of a nested facet, multiple values identify levels in the taxonomy:
-      # 
+      #
       #   Nobelist.refine(:birth_place => [ 'Ukraine', 'Kiev' ]).count(:nobel_year)
       #
       # Refinements are integrated into result queries automatically:
@@ -99,9 +99,9 @@ module Repertoire
       # == Index access
       #
       # As you will have noted already, facet counts and queries are quite similar to their ActiveRecord/SQL
-      # counterparts.  Behind the scenes, the Repertoire faceting code re-writes your query.  
+      # counterparts.  Behind the scenes, the Repertoire faceting code re-writes your query.
       #
-      # Facets defined on associations are joined and limited automatically, and facet indices in the database 
+      # Facets defined on associations are joined and limited automatically, and facet indices in the database
       # are used wherever possible rather than querying the model table.
       #
       # == Facet registration
@@ -115,7 +115,7 @@ module Repertoire
       # See AbstractFacet for more details.
       #
       module ClassMethods
-        
+
         # Declare a facet by name
         def facet(name, rel=nil)
           name = name.to_sym
@@ -128,23 +128,28 @@ module Repertoire
           # locate facet implementation that can handle relation
           facets[name] = Facets::AbstractFacet.mixin(name, rel)
         end
-        
+
         # Is there a facet by this name?
         def facet?(name)
           facets.key?(name.to_sym)
         end
-        
+
         # All defined facets by name
         def facet_names
           facets.keys
         end
-        
-        # Drops any unused facet indices, updates its packed ids, then recreates 
-        # indices for the facets with the provided names.  If no names are provided, 
+
+        # Returns a list of the facets with indices
+        def indexed_facets
+          connection.indexed_facets(table_name)
+        end
+
+        # Drops any unused facet indices, updates its packed ids, then recreates
+        # indices for the facets with the provided names.  If no names are provided,
         # then the existing facet indices are refreshed.
         #
-        # If a signature id column name is provided, it will be used to build the 
-        # bitset indices. Otherwise the indexer will add or remove a new packed 
+        # If a signature id column name is provided, it will be used to build the
+        # bitset indices. Otherwise the indexer will add or remove a new packed
         # id column as appropriate.
         #
         # Examples:
@@ -161,7 +166,7 @@ module Repertoire
         #
         #   Nobelist.update_indexed_facets([])
         #
-        # === Drop absolutely everything, force manual faceting using 'id' 
+        # === Drop absolutely everything, force manual faceting using 'id'
         #     column
         #
         #   Nobelist.update_indexed_facets([], 'id')
@@ -170,27 +175,25 @@ module Repertoire
           # default: update existing facets
           indexed_facets = connection.indexed_facets(table_name)
           facet_names ||= indexed_facets
-          
+
           # determine best column for signature bitsets, unless set manually
           signature_column ||= if signature_wastage('id') < SIGNATURE_WASTAGE_THRESHOLD
             DEFAULT_SIGNATURE_COLUMN
           else
             PACKED_SIGNATURE_COLUMN
           end
-          
+
+          # TODO. rewrite this into three categories: index views to add; index views to drop; index views to refresh
+
           connection.transaction do
             # drop old facet indices
             indexed_facets.each do |name|
               table = connection.facet_table_name(table_name, name)
               connection.drop_table(table)
             end
-            
+
             # create or remove packed signature column as necessary
             ensure_numbering(signature_column)
-            
-            puts "but first, the packed id (#{signature_column}). is it there?"
-            indexed = ActiveRecord::Base.connection.select_value("SELECT count(distinct #{signature_column}) FROM #{table_name}");
-            puts "YES! #{indexed}"
 
             # re-create the facet indices
             facet_names.each do |name|
@@ -199,21 +202,21 @@ module Repertoire
               facets[name].create_index(signature_column)
             end
           end
-          
+
           reset_column_information
         end
-        
+
         # Returns the name of the id column to use for constructing bitset signatures
         # over this model.
         def faceting_id
           [PACKED_SIGNATURE_COLUMN, DEFAULT_SIGNATURE_COLUMN].detect { |c| column_names.include?(c) }
         end
-        
+
         def signature_wastage(col=nil)
           col ||= faceting_id
           connection.signature_wastage(table_name, col)
         end
-        
+
         def ensure_numbering(signature_column)
           if signature_column == DEFAULT_SIGNATURE_COLUMN
             connection.remove_column(table_name, PACKED_SIGNATURE_COLUMN) if column_names.include?(PACKED_SIGNATURE_COLUMN)
@@ -221,7 +224,15 @@ module Repertoire
             connection.renumber_table(table_name, PACKED_SIGNATURE_COLUMN, SIGNATURE_WASTAGE_THRESHOLD)
           end
         end
-        
+
+        # TODO. This doesn't fit with the API so well
+        def renumber(signature_column)
+          connection.renumber_table(table_name, signature_column, 0.0)
+        end
+
+        def index_facets(facet_names=nil, signature_column=nil)
+        end
+
         # Once clients have migrated to Rails 4, delete and replace with 'all' where this is called
         #
         # c.f. http://stackoverflow.com/questions/18198963/with-rails-4-model-scoped-is-deprecated-but-model-all-cant-replace-it

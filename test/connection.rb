@@ -1,4 +1,3 @@
-print "Using PostgreSQL\n"
 require 'logger'
 
 ActiveRecord::Base.logger = Logger.new("debug.log")

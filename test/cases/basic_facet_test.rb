@@ -4,31 +4,17 @@ require "models/nobelist"
 
 class BasicFacetTest < FacetingTestCase
   
-  fixtures :nobelists, :affiliations
-  passes   :unindexed, :indexed
-  apis     ActiveRecord::Base.connection.api_bindings
-    
+  passes   :unindexed, :simple, :nested
+
   def setup
-    
-    puts ">>>> setup"
-    
     @nobelists    = Arel::Table.new('nobelists')
     @affiliations = Arel::Table.new('affiliations')
     names = case(@pass)
     when :unindexed then []
-    when :indexed   then [:discipline] # Nobelist.facet_names
+    when :simple    then [:discipline, :degree]
+    when :nested    then [:birth_place, :birthdate]
     end
-    
-    puts "hello"
-    
-    unless names.empty?
-      puts "renumbering"
-      Nobelist.ensure_numbering('_packed_id')
-      puts "reindexing"
-      names.each { |name| Nobelist.facets[name].create_index('_packed_id'); puts "index for #{name}" }
-    end
-    
-    # Nobelist.update_indexed_facets(names)
+    Nobelist.index_facets(names)
   end
   
   def test_drill
@@ -38,7 +24,6 @@ class BasicFacetTest < FacetingTestCase
     assert_tuples arel, sig
   end
   
-=begin
   def test_joined_drill
     sig  = Nobelist.facets[:degree].drill([])
     arel = @nobelists.join(@affiliations).on(@nobelists[:id].eq(@affiliations[:nobelist_id]))
@@ -63,7 +48,7 @@ class BasicFacetTest < FacetingTestCase
   end
   
   def test_indexing
-    Nobelist.update_indexed_facets([:discipline])
+    skip unless Nobelist.indexed_facets.include?(:discipline)
     
     arel1 = @nobelists.group('discipline').project('discipline', "facet.signature(nobelists.#{Nobelist.faceting_id})")
     arel2 = Arel::Table.new('facet._nobelists_discipline_facet').project('discipline', 'signature')
@@ -72,7 +57,7 @@ class BasicFacetTest < FacetingTestCase
   end
   
   def test_joined_indexing
-    Nobelist.update_indexed_facets([:degree])
+    skip unless Nobelist.indexed_facets.include?(:degree)
     
     arel1 = @nobelists.join(@affiliations).on(@nobelists[:id].eq(@affiliations[:nobelist_id]))
                       .group('degree').project('degree', "facet.signature(nobelists.#{Nobelist.faceting_id})")
@@ -80,6 +65,5 @@ class BasicFacetTest < FacetingTestCase
     
     assert_tuples arel1, arel2
   end
-=end
   
 end

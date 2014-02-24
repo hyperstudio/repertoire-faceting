@@ -4,7 +4,6 @@ require "models/nobelist"
 
 class RelationTest < FacetingTestCase
   
-  fixtures :nobelists, :affiliations
   passes   :unindexed
   apis     ActiveRecord::Base.connection.api_bindings
   
