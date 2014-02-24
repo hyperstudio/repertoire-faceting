@@ -26,7 +26,34 @@ class FacetingTestCase < ActiveSupport::TestCase
   end
   
   def run(*args)
-    @@passes.inject(true) { |status, name| @pass = name; status && super }
+    conn   = ActiveRecord::Base.connection
+    apis   = conn.api_bindings
+    
+    conn.execute('CREATE SCHEMA IF NOT EXISTS "test_schema"')
+    done = apis.inject(true) do |result, api|
+      begin
+        conn.execute("CREATE EXTENSION IF NOT EXISTS #{api}")
+        puts "\nLoaded #{api}"
+        loaded = true
+      rescue 
+        puts "\nCould not load #{api}"
+        loaded = false
+      end  
+      if loaded
+        result &&= @@passes.inject(true) do |status, name| 
+          @pass = name
+          status && super
+        end
+      else
+        result = false
+      end
+      conn.execute("DROP EXTENSION IF EXISTS #{api}")
+      
+      result
+    end
+    conn.execute('DROP SCHEMA "test_schema" CASCADE')
+    
+    done
   end
   
   def assert_tuples(x, y)
@@ -34,7 +61,7 @@ class FacetingTestCase < ActiveSupport::TestCase
     result = [x, y].map { |z| Set.new conn.select_rows(z.to_sql) }
     assert_equal(*result)
   end
-
+  
 end
 
 # silence verbose schema loading

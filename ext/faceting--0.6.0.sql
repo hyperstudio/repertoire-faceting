@@ -1,25 +1,25 @@
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
-\echo Use "CREATE EXTENSION faceting" to load this the native faceting API. Or, on shared hosts source bit.sql and utils.sql to load the basic API. \quit
+\echo Use "CREATE EXTENSION faceting" to load this the default faceting API.\quit
 
 -- functions for bitmap indices using datatype written in C
 
-CREATE TYPE signature;
+CREATE TYPE @extschema@.signature;
 
 -- basic i/o functions for signatures
 
-CREATE FUNCTION sig_in(cstring)
+CREATE FUNCTION @extschema@.sig_in(cstring)
   RETURNS signature
   AS 'signature.so', 'sig_in'
   LANGUAGE C STRICT;
 
-CREATE FUNCTION sig_out(signature)
+CREATE FUNCTION @extschema@.sig_out(signature)
   RETURNS cstring
   AS 'signature.so', 'sig_out'
   LANGUAGE C STRICT;
 
 -- signature postgresql type
 
-CREATE TYPE signature (
+CREATE TYPE @extschema@.signature (
 	INTERNALLENGTH = VARIABLE,
 	INPUT = sig_in,
 	OUTPUT = sig_out,
@@ -28,131 +28,131 @@ CREATE TYPE signature (
 
 -- functions for signatures
 
-CREATE FUNCTION sig_resize( signature, INT )
+CREATE FUNCTION @extschema@.sig_resize( signature, INT )
   RETURNS signature
   AS 'signature.so', 'sig_resize'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE FUNCTION sig_set( signature, INT, INT )
+CREATE FUNCTION @extschema@.sig_set( signature, INT, INT )
   RETURNS signature
   AS 'signature.so', 'sig_set'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE FUNCTION sig_set( signature, INT )
+CREATE FUNCTION @extschema@.sig_set( signature, INT )
   RETURNS signature
   AS 'signature.so', 'sig_set'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE FUNCTION sig_get( signature, INT )
+CREATE FUNCTION @extschema@.sig_get( signature, INT )
   RETURNS INT
   AS 'signature.so', 'sig_get'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE FUNCTION sig_length( signature )
+CREATE FUNCTION @extschema@.sig_length( signature )
 	RETURNS INT
 	AS 'signature.so', 'sig_length'
 	LANGUAGE C STRICT IMMUTABLE;
 	
-CREATE FUNCTION sig_min( signature )
+CREATE FUNCTION @extschema@.sig_min( signature )
 	RETURNS INT
 	AS 'signature.so', 'sig_min'
 	LANGUAGE C STRICT IMMUTABLE;
 
-CREATE FUNCTION sig_and( signature, signature )
+CREATE FUNCTION @extschema@.sig_and( signature, signature )
   RETURNS signature
   AS 'signature.so', 'sig_and'
   LANGUAGE C STRICT IMMUTABLE;	
 
-CREATE FUNCTION sig_or( signature, signature )
+CREATE FUNCTION @extschema@.sig_or( signature, signature )
   RETURNS signature
   AS 'signature.so', 'sig_or'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE FUNCTION sig_xor( signature )
+CREATE FUNCTION @extschema@.sig_xor( signature )
   RETURNS signature
   AS 'signature.so', 'sig_xor'
   LANGUAGE C STRICT IMMUTABLE;
  
-CREATE FUNCTION count( signature )
+CREATE FUNCTION @extschema@.count( signature )
 	RETURNS INT
 	AS 'signature.so', 'count'
 	LANGUAGE C STRICT IMMUTABLE;
 	
-CREATE FUNCTION contains( signature, INT )
+CREATE FUNCTION @extschema@.contains( signature, INT )
   RETURNS BOOL
   AS 'signature.so', 'contains'
   LANGUAGE C STRICT IMMUTABLE;	
 	
-CREATE FUNCTION members( signature )
+CREATE FUNCTION @extschema@.members( signature )
 RETURNS SETOF INT
 AS 'signature.so', 'members'
 LANGUAGE C STRICT IMMUTABLE;
   
-CREATE FUNCTION sig_cmp( signature, signature )
+CREATE FUNCTION @extschema@.sig_cmp( signature, signature )
   RETURNS INT
   AS 'signature.so', 'sig_cmp'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE FUNCTION sig_lt( signature, signature )
+CREATE FUNCTION @extschema@.sig_lt( signature, signature )
   RETURNS BOOL
   AS 'signature.so', 'sig_lt'
   LANGUAGE C STRICT IMMUTABLE;
  
-CREATE FUNCTION sig_lte( signature, signature )
+CREATE FUNCTION @extschema@.sig_lte( signature, signature )
   RETURNS BOOL
   AS 'signature.so', 'sig_lte'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE FUNCTION sig_eq( signature, signature )
+CREATE FUNCTION @extschema@.sig_eq( signature, signature )
   RETURNS BOOL
   AS 'signature.so', 'sig_eq'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE FUNCTION sig_gt( signature, signature )
+CREATE FUNCTION @extschema@.sig_gt( signature, signature )
   RETURNS BOOL
   AS 'signature.so', 'sig_gt'
   LANGUAGE C STRICT IMMUTABLE;
 
-CREATE FUNCTION sig_gte( signature, signature )
+CREATE FUNCTION @extschema@.sig_gte( signature, signature )
   RETURNS BOOL
   AS 'signature.so', 'sig_gte'
   LANGUAGE C STRICT IMMUTABLE;
 
 -- operators for signatures
 
-CREATE OPERATOR & (
+CREATE OPERATOR @extschema@.& (
     leftarg = signature,
     rightarg = signature,
     procedure = sig_and,
     commutator = &
 );
 
-CREATE OPERATOR | (
+CREATE OPERATOR @extschema@.| (
     leftarg = signature,
     rightarg = signature,
     procedure = sig_or,
     commutator = |
 );
 
-CREATE OPERATOR + (
+CREATE OPERATOR @extschema@.+ (
     leftarg = signature,
     rightarg = int,
     procedure = sig_set
 );
  
-CREATE OPERATOR < (
+CREATE OPERATOR @extschema@.< (
    leftarg = signature, rightarg = signature, procedure = sig_lt,
    commutator = > , negator = >= ,
    restrict = scalarltsel, join = scalarltjoinsel
 );
 
-CREATE OPERATOR <= (
+CREATE OPERATOR @extschema@.<= (
    leftarg = signature, rightarg = signature, procedure = sig_lte,
    commutator = >= , negator = > ,
    restrict = scalarltsel, join = scalarltjoinsel
 );
 
-CREATE OPERATOR = (
+CREATE OPERATOR @extschema@.= (
    leftarg = signature, rightarg = signature, procedure = sig_eq,
    commutator = = , negator = <> ,
    restrict = eqsel, join = eqjoinsel
@@ -164,7 +164,7 @@ CREATE OPERATOR >= (
    restrict = scalargtsel, join = scalargtjoinsel
 );
 
-CREATE OPERATOR > (
+CREATE OPERATOR @extschema@.> (
    leftarg = signature, rightarg = signature, procedure = sig_gt,
    commutator = < , negator = <= ,
    restrict = scalargtsel, join = scalargtjoinsel
@@ -172,7 +172,7 @@ CREATE OPERATOR > (
 
 -- index operator classes for signatures
 
-CREATE OPERATOR CLASS signature_ops
+CREATE OPERATOR CLASS @extschema@.signature_ops
     DEFAULT FOR TYPE signature USING btree AS
         OPERATOR        1       < ,
         OPERATOR        2       <= ,
@@ -183,35 +183,28 @@ CREATE OPERATOR CLASS signature_ops
 
 -- aggregate functions for faceting
 
-CREATE AGGREGATE collect( signature )
+CREATE AGGREGATE @extschema@.collect( signature )
 (
 	sfunc = sig_or,
 	stype = signature
 );
 
-CREATE AGGREGATE filter( signature )
+CREATE AGGREGATE @extschema@.filter( signature )
 (
    sfunc = sig_and,
    stype = signature
 );
 
-CREATE AGGREGATE signature( INT )
+CREATE AGGREGATE @extschema@.signature( INT )
 (
 	sfunc = sig_set,
 	stype = signature,
   initcond = '0'
-);
-
-
--- TODO. code is shared with bit.sql implementation. avoid reduplication while maintaining
--- postgres extension compatibility.
-
-
--- utility functions for maintaining facet indices
+);-- utility functions for maintaining facet indices
 
 -- Utility function to drop and recreate a table, given an sql select statement
 --
-CREATE FUNCTION recreate_table(tbl TEXT, select_expr TEXT) RETURNS VOID AS $$
+CREATE FUNCTION @extschema@.recreate_table(tbl TEXT, select_expr TEXT) RETURNS VOID AS $$
 BEGIN
   SET client_min_messages = warning;
   EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(tbl);
@@ -228,14 +221,14 @@ $$ LANGUAGE plpgsql;
 -- Because ids only become scattered when model rows are deleted, this means repacking
 -- will occur very infrequently.  The default threshold is 15%.
 --
-CREATE FUNCTION renumber_table(tbl TEXT, col TEXT) RETURNS BOOLEAN AS $$
+CREATE FUNCTION @extschema@.renumber_table(tbl TEXT, col TEXT) RETURNS BOOLEAN AS $$
 BEGIN
   RETURN renumber_table(tbl, col, 0.15);
 END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE FUNCTION renumber_table(tbl TEXT, col TEXT, threshold REAL) RETURNS BOOLEAN AS $$
+CREATE FUNCTION @extschema@.renumber_table(tbl TEXT, col TEXT, threshold REAL) RETURNS BOOLEAN AS $$
 DECLARE
   seq TEXT;
   wastage REAL;
@@ -276,7 +269,7 @@ $$ LANGUAGE plpgsql;
 -- if they were all collected into a bitset signature. Returns a float between 0 (no waste) 
 -- and 1.0 (all waste).
 --
-CREATE FUNCTION signature_wastage(tbl TEXT, col TEXT) RETURNS REAL AS $$
+CREATE FUNCTION @extschema@.signature_wastage(tbl TEXT, col TEXT) RETURNS REAL AS $$
 DECLARE
   max REAL;
   count REAL;
@@ -292,7 +285,7 @@ $$ LANGUAGE plpgsql;
 
 -- Utility function to identify columns for a nested facet index
 --
-CREATE FUNCTION nest_levels(tbl TEXT) RETURNS SETOF TEXT AS $$
+CREATE FUNCTION @extschema@.nest_levels(tbl TEXT) RETURNS SETOF TEXT AS $$
   SELECT quote_ident(a.attname::TEXT)
     FROM pg_attribute a LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
     WHERE a.attrelid = $1::regclass
@@ -319,7 +312,7 @@ $$ LANGUAGE sql;
 -- N.B. expand_nesting may only be called once on a table
 --      it refuses to add internal node duplicates
 --
-CREATE FUNCTION expand_nesting(tbl TEXT) RETURNS VOID AS $$
+CREATE FUNCTION @extschema@.expand_nesting(tbl TEXT) RETURNS VOID AS $$
 DECLARE
   cols  TEXT[];
   len   INT;

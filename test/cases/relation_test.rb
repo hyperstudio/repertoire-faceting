@@ -3,6 +3,7 @@ require "cases/helper"
 require "models/nobelist"
 
 class RelationTest < FacetingTestCase
+  
   fixtures :nobelists, :affiliations
   
   def test_inherit_facet_refinements

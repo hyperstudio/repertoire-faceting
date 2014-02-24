@@ -372,3 +372,43 @@ return self;
        finalfunc = sample_matrix,
        initcond = '({}, {}, 0.0, 0)'
    );
+
+CREATE EXTENSION faceting_bytea;
+
+CREATE OR REPLACE FUNCTION sample(size INT, max INT) RETURNS SETOF INT AS $$
+BEGIN
+  FOR i IN 1 .. size LOOP
+    RETURN NEXT floor(random() * max)::INT;
+  END LOOP;
+END $$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+CREATE TEMPORARY TABLE data_ints AS SELECT DISTINCT sample(5000, 100000) as id;
+
+CREATE TEMPORARY TABLE data_sig AS SELECT signature(id) FROM data_ints;
+
+-- test 1: count
+
+SELECT di.count - ds.count AS difference FROM
+  (SELECT COUNT(id)        FROM data_ints) AS di,
+  (SELECT COUNT(signature) FROM data_sig) AS ds;
+
+-- test 2: members
+
+SELECT di.count - combo.count AS difference FROM
+  (SELECT members(signature) AS id FROM data_sig
+   UNION 
+   SELECT id FROM data_ints) AS combo,
+  (SELECT id FROM data_ints) AS di;
+
+-- test 3: sig_and
+
+SELECT
+
+
+
+# Register known in-database API bindings      TODO - clean this up    
+API_BINDINGS = [:signature]
+Dir.glob("#{Repertoire::Faceting::MODULE_PATH}/ext/*.sql")
+.grep( %r{faceting_(?<name>.*)--#{Repertoire::Faceting::VERSION}\.sql} ) do
+API_BINDINGS << Regexp.last_match[:name].to_sym
+end

@@ -82,8 +82,8 @@ END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
 
 CREATE FUNCTION count( sig VARBIT ) RETURNS INT AS $$
 BEGIN
-  -- This is, by any measure, horrific. However, it's the only performant way to get PostgreSQL
-  -- to count the number of set bits in a bit string.
+  -- This is, by any measure, horrific. However, it appears to be the only 
+  -- way to use PostgreSQL built in functions to count bits in a bit string.
   RETURN length(replace(sig::TEXT, '0', ''));
 END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
 

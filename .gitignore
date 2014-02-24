@@ -17,6 +17,6 @@ TAGS
 .#*
 .bundle
 doc/*
-ext/native/*.o
-ext/native/*.so
-ext/native/*.sql
+ext/**/*.o
+ext/**/*.so
+ext/*.sql

@@ -2,7 +2,7 @@
 
 -- Utility function to drop and recreate a table, given an sql select statement
 --
-CREATE FUNCTION recreate_table(tbl TEXT, select_expr TEXT) RETURNS VOID AS $$
+CREATE FUNCTION @extschema@.recreate_table(tbl TEXT, select_expr TEXT) RETURNS VOID AS $$
 BEGIN
   SET client_min_messages = warning;
   EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(tbl);
@@ -19,14 +19,14 @@ $$ LANGUAGE plpgsql;
 -- Because ids only become scattered when model rows are deleted, this means repacking
 -- will occur very infrequently.  The default threshold is 15%.
 --
-CREATE FUNCTION renumber_table(tbl TEXT, col TEXT) RETURNS BOOLEAN AS $$
+CREATE FUNCTION @extschema@.renumber_table(tbl TEXT, col TEXT) RETURNS BOOLEAN AS $$
 BEGIN
   RETURN renumber_table(tbl, col, 0.15);
 END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE FUNCTION renumber_table(tbl TEXT, col TEXT, threshold REAL) RETURNS BOOLEAN AS $$
+CREATE FUNCTION @extschema@.renumber_table(tbl TEXT, col TEXT, threshold REAL) RETURNS BOOLEAN AS $$
 DECLARE
   seq TEXT;
   wastage REAL;
@@ -67,7 +67,7 @@ $$ LANGUAGE plpgsql;
 -- if they were all collected into a bitset signature. Returns a float between 0 (no waste) 
 -- and 1.0 (all waste).
 --
-CREATE FUNCTION signature_wastage(tbl TEXT, col TEXT) RETURNS REAL AS $$
+CREATE FUNCTION @extschema@.signature_wastage(tbl TEXT, col TEXT) RETURNS REAL AS $$
 DECLARE
   max REAL;
   count REAL;
@@ -83,7 +83,7 @@ $$ LANGUAGE plpgsql;
 
 -- Utility function to identify columns for a nested facet index
 --
-CREATE FUNCTION nest_levels(tbl TEXT) RETURNS SETOF TEXT AS $$
+CREATE FUNCTION @extschema@.nest_levels(tbl TEXT) RETURNS SETOF TEXT AS $$
   SELECT quote_ident(a.attname::TEXT)
     FROM pg_attribute a LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
     WHERE a.attrelid = $1::regclass
@@ -110,7 +110,7 @@ $$ LANGUAGE sql;
 -- N.B. expand_nesting may only be called once on a table
 --      it refuses to add internal node duplicates
 --
-CREATE FUNCTION expand_nesting(tbl TEXT) RETURNS VOID AS $$
+CREATE FUNCTION @extschema@.expand_nesting(tbl TEXT) RETURNS VOID AS $$
 DECLARE
   cols  TEXT[];
   len   INT;

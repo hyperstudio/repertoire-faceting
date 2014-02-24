@@ -41,7 +41,7 @@ task :default => :test
 
 desc 'Run tests for supported databases (currently only Postgresql)'
 task :test do
-  tasks = %w(test_postgresql )
+  tasks = %w(test_postgresql)
   run_without_aborting(*tasks)
 end
 
@@ -73,8 +73,7 @@ namespace :db do
   desc 'Build the PostgreSQL test databases'
   task :create do
     %x( createdb -E UTF8 repertoire_testing
-        createlang plpgsql repertoire_testing
-        psql repertoire_testing -f #{dir}/ext/signature.sql
+        cd ext; make; sudo make install
      )
   end
 

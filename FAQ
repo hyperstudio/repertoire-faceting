@@ -8,6 +8,35 @@
 
       config.active_record.schema_format = :sql
 
+    You can also use migrations to install the API in your database. A simple example:
+
+    def self.change
+      reversible do |dir
+        dir.up   { execute('CREATE EXTENSION faceting') }
+        dir.down { execute('DROP EXTENSION faceting CASCADE') }
+      end
+    end
+
+    For the non-default APIs (e.g. bytea or varbit), it is recommended to put the API in its own PostgreSQL schema. Then any
+    remaining facet indices will be dropped when you roll the migration back (this happens automatically for the default API):
+
+    def self.up
+      execute <<-SQL
+        CREATE SCHEMA facet
+        CREATE EXTENSION faceting_varbit WITH SCHEMA facet
+      SQL
+    end
+    def self.down
+      execute <<-SQL
+        DROP EXTENSION faceting_varbit CASCADE
+        DROP SCHEMA facet CASCADE
+      SQL
+    end
+	
+	In cases where you do not have superuser access to the deployment host (e.g. Heroku) and so cannot run 
+	"rake db:faceting:extensions:install", you can get use the connection's "faceting_api_sql" method to load the API
+	by hand. See the repertoire-faceting-example application's migrations for a concrete example of usage.
+	
 
 == About facet indexing and the signature SQL type
 

@@ -23,6 +23,7 @@ module Repertoire
     autoload :AbstractAdapter, 'repertoire-faceting/adapters/abstract_adapter'
     autoload :PostgreSQLColumn, 'repertoire-faceting/adapters/postgresql_adapter'
     autoload :PostgreSQLAdapter, 'repertoire-faceting/adapters/postgresql_adapter'
+    
   end
 end
 
