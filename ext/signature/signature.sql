@@ -1,3 +1,15 @@
+-- ============================================================================
+-- Faceting API implementing bitmap indices using a custom C datatype and
+-- associated functions.
+--
+-- This API is to be preferred in all situations where it is possible to
+-- build and install the datatype (this requires superuser access to PostgreSQL)
+--
+-- Christopher York
+-- MIT Hyperstudio
+-- February 2014
+-- ============================================================================
+
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
 \echo Use "CREATE EXTENSION faceting" to load this the default faceting API.\quit
 
@@ -84,9 +96,9 @@ CREATE FUNCTION @extschema@.contains( signature, INT )
   LANGUAGE C STRICT IMMUTABLE;	
 	
 CREATE FUNCTION @extschema@.members( signature )
-RETURNS SETOF INT
-AS 'signature.so', 'members'
-LANGUAGE C STRICT IMMUTABLE;
+  RETURNS SETOF INT
+  AS 'signature.so', 'members'
+  LANGUAGE C STRICT IMMUTABLE;
   
 CREATE FUNCTION @extschema@.sig_cmp( signature, signature )
   RETURNS INT
@@ -117,6 +129,7 @@ CREATE FUNCTION @extschema@.sig_gte( signature, signature )
   RETURNS BOOL
   AS 'signature.so', 'sig_gte'
   LANGUAGE C STRICT IMMUTABLE;
+
 
 -- operators for signatures
 
@@ -180,6 +193,7 @@ CREATE OPERATOR CLASS @extschema@.signature_ops
         OPERATOR        4       >= ,
         OPERATOR        5       > ,
         FUNCTION        1       sig_cmp(signature, signature);
+
 
 -- aggregate functions for faceting
 

@@ -9,14 +9,12 @@ class CountTest < FacetingTestCase
   def setup
     names = case(@pass)
     when :unindexed then []
-    when :partial1  then [:degree, :birth_place]
-    when :partial2  then [:nobel_year, :birth_decade]
+    when :partial1  then [:degree, :nobel_year]
+    when :partial2  then [:birth_place, :birth_decade]
     when :indexed   then Nobelist.facet_names
     end
-    Nobelist.update_indexed_facets(names)
+    Nobelist.index_facets(names)
   end
-
-  # N.B. the testing data file must be loaded before this test is run
 
   def test_count
     expected = {"Physics" => 27, "Economics" => 13, "Chemistry" => 12, "Medicine/Physiology" => 9, "Peace" => 2}

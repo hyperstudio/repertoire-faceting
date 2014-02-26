@@ -5,7 +5,6 @@ require "models/nobelist"
 class ResultTest < FacetingTestCase
 
   passes   :unindexed, :partial1, :partial2, :indexed
-  apis     ActiveRecord::Base.connection.api_bindings
 
   def setup
     names = case(@pass)
@@ -14,7 +13,7 @@ class ResultTest < FacetingTestCase
     when :partial2  then [:nobel_year, :birth_decade]
     when :indexed   then Nobelist.facet_names
     end
-    Nobelist.update_indexed_facets(names)
+    Nobelist.index_facets(names)
   end
 
   # N.B. the testing data file must be loaded before this test is run

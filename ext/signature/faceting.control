@@ -1,5 +1,6 @@
 # Faceting PostgreSQL extension module
  
 comment = 'API for faceted indexing and queries (based on custom C bitmap type)'
+requires = plpgsql
 default_version = '0.6.0'
 schema = 'facet'

@@ -5,7 +5,6 @@ require "models/nobelist"
 class NestedFacetTest < FacetingTestCase
 
   passes   :unindexed, :indexed
-  apis     ActiveRecord::Base.connection.api_bindings
     
   def setup
     @nobelists    = Arel::Table.new('nobelists')
@@ -14,7 +13,7 @@ class NestedFacetTest < FacetingTestCase
     when :unindexed then []
     when :indexed then   Nobelist.facet_names
     end
-    Nobelist.update_indexed_facets(names)
+    Nobelist.index_facets(names)
   end
     
   def test_drill

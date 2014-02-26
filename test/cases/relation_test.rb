@@ -5,7 +5,6 @@ require "models/nobelist"
 class RelationTest < FacetingTestCase
   
   passes   :unindexed
-  apis     ActiveRecord::Base.connection.api_bindings
   
   def test_inherit_facet_refinements
     query    = Nobelist.refine(:degree => 'Ph.D', :discipline => 'Medicine').refine(:discipline => 'Economics')

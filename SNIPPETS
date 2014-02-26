@@ -412,3 +412,14 @@ Dir.glob("#{Repertoire::Faceting::MODULE_PATH}/ext/*.sql")
 .grep( %r{faceting_(?<name>.*)--#{Repertoire::Faceting::VERSION}\.sql} ) do
 API_BINDINGS << Regexp.last_match[:name].to_sym
 end
+
+
+
+CREATE or replace FUNCTION sig_rpad1( sig BYTEA, bytes INT ) RETURNS BYTEA AS $PROC$
+  /* the spirit line: use sql to right pad a bytea in SQL, then send it back to js */
+  /*                  it seems there's no other way to call byteacat from plv8 */
+  var result = plv8.execute("SELECT byteacat($1, ($$\\x$$ || repeat($$00$$, $2))::BYTEA) AS val", [ sig, bytes ])[0].val;
+  return result;
+$PROC$ LANGUAGE plv8 STRICT IMMUTABLE;
+
+

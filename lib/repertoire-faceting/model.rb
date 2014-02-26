@@ -139,7 +139,7 @@ module Repertoire
           facets.keys
         end
 
-        # Returns a list of the facets with indices
+        # Returns a list of the facets that currently have indices declared
         def indexed_facets
           connection.indexed_facets(table_name)
         end
@@ -156,54 +156,79 @@ module Repertoire
         #
         # === Refresh existing facet indices
         #
-        #   Nobelist.update_indexed_facets
+        #   Nobelist.index_facets
         #
         # === Adjust which facets are indexed
         #
-        #   Nobelist.update_indexed_facets([:degree, :nobel_year])
+        #   Nobelist.index_facets([:degree, :nobel_year])
         #
         # === Drop all facet indices, but add/remove packed id as necessary
         #
-        #   Nobelist.update_indexed_facets([])
+        #   Nobelist.index_facets([])
         #
         # === Drop absolutely everything, force manual faceting using 'id'
         #     column
         #
-        #   Nobelist.update_indexed_facets([], 'id')
+        #   Nobelist.index_facets([], 'id')
         #
-        def update_indexed_facets(facet_names=nil, signature_column=nil)
+        def index_facets(next_indexes=nil, next_faceting_id=nil)
           # default: update existing facets
-          indexed_facets = connection.indexed_facets(table_name)
-          facet_names ||= indexed_facets
+          current_indexes = indexed_facets
+          next_indexes ||= current_indexes
+
+          # sanity checks
+          current_indexes = current_indexes.map { |name| name.to_sym }
+          next_indexes    = next_indexes.map    { |name| name.to_sym }
+          (current_indexes | next_indexes).each do
+            |name| raise "Unknown facet #{name}" unless facet?(name)
+          end
 
           # determine best column for signature bitsets, unless set manually
-          signature_column ||= if signature_wastage('id') < SIGNATURE_WASTAGE_THRESHOLD
+          next_faceting_id ||= if signature_wastage(DEFAULT_SIGNATURE_COLUMN) < SIGNATURE_WASTAGE_THRESHOLD
             DEFAULT_SIGNATURE_COLUMN
           else
             PACKED_SIGNATURE_COLUMN
           end
 
-          # TODO. rewrite this into three categories: index views to add; index views to drop; index views to refresh
+          # default behavior: no changes to packed id column
+          drop_packed_id = create_packed_id = false
 
-          connection.transaction do
-            # drop old facet indices
-            indexed_facets.each do |name|
-              table = connection.facet_table_name(table_name, name)
-              connection.drop_table(table)
-            end
+          # default behavior: adjust facet indexes
+          drop_list    = current_indexes - next_indexes
+          refresh_list = next_indexes & current_indexes
+          create_list  = next_indexes - current_indexes
 
-            # create or remove packed signature column as necessary
-            ensure_numbering(signature_column)
-
-            # re-create the facet indices
-            facet_names.each do |name|
-              name = name.to_sym
-              raise "Unknown facet #{name}" unless facet?(name)
-              facets[name].create_index(signature_column)
-            end
+          # adding or removing a packed id column
+          if next_faceting_id != faceting_id
+            drop_packed_id   = (next_faceting_id == DEFAULT_SIGNATURE_COLUMN)
+            create_packed_id = (next_faceting_id != DEFAULT_SIGNATURE_COLUMN)
           end
 
+          # special case: repacking an existing packed id column
+          if next_faceting_id == faceting_id && next_faceting_id != DEFAULT_SIGNATURE_COLUMN
+            drop_packed_id = create_packed_id = (signature_wastage > SIGNATURE_WASTAGE_THRESHOLD)
+          end
+
+          # changing item ids invalidates all existing facet indices
+          if drop_packed_id || create_packed_id
+            drop_list, refresh_list, create_list = [ current_indexes, [], next_indexes ]
+          end
+
+          connection.transaction do
+            # adjust faceting id column
+            connection.remove_column(table_name, PACKED_SIGNATURE_COLUMN)           if drop_packed_id
+            connection.add_column(table_name, PACKED_SIGNATURE_COLUMN, "SERIAL")    if create_packed_id
+
+            # adjust facet indices
+            drop_list.each    { |name| facets[name].drop_index }
+            refresh_list.each { |name| facets[name].refresh_index }
+            create_list.each  { |name| facets[name].create_index(next_faceting_id) }
+          end
+
+          # TODO. in a nested transaction, this would need to fire after the final commit...
+          #       How to signal this in Rails?
           reset_column_information
+
         end
 
         # Returns the name of the id column to use for constructing bitset signatures
@@ -212,25 +237,10 @@ module Repertoire
           [PACKED_SIGNATURE_COLUMN, DEFAULT_SIGNATURE_COLUMN].detect { |c| column_names.include?(c) }
         end
 
-        def signature_wastage(col=nil)
-          col ||= faceting_id
-          connection.signature_wastage(table_name, col)
-        end
-
-        def ensure_numbering(signature_column)
-          if signature_column == DEFAULT_SIGNATURE_COLUMN
-            connection.remove_column(table_name, PACKED_SIGNATURE_COLUMN) if column_names.include?(PACKED_SIGNATURE_COLUMN)
-          else
-            connection.renumber_table(table_name, PACKED_SIGNATURE_COLUMN, SIGNATURE_WASTAGE_THRESHOLD)
-          end
-        end
-
-        # TODO. This doesn't fit with the API so well
-        def renumber(signature_column)
-          connection.renumber_table(table_name, signature_column, 0.0)
-        end
-
-        def index_facets(facet_names=nil, signature_column=nil)
+        # Returns the proportion of wasted slots in 0..max(id)
+        def signature_wastage(signature_column = nil)
+          signature_column ||= faceting_id
+          connection.signature_wastage(table_name, signature_column)
         end
 
         # Once clients have migrated to Rails 4, delete and replace with 'all' where this is called

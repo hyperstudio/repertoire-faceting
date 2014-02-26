@@ -23,10 +23,10 @@ ActiveRecord::Schema.define do
   end
 
   create_table :affiliations do |t|
-    t.integer  :nobelist_id
-    t.text     :detail,       :null => false
-    t.text     :degree
-    t.integer  :year
+    t.references :nobelist
+    t.text       :detail,       :null => false
+    t.text       :degree
+    t.integer    :year
   end
   
 end

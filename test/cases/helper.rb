@@ -25,14 +25,30 @@ class FacetingTestCase < ActiveSupport::TestCase
   end
 
   def run(*args)
-    @@passes.inject(true) { |status, name| @pass = name; status && super }
+    @@passes.inject(true) do |status, name|
+      # instead of wrapping tests in transactions, we drop the facet schema at each test
+      # and manicure the original test data back into shape
+
+      conn = ActiveRecord::Base.connection
+      # sanity check -- if this goes bad, then Rails' schema caching is disrupting the
+      #                 testing process
+      conn.execute "ALTER TABLE nobelists DROP COLUMN IF EXISTS _packed_id CASCADE"
+      Nobelist.reset_column_information
+      raise "Inconsistent Model!" if Nobelist.columns.include?('_packed_id')
+
+      @pass = name; status && super
+    end
   end
-  
+
+  def logger
+    ActiveRecord::Base.logger
+  end
+
   def assert_tuples(x, y)
     conn   = ActiveRecord::Base.connection
     result = [x, y].map { |z| Set.new conn.select_rows(z.to_sql) }
     refute_empty(result)
     assert_equal(*result)
   end
-  
+
 end

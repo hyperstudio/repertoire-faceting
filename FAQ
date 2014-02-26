@@ -31,7 +31,7 @@
 
 *Q* My facets are empty.
 
-*A* Make sure the facet indices aren't empty.  Running '<model>.update_indexed_facets([])' from the console will drop them all.
+*A* Make sure the facet indices aren't empty.  Running '<model>.index_facets([])' from the console will drop them all.
 
 
 *Q* Can I facet over multiple models?
@@ -41,7 +41,8 @@
 
 *Q* Why a new native PostgreSQL type?
 
-*A* As of PostgreSQL 8.4, there is no support for population counts in either blobs or bitstrings. Neither of these built-in types provides both the bitset and I/O functions required for faceting.
+*A* As of PostgreSQL 9.3, there is a binding of the Repertoire in-database faceting functions based on VARBIT bit strings.
+However, it is many times slower than using the C-language signature type above.
 
 
 == About the ajax faceting widgets

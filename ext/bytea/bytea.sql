@@ -1,19 +1,26 @@
--- functions for bitmap indices using PostgreSQL's built-in BYTEA type,
--- processed via plv8 typed arrays
-
--- requires the plv8 in-database javascript language extension
+-- ============================================================================
+-- Faceting API implementing bitmap indices using PostgreSQL's built-in BYTEA
+-- type, processed using plv8 typed arrays.
+--
+-- This API is suitable for deployment on Heroku, where plv8 is installed by
+-- default. Performance is many times better than the VARBIT-based faceting
+-- API, primarily because of optimisations in memory handling in the count
+-- function.
+--
+-- See https://code.google.com/p/plv8js/wiki/PLV8
+--     https://postgres.heroku.com/blog/past/2013/6/5/javascript_in_your_postgres/
+--
+-- Christopher York
+-- MIT Hyperstudio
+-- February 2014
+-- ============================================================================
 
 CREATE EXTENSION IF NOT EXISTS plv8;
 
 SET bytea_output TO hex;
 
--- api functions in SQL
-
--- API functions in v8 javascript
-
--- these functions are in javascript, because (1) plpgsql is close
--- to the worst language in the world; (2) because plv8's typed
--- arrays make the count function much faster
+-- these functions are in pl/pgsql, because they involve appending bytea values,
+-- which is easier done with direct access to the || operator
 
 CREATE FUNCTION @extschema@.sig_resize( sig BYTEA, bits INT ) RETURNS BYTEA AS $$
 DECLARE
@@ -42,17 +49,21 @@ BEGIN
   RETURN @extschema@.sig_set(sig, pos, 1);
 END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
 
+-- these functions are in javascript, because (1) pl/pgsql is close
+-- to the worst language in the world; (2) plv8's typed arrays make 
+-- the count function much faster
+
 CREATE FUNCTION @extschema@.sig_get( sig BYTEA, pos INT ) RETURNS INT AS $$
   if (pos <= sig.length * 8) {
     return sig[ Math.floor(pos / 8) ] >> (pos % 8) & 1;
   } else {
     return 0;
   }
-END $$ LANGUAGE plv8 STRICT IMMUTABLE;
+$$ LANGUAGE plv8 STRICT IMMUTABLE;
 
 CREATE FUNCTION @extschema@.sig_length( sig BYTEA ) RETURNS INT AS $$
   return sig.length;
-END $$ LANGUAGE plv8 STRICT IMMUTABLE;
+$$ LANGUAGE plv8 STRICT IMMUTABLE;
 
 CREATE FUNCTION @extschema@.sig_and(sig1 BYTEA, sig2 BYTEA) RETURNS BYTEA AS $$
   if (sig2.length < sig1.length) {
@@ -64,7 +75,7 @@ CREATE FUNCTION @extschema@.sig_and(sig1 BYTEA, sig2 BYTEA) RETURNS BYTEA AS $$
     sig1[i] = sig1[i] & sig2[i];
   }
   return sig1;
-$$ LANGUAGE plv8 IMMUTABLE STRICT;
+$$ LANGUAGE plv8 STRICT IMMUTABLE;
 
 CREATE FUNCTION @extschema@.sig_or(sig1 BYTEA, sig2 BYTEA) RETURNS BYTEA AS $$
   if (sig2.length > sig1.length) {
@@ -76,7 +87,7 @@ CREATE FUNCTION @extschema@.sig_or(sig1 BYTEA, sig2 BYTEA) RETURNS BYTEA AS $$
     sig1[i] = sig1[i] | sig2[i];
   }
   return sig1;
-$$ LANGUAGE plv8 IMMUTABLE STRICT;
+$$ LANGUAGE plv8 STRICT IMMUTABLE;
 
 CREATE FUNCTION @extschema@.count(sig bytea) RETURNS int4 AS $$
   var count_table = [
@@ -100,7 +111,7 @@ CREATE FUNCTION @extschema@.count(sig bytea) RETURNS int4 AS $$
   var count = 0; 
   for (var i = 0; i < sig.length; i++) { count += count_table[ sig[i] ]; } 
   return count;
-$$ LANGUAGE plv8 IMMUTABLE STRICT;
+$$ LANGUAGE plv8 STRICT IMMUTABLE;
 
 CREATE FUNCTION @extschema@.contains( sig BYTEA, pos INT ) RETURNS BOOL AS $$
   return (pos <= sig.length * 8) && (sig[ Math.floor(pos / 8) ] >> (pos % 8) & 1);

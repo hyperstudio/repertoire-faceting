@@ -16,7 +16,8 @@ DESIRED FEATURES / IMPROVEMENTS.
 
 TODO
 
--- separate git commits
+-- clean up population in postgresql adapter?
+-- clean up throughout the facet definitions
 -- test harness
    - test all extensions in order, skipping if cannot load
 -- simplify the in-database API
@@ -26,7 +27,7 @@ TODO
    - the only remaining function should be expand_nesting
 -- reference to the ActiveRecord API in the README
 -- revise the README to describe API layers & use
--- 
+-- Makefile is verbose; use patterns
 
 
 

@@ -12,7 +12,6 @@ namespace :db do
       desc "Install PostgreSQL faceting extensions in the database"
       task :install => :build do
         system "cd #{Repertoire::Faceting::MODULE_PATH}/ext; sudo make install"
-        puts "Load extensions in a migration like so: CREATE EXTENSION faceting"
       end
     end
   end

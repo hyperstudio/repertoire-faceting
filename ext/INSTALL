@@ -1,6 +1,0 @@
-This directory contains three bindings for the PostgreSQL in-database faceting API.
-
-To build and install in your PostgreSQL server:
-
-  $ cd repertoire-faceting/ext
-  $ make; sudo make install

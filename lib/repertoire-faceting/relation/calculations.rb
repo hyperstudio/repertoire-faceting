@@ -45,7 +45,7 @@ module Repertoire
           base = except(:order, :limit, :offset)
           masks = []
           
-          masks << base.only(:where, :join).select("signature(#{table_name}.#{faceting_id})").arel  if base.where_values.present?
+          masks << base.only(:where, :join).select("facet.signature(#{table_name}.#{faceting_id})").arel  if base.where_values.present?
           refine_value.each do |name, values|
             raise QueryError, "Unkown facet #{name} on #{klass.name}"                 unless @klass.facet?(name)
             masks << @klass.facets[name].signature(values)

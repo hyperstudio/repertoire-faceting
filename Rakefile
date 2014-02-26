@@ -99,6 +99,6 @@ namespace :db do
   end
 
   desc "Create, load, and prepare database for test suite"
-  task :setup => [ 'db:create', 'db:schema:load', 'db:fixtures:load',
-                   'db:faceting:extensions:build', 'db:faceting:extensions:install' ]
+  task :setup => [ 'db:faceting:extensions:install',
+                   'db:create', 'db:schema:load', 'db:fixtures:load' ]
 end

@@ -1,4 +1,21 @@
--- functions for bitmap indices using PostgreSQL's built-in BIT type
+-- ============================================================================
+-- Faceting API implementing bitmap indices using PostgreSQL's built-in VARBIT
+-- type, processed using the built-in language pl/pgsql.
+--
+-- This API is suitable for deployment on any host, since it requires no
+-- PostgreSQL extensions outside the default install.
+--
+-- However, performance is limited to around 30,000 items in practice (in part
+-- because of unnecessary duplication of varbit values when pl/pgsql evaluates
+-- the count function.)
+--
+-- The 'signature' C-based faceting API is preferable for any install where
+-- you have superuser access to the database.
+--
+-- Christopher York
+-- MIT Hyperstudio
+-- February 2014
+-- ============================================================================
 
 CREATE FUNCTION @extschema@.sig_resize( sig VARBIT, bits INT ) RETURNS VARBIT AS $$
 DECLARE

@@ -68,7 +68,7 @@ See Repertoire::Faceting::Facets::AbstractFacet
 It is very useful to create a rake task to update your application's indices. In the project's rake task file:
 
   task :reindex => :environment do
-    Painting.update_indexed_facets([:genre, :era])
+    Painting.index_facets([:genre, :era])
   end
   
 Then run 'rake reindex' whenever you need to update indices manually.
@@ -178,9 +178,17 @@ References on faceted search:
 - Running the unit tests issues warnings about a circular require. These can be ignored.
 
 
-== PostgreSQL C extensions
+== PostgreSQL Faceting API
 
-Repertoire Faceting adds a native data type supporting bitwise operations and population count to PostgreSQL. For API details, see ext/signature.sql.IN.
+Several bindings for the in-database faceting API are provided. In order of capability, they are:
+
+- signature        C language, requires superuser permissions
+- bytea            Javascript language, requires plv8 extension
+- varbit           No language or superuser requirements
+
+In general, if you have superuser permissions you should build and install the C-language (signature) API, as it is more scalable than the others, at no cost.
+
+All the Repertoire Faceting APIs add functionality for bitwise operations and population counts to PostgreSQL. For API details, see the ext directory.
 
 Signature: an auto-sizing bitset with the following functions
 
@@ -189,11 +197,11 @@ Signature: an auto-sizing bitset with the following functions
 - members(a)          => { set of integers corresponding to set bits }
 
 - sig_in, sig_out     => { mandatory I/O functions }
-- sig_and(a, b)    	=> a & b
-- sig_or(a, b)     	=> a | b
-- sig_xor(a)       	=> ~a
-- sig_length(a)	    => { number of bits in a }
-- sig_min(a)       	=> { lowest 1 in a, a.length }
+- sig_and(a, b)    	  => a & b
+- sig_or(a, b)     	  => a | b
+- sig_xor(a)       	  => ~a
+- sig_length(a)	      => { number of bits in a }
+- sig_min(a)       	  => { lowest 1 in a, a.length }
 - sig_get(a, i)       => { ith bit of a, or 0 }
 - sig_set(a, i, n)    => { sets ith bit of a to n }
 - sig_resize(a, n)    => { resizes a to hold n bits }
@@ -208,10 +216,8 @@ Bitwise aggregates:
 
 Helper functions:
 
-- renumber_table(table, column, threshold)
+- wastage(INT) -> REAL
 
-Check what percentage of signature bits constructed from the specified table and column would be wasted. If higher than the threshold, drop and re-add the column with a packed, contiguous integer id.
+Aggregator that examines a table's primary key column, checking what proportion of signature bits constructed from the table would be wasted. If the proportion of wasted bits to valid bits is high, you should consider adding a new serial column.
 
-- signature_wastage(table, column)
-
-Returns a real number representing the percentage of bits that would be wasted in signatures constructed from the specified column.
+The Rails API introspects signature wastage before any facet indexing operation, and adds or removes a new serial column (called _packed_id) as necessary.
