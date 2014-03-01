@@ -6,7 +6,6 @@ module Repertoire
     MODULE_PATH = File.expand_path('../../', __FILE__)
     
     module Relation
-      autoload :SpawnMethods, 'repertoire-faceting/relation/spawn_methods'
       autoload :QueryMethods, 'repertoire-faceting/relation/query_methods'
       autoload :Calculations, 'repertoire-faceting/relation/calculations'
     end

@@ -35,11 +35,23 @@ module Repertoire
         def reorder(*args)
           clone.tap { |f| f.order_values = args.flatten }
         end
-        
+
         def refined_facets?
           !refine_value.empty?
         end
-        
+
+        private
+
+        def merge_hashes(h1={}, h2={})
+          h2.inject(h1.clone) do |hsh, (key, values)|
+            key    = key.to_sym
+            values = [values].flatten
+            hsh[key] ||= []
+            hsh[key] |= values
+            hsh
+          end
+        end
+
       end
     end
   end
