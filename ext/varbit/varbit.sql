@@ -121,21 +121,21 @@ END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
 
 -- operators for faceting
 
-CREATE OPERATOR & (
+CREATE OPERATOR @extschema@.& (
     leftarg = VARBIT,
     rightarg = VARBIT,
     procedure = @extschema@.sig_and,
     commutator = &
 );
 
-CREATE OPERATOR | (
+CREATE OPERATOR @extschema@.| (
     leftarg = VARBIT,
     rightarg = VARBIT,
     procedure = @extschema@.sig_or,
     commutator = |
 );
 
-CREATE OPERATOR + (
+CREATE OPERATOR @extschema@.+ (
     leftarg = VARBIT,
     rightarg = int,
     procedure = @extschema@.sig_set

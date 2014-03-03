@@ -21,7 +21,11 @@ DOCS = README.faceting
 
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
-include $(PGXS)
+
+-include $(PGXS)
+# the dash above means loading pgxs may fail silently on Heroku, but
+# the API bindings will still be built:
+api_bindings : $(DATA_built)
 
 faceting--$(API_VERSION).sql: signature/signature.sql common/util.sql
 	cat signature/signature.sql common/util.sql > $@

@@ -21,7 +21,6 @@ module Repertoire
     module PostgreSQLAdapter #:nodoc:
 
       FACET_SCHEMA = 'facet'
-      BIT_AND      = " OPERATOR(#{FACET_SCHEMA}.&) "
 
       #
       # Over-ride default functionality in abstract adapter
@@ -54,41 +53,6 @@ module Repertoire
         select_value(sql)
       end
 
-      # Returns path to the named PostgreSQL API binding file
-      def faceting_api_sql(api_name = :signature)
-        api_name  = api_name.to_sym
-        file_name = "#{path}/ext/faceting_#{api_name}--#{version}.sql"
-
-        raise "Use 'CREATE EXTENSION faceting' to load the default facet api" if api_name == :signature
-        raise "No API binding available for #{api_name}.\n" +
-              "(Did you build the apis with 'rake db:faceting:extensions:build'?)" unless File.exist?(file_name)
-
-        path = Repertoire::Faceting::MODULE_PATH
-        version = Repertoire::Faceting::VERSION
-        sql << File.load(file_name).replace('@extschema@', 'facet')
-
-        sql
-      end
-
-      #
-      # Methods used in creating, updating, and removing facet indices
-      #
-
-      def create_materialized_view(view_name, sql)
-        sql = "CREATE MATERIALIZED VIEW #{quote_table_name(view_name)} AS #{sql}"
-        execute(sql)
-      end
-
-      def refresh_materialized_view(view_name)
-        sql = "REFRESH MATERIALIZED VIEW #{quote_table_name(view_name)}"
-        execute(sql)
-      end
-
-      def drop_materialized_view(view_name)
-        sql = "DROP MATERIALIZED VIEW #{quote_table_name(view_name)} CASCADE"
-        execute(sql)
-      end
-
       #
       # Methods for managing packed id columns on models
       #
@@ -102,6 +66,8 @@ module Repertoire
       #
       # Methods for running facet value counts
       #
+
+      BIT_AND = " OPERATOR(#{FACET_SCHEMA}.&) "
 
       def population(facet, masks, signatures)
         # Would be nice to use Arel here... but recent versions (~ 2.0.1) have removed the property of closure under
@@ -133,6 +99,51 @@ module Repertoire
         exprs = masks.map { |mask| "(#{mask.to_sql})" }
         "INNER JOIN #{FACET_SCHEMA}.members(#{exprs.join(BIT_AND)}) AS _refinements_id ON (#{table_name}.#{faceting_id} = _refinements_id)"
       end
+
+
+      module MigrationMethods #:nodoc:
+
+        #
+        # Methods used in creating, updating, and removing facet indices
+        #
+
+        def create_materialized_view(view_name, sql)
+          sql = "CREATE MATERIALIZED VIEW #{quote_table_name(view_name)} AS #{sql}"
+          execute(sql)
+        end
+
+        def refresh_materialized_view(view_name)
+          sql = "REFRESH MATERIALIZED VIEW #{quote_table_name(view_name)}"
+          execute(sql)
+        end
+
+        def drop_materialized_view(view_name)
+          sql = "DROP MATERIALIZED VIEW #{quote_table_name(view_name)} CASCADE"
+          execute(sql)
+        end
+
+        # Returns the named PostgreSQL API binding sql; for shared hosts where you cannot build extensions
+        def faceting_api_sql(api_name, schema_name = FACET_SCHEMA)
+          path        = Repertoire::Faceting::MODULE_PATH
+          version     = Repertoire::Faceting::VERSION
+          api_name    = api_name.to_sym
+          schema_name = schema_name.to_sym
+          file_name   = "#{path}/ext/faceting_#{api_name}--#{version}.sql"
+
+          raise "Use 'CREATE EXTENSION faceting' to load the default facet api"        if api_name == :signature
+          raise "Currently, the faceting API must install into a schema named 'facet'" unless schema_name == :facet
+
+          # TODO This approach allows production deploys to skip a "rake db:extensions:install" step when installing
+          #      to Heroku. In practice, this eases deployment significantly. But shelling out to make during a
+          #      Rails migration feels inelegant.
+          system "cd #{path}/ext; make"                    unless File.exist?(file_name)
+          raise "No API binding available for #{api_name}" unless File.exist?(file_name)
+
+          File.read(file_name).gsub(/@extschema@/, FACET_SCHEMA)
+        end
+      end
+
+      include MigrationMethods
 
     end
   end
