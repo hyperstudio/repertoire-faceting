@@ -110,7 +110,7 @@ module Repertoire
         exprs = masks.map{|mask| "(#{mask.to_sql})"}
         sigs << 'mask.signature' unless masks.empty?
         
-        sql  = "SELECT fct.#{facet.facet_name}, #{FACET_SCHEMA}.count(#{ sigs.join(BIT_AND)}) "
+        sql  = "SELECT fct.#{facet.facet_name}, #{FACET_SCHEMA}.count(#{ sigs.join(BIT_AND) }) "
         sql += "FROM (#{signatures.to_sql}) AS fct "
         sql += ", (SELECT (#{exprs.join(BIT_AND)}) AS signature) AS mask " unless masks.empty?
         sql += "ORDER BY #{facet.order_values.join(', ')} " if facet.order_values.present?

@@ -218,23 +218,29 @@ module Repertoire
             # adjust faceting id column
             connection.remove_column(table_name, PACKED_SIGNATURE_COLUMN)           if drop_packed_id
             connection.add_column(table_name, PACKED_SIGNATURE_COLUMN, "SERIAL")    if create_packed_id
+            @faceting_id = next_faceting_id
 
             # adjust facet indices
             drop_list.each    { |name| facets[name].drop_index }
             refresh_list.each { |name| facets[name].refresh_index }
-            create_list.each  { |name| facets[name].create_index(next_faceting_id) }
+            create_list.each  { |name| facets[name].create_index }
           end
 
           # TODO. in a nested transaction, this would need to fire after the final commit...
-          #       How to signal this in Rails?
           reset_column_information
 
+        end
+
+        # Over-rides reset_column_information in ActiveRecord::ModelSchema
+        def reset_column_information
+          @faceting_id = nil
+          super
         end
 
         # Returns the name of the id column to use for constructing bitset signatures
         # over this model.
         def faceting_id
-          [PACKED_SIGNATURE_COLUMN, DEFAULT_SIGNATURE_COLUMN].detect { |c| column_names.include?(c) }
+          @faceting_id ||= [PACKED_SIGNATURE_COLUMN, DEFAULT_SIGNATURE_COLUMN].detect { |c| column_names.include?(c) }
         end
 
         # Returns the proportion of wasted slots in 0..max(id)

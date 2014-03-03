@@ -16,7 +16,7 @@ module Repertoire
         end
 
         def signature(state)
-          return read_index(state, true) if indexed?
+          return read_index(state, true) if facet_indexed?
           rel = only(:where, :joins)
           bind_nest(group_values, state) do |expr, val|
             rel = rel.where("#{expr} = #{connection.quote(val)}")
@@ -25,7 +25,7 @@ module Repertoire
         end
 
         def drill(state)
-          return read_index(state, false) if indexed?
+          return read_index(state, false) if facet_indexed?
           rel = only(:where, :joins)
           grp = bind_nest(group_values, state) do |expr, val|
             rel = rel.where("#{expr} = #{connection.quote(val)}")
@@ -33,7 +33,7 @@ module Repertoire
           rel.group(grp).select(["#{grp.last} AS #{facet_name}", "facet.signature(#{table_name}.#{faceting_id})"]).arel
         end
 
-        def create_index(faceting_id)
+        def create_index
           levels = group_values.length
 
           # Construct expressions at each grouping level, right pad with nil
@@ -65,15 +65,7 @@ module Repertoire
           # The full index table is union of indices at each drill level
           sql = queries.join(" UNION ")
 
-          connection.create_materialized_view(facet_index_table, sql)
-        end
-
-        def drop_index
-          connection.drop_materialized_view(facet_index_table)
-        end
-
-        def refresh_index
-          connection.refresh_materialized_view(facet_index_table)
+          connection.create_materialized_view(facet_index_name, sql)
         end
 
         private
@@ -99,7 +91,7 @@ module Repertoire
         end
 
         def read_index(state, aggregate)
-          index = Table.new(facet_index_table)
+          index = Table.new(facet_index_name)
           rel   = SelectManager.new Table.engine
 
           rel.from index

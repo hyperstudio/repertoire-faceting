@@ -30,11 +30,11 @@ class LifecycleTest < FacetingTestCase
 
   def test_default_without_indexes
     Nobelist.index_facets([])
-    @facet_names.each { |att| refute Nobelist.facets[att].indexed? }
+    @facet_names.each { |att| refute Nobelist.facets[att].facet_indexed? }
   end
 
   def test_detect_indexes
     Nobelist.index_facets(@facet_names)
-    @facet_names.each { |att| assert Nobelist.facets[att].indexed? }
+    @facet_names.each { |att| assert Nobelist.facets[att].facet_indexed? }
   end
 end

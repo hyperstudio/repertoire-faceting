@@ -16,7 +16,7 @@ module Repertoire #:nodoc:
         end
 
         def signature(state)
-          return read_index(state, true)             if indexed?
+          return read_index(state, true)             if facet_indexed?
           col = group_values.first
           rel = only(:where, :joins)
           rel = rel.where(in_clause(col, state))     unless state.empty?
@@ -24,26 +24,19 @@ module Repertoire #:nodoc:
         end
 
         def drill(state)
-          return read_index(state, false)            if indexed?
+          return read_index(state, false)            if facet_indexed?
           col = group_values.first
           rel = only(:where, :joins, :group)
           rel = rel.where(in_clause(col, state))     unless state.empty?
           rel.select(["#{col} AS #{facet_name}", "facet.signature(#{table_name}.#{faceting_id})"]).arel
         end
 
-        def create_index(faceting_id)
+        def create_index
           col = group_values.first
-          sql = only(:where, :joins, :group).select(["#{col} AS #{facet_name}", "facet.signature(#{table_name}.#{faceting_id})"]).to_sql
+          rel = only(:where, :joins, :group)
+          sql = rel.select(["#{col} AS #{facet_name}", "facet.signature(#{table_name}.#{faceting_id})"]).to_sql
 
-          connection.create_materialized_view(facet_index_table, sql)
-        end
-
-        def drop_index
-          connection.drop_materialized_view(facet_index_table)
-        end
-
-        def refresh_index
-          connection.refresh_materialized_view(facet_index_table)
+          connection.create_materialized_view(facet_index_name, sql)
         end
 
         private
@@ -55,7 +48,7 @@ module Repertoire #:nodoc:
         end
 
         def read_index(state, aggregate)
-          index = Arel::Table.new(facet_index_table)
+          index = Arel::Table.new(facet_index_name)
           rel   = SelectManager.new Table.engine
 
           rel.from index
