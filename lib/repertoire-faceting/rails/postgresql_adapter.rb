@@ -7,7 +7,6 @@ module ActiveRecord #:nodoc: all
     end
     
     class PostgreSQLAdapter
-      include Repertoire::Faceting::AbstractAdapter
       include Repertoire::Faceting::PostgreSQLAdapter
     end
   end

@@ -15,6 +15,7 @@ module Repertoire
       #      relations that identify an attribute of the model dataset.
       #
       # See BasicFacet and NestedFacet for examples of facet implementations.
+      #
       module AbstractFacet
 
         attr_accessor :facet_name

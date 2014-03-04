@@ -20,14 +20,32 @@ module Repertoire
 
     module PostgreSQLAdapter #:nodoc:
 
-      FACET_SCHEMA = 'facet'
+      #
+      # Methods for accessing faceting APIs (as PostgreSQL extensions)
+      #
+
+      # Returns the available in-database faceting APIs (only when installed as an extension)
+      def facet_api_bindings
+        @api_bindings ||= select_values "SELECT name FROM pg_available_extensions WHERE name LIKE 'faceting%'"
+      end
+
+      # Returns the currently active faceting API binding (only when installed as an extension)
+      def current_facet_api_binding
+        @current_api_binding ||= select_value "SELECT extname FROM pg_extension WHERE extname LIKE 'faceting%';"
+      end
 
       #
-      # Over-ride default functionality in abstract adapter
+      # Methods for access to facet indices
       #
+
+      def facet_schema
+        # TODO. Not clear how to get the schema associated with a PostgreSQL extension from the
+        #       system tables. So we limit to loading into a schema named 'facet' for now.
+        'facet'
+      end
 
       def facet_table_name(model_name, name)
-        "#{FACET_SCHEMA}.#{model_name}_#{name}_index"
+        "#{facet_schema}.#{model_name}_#{name}_index"
       end
 
       def indexed_facets(model_name)
@@ -38,27 +56,11 @@ module Repertoire
       end
 
       #
-      # Methods for accessing faceting APIs (as PostgreSQL extensions)
-      #
-
-      # Returns the available in-database faceting APIs (only when installed as an extension)
-      def facet_api_bindings
-        sql = "SELECT name FROM pg_available_extensions WHERE name LIKE 'faceting%';"
-        select_values(sql)
-      end
-
-      # Returns the currently active faceting API binding (only when installed as an extension)
-      def current_facet_api_binding
-        sql = "SELECT extname FROM pg_extension WHERE extname LIKE 'faceting%';"
-        select_value(sql)
-      end
-
-      #
       # Methods for managing packed id columns on models
       #
 
       def signature_wastage(table_name, faceting_id)
-        sql = "SELECT #{FACET_SCHEMA}.wastage(#{faceting_id}) FROM #{table_name}"
+        sql = "SELECT #{facet_schema}.wastage(#{faceting_id}) FROM #{table_name}"
         result = select_value(sql)
         Float(result)
       end
@@ -67,18 +69,18 @@ module Repertoire
       # Methods for running facet value counts
       #
 
-      BIT_AND = " OPERATOR(#{FACET_SCHEMA}.&) "
-
       def population(facet, masks, signatures)
         # Would be nice to use Arel here... but recent versions (~ 2.0.1) have removed the property of closure under
         # composition (e.g. joining two select managers / sub-selects)... why?!?
         sigs  = [ 'fct.signature' ]
         exprs = masks.map{|mask| "(#{mask.to_sql})"}
         sigs << 'mask.signature' unless masks.empty?
-        
-        sql  = "SELECT fct.#{facet.facet_name}, #{FACET_SCHEMA}.count(#{ sigs.join(BIT_AND) }) "
+
+        bit_and = " OPERATOR(#{facet_schema}.&) "
+
+        sql  = "SELECT fct.#{facet.facet_name}, #{facet_schema}.count(#{ sigs.join(bit_and) }) "
         sql += "FROM (#{signatures.to_sql}) AS fct "
-        sql += ", (SELECT (#{exprs.join(BIT_AND)}) AS signature) AS mask " unless masks.empty?
+        sql += ", (SELECT (#{exprs.join(bit_and)}) AS signature) AS mask " unless masks.empty?
         sql += "ORDER BY #{facet.order_values.join(', ')} " if facet.order_values.present?
         sql += "OFFSET #{facet.offset_value} "              if facet.offset_value.present?
         sql += "LIMIT #{facet.limit_value} "                if facet.limit_value.present?
@@ -96,8 +98,9 @@ module Repertoire
       end
 
       def mask_members_sql(masks, table_name, faceting_id)
+        bit_and = " OPERATOR(#{facet_schema}.&) "
         exprs = masks.map { |mask| "(#{mask.to_sql})" }
-        "INNER JOIN #{FACET_SCHEMA}.members(#{exprs.join(BIT_AND)}) AS _refinements_id ON (#{table_name}.#{faceting_id} = _refinements_id)"
+        "INNER JOIN #{facet_schema}.members(#{exprs.join(bit_and)}) AS _refinements_id ON (#{table_name}.#{faceting_id} = _refinements_id)"
       end
 
 
@@ -123,15 +126,14 @@ module Repertoire
         end
 
         # Returns the named PostgreSQL API binding sql; for shared hosts where you cannot build extensions
-        def faceting_api_sql(api_name, schema_name = FACET_SCHEMA)
+        def faceting_api_sql(api_name, schema_name)
           path        = Repertoire::Faceting::MODULE_PATH
           version     = Repertoire::Faceting::VERSION
           api_name    = api_name.to_sym
-          schema_name = schema_name.to_sym
           file_name   = "#{path}/ext/faceting_#{api_name}--#{version}.sql"
 
           raise "Use 'CREATE EXTENSION faceting' to load the default facet api"        if api_name == :signature
-          raise "Currently, the faceting API must install into a schema named 'facet'" unless schema_name == :facet
+          raise "Currently, the faceting API must install into a schema named 'facet'" unless schema_name == facet_schema
 
           # TODO This approach allows production deploys to skip a "rake db:extensions:install" step when installing
           #      to Heroku. In practice, this eases deployment significantly. But shelling out to make during a
@@ -139,7 +141,7 @@ module Repertoire
           system "cd #{path}/ext; make"                    unless File.exist?(file_name)
           raise "No API binding available for #{api_name}" unless File.exist?(file_name)
 
-          File.read(file_name).gsub(/@extschema@/, FACET_SCHEMA)
+          File.read(file_name).gsub(/@extschema@/, facet_schema)
         end
       end
 

@@ -3,7 +3,7 @@
 #
 # Rake testing tasks for Repertoire Faceting
 #
-# N.B. Tasks mirror those of a standard Rails 4 app.
+# N.B. Tasks mirror those of a standard Rails 4 app.  Only used for running the test suite.
 #
 
 require 'rdoc/task'
@@ -81,7 +81,7 @@ namespace :db do
   end
 
   namespace :schema do
-    desc "Create the text database schema"
+    desc "Create the test database schema"
     task :load do
       ENV["RAILS_ENV"] = "test"
       require 'config'

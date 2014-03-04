@@ -180,7 +180,7 @@ module Repertoire
           current_indexes = current_indexes.map { |name| name.to_sym }
           next_indexes    = next_indexes.map    { |name| name.to_sym }
           (current_indexes | next_indexes).each do
-            |name| raise "Unknown facet #{name}" unless facet?(name)
+            |name| raise QueryError, "Unknown facet #{name}" unless facet?(name)
           end
 
           # determine best column for signature bitsets, unless set manually

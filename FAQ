@@ -16,11 +16,9 @@
         dir.down { execute('DROP EXTENSION faceting CASCADE') }
       end
     end
-	
-	In cases where you do not have superuser access to the deployment host (e.g. Heroku) and so cannot run 
-	"rake db:faceting:extensions:install", you can get use the connection's "faceting_api_sql" method to load the API
-	by hand. See the repertoire-faceting-example application's migrations for a concrete example of usage.
-	
+
+	In cases where you do not have superuser access to the deployment host (e.g. Heroku) and so cannot run "rake db:faceting:extensions:install", you can get use the connection's "faceting_api_sql" method to load the API by hand. See the repertoire-faceting-example application's migrations for a concrete example.
+
 
 == About facet indexing and the signature SQL type
 
@@ -31,7 +29,7 @@
 
 *Q* My facets are empty.
 
-*A* Make sure the facet indices aren't empty.  Running '<model>.index_facets([])' from the console will drop them all.
+*A* Make sure the facet indices aren't empty.  Running '<Model>.index_facets([])' from the Rails console will drop them all.
 
 
 *Q* Can I facet over multiple models?
@@ -41,8 +39,7 @@
 
 *Q* Why a new native PostgreSQL type?
 
-*A* As of PostgreSQL 9.3, there is a binding of the Repertoire in-database faceting functions based on VARBIT bit strings.
-However, it is many times slower than using the C-language signature type above.
+*A* As of PostgreSQL 9.3, we have a binding for the Repertoire in-database faceting functions, based on VARBIT strings. However, it is many times slower than using the C-language signature type.
 
 
 == About the ajax faceting widgets
@@ -55,18 +52,13 @@ However, it is many times slower than using the C-language signature type above.
    config.active_record.include_root_in_json = false
 
 
-*Q* A web page from the default Rails app refuses to load the faceting widgets.
-
-*A* Repertoire Faceting widgets are based on JQuery, which is incompatible with Prototype.  You should remove prototype.js and rails.js from the javascripts directory, and delete the <%= javascript_include_tag :defaults %> line from application.html.erb.
-
-
 *Q* How do I send page-specific data (for example, a search field) to the webservice with the facet widgets' data?
 
 *A* If you provide a function to the facet_context plugin, it will merge the params you return before dispatching to the webservice, e.g.
 
    $('#invoices').facet_context(function() {
-     return { 
-       search: $("#search_field").val() 
+     return {
+       search: $("#search_field").val()
      };
    });
 
@@ -78,7 +70,7 @@ However, it is many times slower than using the C-language signature type above.
 *Q* How do I make one-time, minor changes to the behaviour of a widget?  For example, I want to add a control.
 
 *A* Use the inject option, which is part of the base functionality.  Your injector function receives a reference to the widget's jquery element and to the widget javascript object.  Use jquery to add your control's markup, then register an event handler to add its behaviour.  For example, this injector adds a clear-all button in the title:
-   
+
    $('#genre').facet({
       injectors: {
         '.title .controls' : function(self, data) { $(this).append('<span class="clear_control">[x]</span>'); }
@@ -118,10 +110,10 @@ In injectors and handlers, you have access to the complete faceting widget API (
     var hello_world = function($elem, options) {
       /* declare superclass */
     	var self = repertoire.facet($elem, options);
-	
+
       /* handlers */
-      handler('.hello', function() { 
-        alert('hello, world!'); 
+      handler('.hello', function() {
+        alert('hello, world!');
       });
 
       /* injectors */
@@ -173,12 +165,12 @@ In injectors and handlers, you have access to the complete faceting widget API (
 
 *Q* What Javascript OOP convention is this?
 
-*A* It's based on section 5.4, "Functional Inheritance" of Douglas Crockford, "Javascript: The Good Parts."  
+*A* It's based on section 5.4, "Functional Inheritance" of Douglas Crockford, "Javascript: The Good Parts."
 
 
 *Q* Explain the naming conventions.
 
-*A* $foo is a jquery object, e.g. var $foo = $('.foo') 
+*A* $foo is a jquery object, e.g. var $foo = $('.foo')
 self is the object you're currently defining (as opposed to the one it inherits from, javascript's 'this', or its dom view)
 
 

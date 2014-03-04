@@ -1,8 +1,8 @@
 === Installing Repertoire Faceting
 
-N.B.  Repertoire Faceting requires Rails 3.2+, Ruby 2.0.0+, and JQuery 1.3.2+.
+N.B.  Repertoire Faceting requires Postgres 9.3+, Rails 3.2+, Ruby 2.0.0+, and JQuery 1.3.2+.
 
-== Short version. 
+== Short version.
 
 (You need a working Rails app, with a model, controller, and a partial to show the model)
 
@@ -11,7 +11,6 @@ N.B.  Repertoire Faceting requires Rails 3.2+, Ruby 2.0.0+, and JQuery 1.3.2+.
 
   { install native bitset extensions }
   $ bundle install
-  $ rake db:faceting:extensions:build
   $ rake db:faceting:extensions:install        { provide sudo your password }
 
   { in ./app/models/some_model.rb }
@@ -25,12 +24,12 @@ N.B.  Repertoire Faceting requires Rails 3.2+, Ruby 2.0.0+, and JQuery 1.3.2+.
           include Repertoire::Faceting::Controller         // 4
           def base; return SomeModel; end                  // 5
         end
-        
+
   { in ./config/routes.rb }
     SomeApp::Application.routes.draw do
         faceting_for :some_model                           // 6
       end
-    
+
     { in ./public/javascripts/application.js }
       //= require rep.faceting                             // 7
 
@@ -53,7 +52,7 @@ N.B.  Repertoire Faceting requires Rails 3.2+, Ruby 2.0.0+, and JQuery 1.3.2+.
 
   SomeModel.index_facets([:some_column])
 
-  The faceting subsystem automatically detects available facet indices and uses 
+  The faceting subsystem automatically detects available facet indices and uses
   them when appropriate.
 
 
@@ -61,48 +60,47 @@ N.B.  Repertoire Faceting requires Rails 3.2+, Ruby 2.0.0+, and JQuery 1.3.2+.
 
 Start with a working Rails application with a PostgreSQL database.
 
+    ** Note that the canonical resource for using Repertoire Faceting is the
+       Repertoire Faceting Example application.  If you have questions, you are
+       best served by getting it running and exploring further there. **
+
+
     * Require repertoire-faceting in Gemfile.
 
       gem 'repertoire-faceting'
-
-    * Make sure you use Rails version 3.0.2+, which adopted Arel 2.0.1.  If necessary
-      you can pull rails, arel, and rack from git.
-
-      gem 'rails', :git => 'git://github.com/rails/rails.git'
-      gem 'arel',  :git => 'git://github.com/rails/arel.git'
-      gem "rack", :git => "git://github.com/rack/rack.git"
 
     * At the command line, bundle everything into your application:
 
       $ bundle install
 
-    * From your application root, build and install the repertoire-faceting native 
-      extensions to PostgreSQL.  These provide a bitwise signature type used to 
+    * From your application root, build and install the repertoire-faceting native
+      extensions to PostgreSQL.  These provide a bitwise signature type used to
       index and count facets.
 
-      $ rake db:faceting:build     { sudo will prompt you for your password }
+      $ rake db:faceting:extensions:install     { sudo will prompt you for your password }
 
     * Load the extension into your local application database.  This ensures the
       plpgsql language is installed, and loads (or re-loads) the new bitset signature
       type.
 
-      $ createlang plpgsql -U<username> <database>
-      $ rake db:faceting:load
-  
+      $ psql -c "CREATE EXTENSION faceting;" -U<username> <database>
+
       Or, if you prefer to use migrations create one with the following contents:
-        
-            ....   
-            def self.up
-              load_faceting        # unload_faceting is the reverse
-            end
+
+        def self.change
+          reversible do |dir
+            dir.up   { execute('CREATE EXTENSION faceting') }
+            dir.down { execute('DROP EXTENSION faceting CASCADE') }
+          end
+        end
 
       Before proceeding, you can confirm the module is installed as follows.
 
-      $ psql -c "SELECT count('101010101'::signature);" -U<username> <database>
+      $ psql -c "SELECT facet.count('101010101'::facet.signature);" -U<username> <database>
 
-    * Install the faceting mixin in your Rails model and declare a facet on an 
-      existing database column.  (See the README for complete configuration options 
-      for facets.)  
+    * Install the faceting mixin in your Rails model and declare a facet on an
+      existing database column.  (See the README for complete configuration options
+      for facets.)
 
       { ./app/models/painting.rb }
         class Painting
@@ -114,17 +112,17 @@ Start with a working Rails application with a PostgreSQL database.
 
       $ rails c
       > Painting.count(:genre)
-      => {"Impressionist"=>2, "Medieval"=>2} 
+      => {"Impressionist"=>2, "Medieval"=>2}
       > Painting.refine(:genre => 'Impressionist')
-      => [#<Painting id: 1, title: "Moonlight Shimmers", painter: "Monet", genre: "Impressionist">, 
-          #<Painting id: 2, title: "Nude Lunch in Garden", painter: "Manet", genre: "Impressionist">] 
+      => [#<Painting id: 1, title: "Moonlight Shimmers", painter: "Monet", genre: "Impressionist">,
+          #<Painting id: 2, title: "Nude Lunch in Garden", painter: "Manet", genre: "Impressionist">]
 
       Or, with a base query as well:
 
       > Painting.where(["title like ?", 'Moon%']).count(:genre)
-      => {"Impressionist"=>1} 
+      => {"Impressionist"=>1}
 
-    * Add faceting webservices to your controller and define base() to indicate which model to base queries on 
+    * Add faceting webservices to your controller and define base() to indicate which model to base queries on
 
       { ./app/controllers/paintings_controller }
         class PaintingsController
@@ -136,7 +134,7 @@ Start with a working Rails application with a PostgreSQL database.
           end
         end
 
-    * Add faceting routes to your application.  
+    * Add faceting routes to your application.
 
       { ./config/routes.rb }
 
@@ -153,9 +151,9 @@ Start with a working Rails application with a PostgreSQL database.
         paintings_results        /paintings/results(.:format)       {:controller=>"paintings", :action=>"results"}
         ...
 
-    * Add facet count and result widgets to your HTML page. The facet context div 
-      collects widgets that affect the same query together. (For complete options, 
-      see the README ) 
+    * Add facet count and result widgets to your HTML page. The facet context div
+      collects widgets that affect the same query together. (For complete options,
+      see the README )
 
       { ./app/views/paintings/index.html.erb }
 
@@ -168,27 +166,27 @@ Start with a working Rails application with a PostgreSQL database.
             </script>
           <div id='paintings'>
             <div id='genre' class='facet'></div>
-            <div id='results'></div> 
+            <div id='results'></div>
           </div>
-    
-    * If you don't already have one, create a partial for displaying your model in 
+
+    * If you don't already have one, create a partial for displaying your model in
       results lists.
 
       { ./app/views/paintings/_painting.html.erb }
-    
+
         <div class='painting' style='width:235px; margin-bottom:5px; padding:2px; border:dotted 1px;'>
           <div>Title: <%= painting.title %></div>
             <div>Painter: <%= painting.painter %></div>
             <div>Genre: <%= painting.genre %></div>
         </div>
 
-    * [ Optional ] Add bitset indexes to some facets on your model.  The module will 
-      automatically use facet indexes when they are available.  Facet indexes scale 
-      out of the box to over a million model items, and requires no additional 
+    * [ Optional ] Add bitset indexes to some facets on your model.  The module will
+      automatically use facet indexes when they are available.  Facet indexes scale
+      out of the box to over a million model items, and requires no additional
       configuration.
 
       $ rails generate migration AddFacetIndex
-  
+
       { ./db/migrate/<your date>add_facet_index.rb   }
             class AddFacetIndex < ActiveRecord::Migration
               def self.up
@@ -200,12 +198,12 @@ Start with a working Rails application with a PostgreSQL database.
               end
             end
 
-    * [ Optional ] Periodically update indexes via a crontab task. 
+    * [ Optional ] Periodically update indexes via a crontab task.
 
       { ./lib/tasks/update_facets.rake }
 
       task :reindex => :environment do
-          Painting.index_facets
+          Painting.index_facets                           # NB this updates whatever indexes already exist
       end
 
       ... And then configure crontab to execute 'rake reindex' at appropriate intervals.

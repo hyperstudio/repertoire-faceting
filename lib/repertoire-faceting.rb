@@ -19,7 +19,6 @@ module Repertoire
     autoload :Routing, 'repertoire-faceting/routing'
     autoload :Version, 'repertoire-faceting/version'
     
-    autoload :AbstractAdapter, 'repertoire-faceting/adapters/abstract_adapter'
     autoload :PostgreSQLColumn, 'repertoire-faceting/adapters/postgresql_adapter'
     autoload :PostgreSQLAdapter, 'repertoire-faceting/adapters/postgresql_adapter'
     

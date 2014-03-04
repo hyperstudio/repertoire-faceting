@@ -5,9 +5,9 @@ DESIRED FEATURES / IMPROVEMENTS.
      Adding support is a matter of defining the adapter and moving signature()
      calls into the postgresql adapter ]
 
--- modify widgets to multiplex ajax calls to work around 2 call limit 
+-- modify widgets to multiplex ajax calls to work around 2 call limit
    in many browsers
-   [ design: fetch() queues ajax calls; update() implementations request 
+   [ design: fetch() queues ajax calls; update() implementations request
      queue  and merge current webservice call with ones already in the queue.
      on controller side, receive multiple facet names, iterate, and bundle.
      fetch() then unbundles the results can dispatches them to appropriate
@@ -16,29 +16,26 @@ DESIRED FEATURES / IMPROVEMENTS.
 
 TODO
 
--- clean up population in postgresql adapter?
--- clean up throughout the facet definitions
+-- gemcutter release of new faceting gem
+-- revise example app to bundle gem                             DONE
+--   redeploy to bytea / varbit targets                         DONE
+
+-- reference to the ActiveRecord API in the README              DONE
+-- revise the README to describe API layers & use               DONE
+
+-- clean up population in postgresql adapter?                   NO
+-- clean up throughout the facet definitions                    PARTIAL
 -- test harness
-   - test all extensions in order, skipping if cannot load
+   - test all extensions in order, skipping if cannot load      DONE
 -- simplify the in-database API
-   - use materialized views instead of dropping and adding tables
-   - move signature_wastage into an aggregate function
-   - remove the renumber function
-   - the only remaining function should be expand_nesting
--- reference to the ActiveRecord API in the README
--- revise the README to describe API layers & use
--- Makefile is verbose; use patterns
-
-
-
-
-- deploy to menzinga, document process
-- make sure works with postgresql-crontab
+   - use materialized views instead of dropping and adding tables   DONE
+   - move signature_wastage into an aggregate function          DONE
+   - remove the renumber function                               DONE
+   - the only remaining function should be expand_nesting       MOVED
+-- Makefile is verbose; use patterns                            NO
 - check formatting of all docs                                 DONE
-
 - make rake tasks smarter about detecting whether to run       NOT NECESSARY
 - make rake tasks automatically choose task dep on db type     NOT TO DO
-
 - make sure example app can be set up and deployed via rake    DONE
 
 - README
@@ -50,7 +47,7 @@ TODO
   * installing postgresql extensions                            DONE
   * migrations for indexing                                     DONE
   * updating indices (a) postgresql-crontab (b) rake crontab    DONE
-- generate routes that don't conflict with resource routes 
+- generate routes that don't conflict with resource routes
   (rails thinks /nobelists/results is the nobelist named 'results')	  NOT TO DO
 - FAQ
   * "not grouped error"

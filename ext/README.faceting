@@ -14,7 +14,7 @@
 -- extensions.
 --
 -- The second is implemented using PostgreSQL's built-in VARBIT data type, and scales to a rough
--- limit of about 30,000 items. It works in exactly the same way as the 'signature' data type above, 
+-- limit of about 30,000 items. It works in exactly the same way as the 'signature' data type above,
 -- but is about a factor of 5-10 slower. However, it does not require administrative control over
 -- the database server to install or use and so is suited to shared host deployment.
 --
@@ -22,7 +22,7 @@
 -- language binding plv8 (https://code.google.com/p/plv8js/wiki/PLV8). Scalability and performance
 -- are unknown, but should be similar to the native C 'signature' type. However, the server needs
 -- to have the PLV8 language extension installed.
--- 
+--
 -- Only one binding of the API needs to be loaded at any time.  Each consists of:
 --
 --   (a) functions for accessing the bitset data types. These are used to store inverted indices from
@@ -43,6 +43,9 @@
 -- Installation (in a Rails app)
 --
 --    $ cd repertoire-faceting
---    $ rake db:faceting:extensions:build
 --    $ rake db:faceting:extensions:install
 --
+-- Installation (PostgreSQL APIs only)
+--
+--    $ cd repertoire-faceting/ext
+--    $ make; sudo make install

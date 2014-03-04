@@ -3,7 +3,7 @@
 -- associated functions.
 --
 -- This API is to be preferred in all situations where it is possible to
--- build and install the datatype (this requires superuser access to PostgreSQL)
+-- build and install the datatype (requires superuser access to PostgreSQL)
 --
 -- Christopher York
 -- MIT Hyperstudio

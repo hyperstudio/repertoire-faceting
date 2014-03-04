@@ -1,5 +1,11 @@
+-- ============================================================================
+-- These functions are common to all bindings of the Repertoire faceting API
+--
+-- Christopher York
+-- MIT Hyperstudio
+-- February 2014
+-- ============================================================================
 
--- These functions are common to all bindings of the faceting API
 
 -- Aggregator to measure how many bits from a loosely-packed id column would be wasted, if
 -- they were all collected into a bitset signature. Returns a float between 0 (no waste)

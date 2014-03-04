@@ -14,7 +14,6 @@ module Repertoire
             state      = refine_value[name] || []
             signatures = facet.drill(state)
 
-            # See ActiveRecord::Relation::HashMerger
             facet.minimum_value = self.minimum_value || parent.minimum_value
             facet.nils_value    = self.nils_value    || parent.nils_value
 
