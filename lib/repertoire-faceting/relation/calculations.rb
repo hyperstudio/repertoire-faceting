@@ -7,7 +7,7 @@ module Repertoire
         
         # Construct and execute a count over the specified facet.
         def count(name = nil, options = {})
-          if name.present? && @klass.facet?(name)
+          if name.present? && @klass.respond_to?(:facet?) && @klass.facet?(name)
             name       = name.to_sym
             parent     = @klass.facets[name]
             facet      = parent.merge(self)

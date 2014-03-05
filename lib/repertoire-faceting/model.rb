@@ -116,6 +116,11 @@ module Repertoire
       #
       module ClassMethods
 
+        #
+        # N.B. client code can detect which models are faceted using
+        #      "respond_to?(:facet?)"
+        #
+
         # Declare a facet by name
         def facet(name, rel=nil)
           name = name.to_sym
