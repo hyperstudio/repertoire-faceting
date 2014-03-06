@@ -7,7 +7,7 @@ N.B.  Repertoire Faceting requires Postgres 9.3+, Rails 3.2+, Ruby 2.0.0+, and J
 (You need a working Rails app, with a model, controller, and a partial to show the model)
 
   { in Gemfile }
-    gem 'repertoire-faceting'                              // 1
+    gem 'repertoire-faceting'                              [ 1 ]
 
   { install native bitset extensions }
   $ bundle install
@@ -15,38 +15,41 @@ N.B.  Repertoire Faceting requires Postgres 9.3+, Rails 3.2+, Ruby 2.0.0+, and J
 
   { in ./app/models/some_model.rb }
     class SomeModel
-        include Repertoire::Faceting::Model                // 2
-        facet :some_column                                 // 3
+        include Repertoire::Faceting::Model                [ 2 ]
+        facet :some_column                                 [ 3 ]
       end
 
   { in ./app/controllers/some_controller]
         class SomeController
-          include Repertoire::Faceting::Controller         // 4
-          def base; return SomeModel; end                  // 5
+          include Repertoire::Faceting::Controller         [ 4 ]
+          def base; return SomeModel; end                  [ 5 ]
         end
 
   { in ./config/routes.rb }
     SomeApp::Application.routes.draw do
-        faceting_for :some_model                           // 6
+        faceting_for :some_model                           [ 6 ]
       end
 
-    { in ./public/javascripts/application.js }
-      //= require rep.faceting                             // 7
+  { in ./app/assets/javascripts/application.js }
+    //= require rep.faceting                               [ 7 ]
+    
+  { in ./app/assets/stylesheets/application.css}           [ 8 ]
+    *= require rep.faceting
 
   { in ./app/views/some_controller/index.html.erb }
     <script language="javascript">
       $().ready(function() {
-        $('#paintings').facet_context();                   // 8
-        $('.facet').facet();                               // 9
-        $('#results').results();                           // 10
+        $('#paintings').facet_context();                   [ 9 ]
+        $('.facet').facet();                               [ 10 ]
+        $('#results').results();                           [ 11 ]
       });
     </script>
-    <div id='paintings'>                                   // 11
-      <div id='genre' class='facet'></div>                 // 12
-      <div id='results'></div>                             // 13
+    <div id='paintings'>                                   [ 12 ]
+      <div id='genre' class='facet'></div>                 [ 13 ]
+      <div id='results'></div>                             [ 14 ]
     </div>
 
-    ... that's a complete faceted browser in only 13 new lines of code in your app!
+    ... that's a complete faceted browser in only 14 new lines of code in your app!
 
   Additionally, you may wish to index the facets.  At the console or in a migration:
 
