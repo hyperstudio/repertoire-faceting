@@ -78,7 +78,7 @@ module Repertoire
       # Facet value count and result queries follow the format familiar from ActiveRecord group and count
       # aggregation.  This allows you to execute a facet value count query given a base set of records.
       #
-      #   Nobelist.where("name LIKE 'Robert%").count(:discipline)
+      #   Nobelist.where("name LIKE 'Robert%'").count(:discipline)
       #
       # To incorporate refinements on other facets on this model, use refine:
       #

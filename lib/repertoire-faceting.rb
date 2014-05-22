@@ -1,5 +1,7 @@
 require 'active_support/dependencies'
 
+require 'repertoire-faceting/version'
+
 module Repertoire
   module Faceting
     
@@ -17,7 +19,6 @@ module Repertoire
     autoload :Model, 'repertoire-faceting/model'
     autoload :Controller, 'repertoire-faceting/controller'
     autoload :Routing, 'repertoire-faceting/routing'
-    autoload :Version, 'repertoire-faceting/version'
     
     autoload :PostgreSQLColumn, 'repertoire-faceting/adapters/postgresql_adapter'
     autoload :PostgreSQLAdapter, 'repertoire-faceting/adapters/postgresql_adapter'

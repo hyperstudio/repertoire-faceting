@@ -39,12 +39,12 @@ BEGIN
   RETURN sig;
 END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
 
-CREATE FUNCTION @extschema@.sig_set( sig BYTEA, pos INT, val INT) RETURNS BYTEA AS $$
+CREATE FUNCTION @extschema@.sig_set( sig BYTEA, pos INT, val INT ) RETURNS BYTEA AS $$
 BEGIN
-  RETURN set_bit(sig_resize(sig, pos+1), pos, val);
+  RETURN set_bit(@extschema@.sig_resize(sig, pos+1), pos, val);
 END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
 
-CREATE FUNCTION @extschema@.sig_set( sig BYTEA, pos INT) RETURNS BYTEA AS $$
+CREATE FUNCTION @extschema@.sig_set( sig BYTEA, pos INT ) RETURNS BYTEA AS $$
 BEGIN
   RETURN @extschema@.sig_set(sig, pos, 1);
 END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
@@ -89,7 +89,7 @@ CREATE FUNCTION @extschema@.sig_or(sig1 BYTEA, sig2 BYTEA) RETURNS BYTEA AS $$
   return sig1;
 $$ LANGUAGE plv8 STRICT IMMUTABLE;
 
-CREATE FUNCTION @extschema@.count(sig bytea) RETURNS int4 AS $$
+CREATE FUNCTION @extschema@.count( sig BYTEA ) RETURNS int4 AS $$
   var count_table = [
     0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
     1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,

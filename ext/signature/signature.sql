@@ -19,12 +19,12 @@ CREATE TYPE @extschema@.signature;
 
 -- basic i/o functions for signatures
 
-CREATE FUNCTION @extschema@.sig_in(cstring)
+CREATE FUNCTION @extschema@.sig_in( cstring )
   RETURNS signature
   AS 'signature.so', 'sig_in'
   LANGUAGE C STRICT;
 
-CREATE FUNCTION @extschema@.sig_out(signature)
+CREATE FUNCTION @extschema@.sig_out( signature )
   RETURNS cstring
   AS 'signature.so', 'sig_out'
   LANGUAGE C STRICT;

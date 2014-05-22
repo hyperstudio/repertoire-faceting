@@ -18,11 +18,11 @@
 -- SELECT wastage(_packed_id) FROM nobelists
 --  =# 0.015625
 --
-CREATE FUNCTION @extschema@.wastage_proportion(state INT[]) RETURNS double precision AS $$
+CREATE FUNCTION @extschema@.wastage_proportion( state INT[] ) RETURNS double precision AS $$
   SELECT (1.0 - (state[1]::double precision / (COALESCE(state[2], 0.0) + 1.0)))
 $$ LANGUAGE sql;
 
-CREATE FUNCTION @extschema@.wastage_accum(state INT[], val INT) RETURNS INT[] AS $$
+CREATE FUNCTION @extschema@.wastage_accum( state INT[], val INT ) RETURNS INT[] AS $$
   SELECT ARRAY[ state[1]+1, GREATEST(state[2], val) ];
 $$ LANGUAGE sql;
 

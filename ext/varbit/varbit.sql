@@ -30,7 +30,7 @@ BEGIN
   RETURN sig;
 END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
 
-CREATE FUNCTION @extschema@.sig_set( sig VARBIT, pos INT, val INT) RETURNS VARBIT AS $$
+CREATE FUNCTION @extschema@.sig_set( sig VARBIT, pos INT, val INT ) RETURNS VARBIT AS $$
 DECLARE
   len INT;
 BEGIN
@@ -46,7 +46,7 @@ BEGIN
   END IF;
 END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
 
-CREATE FUNCTION @extschema@.sig_set( sig VARBIT, pos INT) RETURNS VARBIT AS $$
+CREATE FUNCTION @extschema@.sig_set( sig VARBIT, pos INT ) RETURNS VARBIT AS $$
 BEGIN
   RETURN @extschema@.sig_set(sig, pos, 1);
 END $$ LANGUAGE plpgsql STRICT IMMUTABLE;
