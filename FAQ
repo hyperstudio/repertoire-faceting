@@ -45,6 +45,34 @@
 == About the ajax faceting widgets
 
 
+*Q* How to access the faceting API from a client on a different origin.
+
+*A* This is easily done. Configure your rails project to accept CORS ajax GET requests, then configure the API server
+    name in repertoire.defaults.path_prefix :
+
+    $().ready(function() {
+      repertoire.defaults = { path_prefix: '<YOUR API SERVER>' };
+      ...
+
+    For future reference, here is how to enable CORS for rails. In your GEMFILE:
+
+      gem 'rack-cors', :require => 'rack/cors'
+
+    In your config.rb:
+
+      require 'rack/cors'
+      use Rack::Cors do
+
+        # allow get requests from all origins
+        allow do
+          origins '*'
+          resource '*',
+              :headers => :any,
+              :methods => [:get, :options]
+        end
+      end
+
+
 *Q* Rails is sending JSON data in a format that my javascript widgets don't understand.
 
 *A* Put the following line in config/application.rb:

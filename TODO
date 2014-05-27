@@ -16,6 +16,9 @@ DESIRED FEATURES / IMPROVEMENTS.
 
 TODO
 
+-- add info on CORS to FAQ                                      DONE
+-- ensure pushState respects repertoire.defaults.path_prefix    DONE
+
 -- gemcutter release of new faceting gem
 -- revise example app to bundle gem                             DONE
 --   redeploy to bytea / varbit targets                         DONE
