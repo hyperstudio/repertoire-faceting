@@ -95,6 +95,7 @@
 
 *A* See the syntax for defining jquery plugins - you can alter the defaults for all widgets by reassigning them in your view code.
 
+
 *Q* How do I make one-time, minor changes to the behaviour of a widget?  For example, I want to add a control.
 
 *A* Use the inject option, which is part of the base functionality.  Your injector function receives a reference to the widget's jquery element and to the widget javascript object.  Use jquery to add your control's markup, then register an event handler to add its behaviour.  For example, this injector adds a clear-all button in the title:
@@ -106,7 +107,7 @@
       handlers: {
         'click!.clear_control' : function(self) {
           self.refinements('genre').length = 0;
-          self.state_changed();
+          self.trigger('changed');
           return false;
         }
       }
@@ -127,7 +128,7 @@ In injectors and handlers, you have access to the complete faceting widget API (
    $('#genre').facet({
      injectors:  { ... },
      handlers:   { ... },
-     pre_update: function(state) { state.minimum = genre_min; }
+     state: function(state) { state.minimum = genre_min; }
    }
 
 
