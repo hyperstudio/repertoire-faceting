@@ -11,7 +11,7 @@ module Repertoire
         base.singleton_class.delegate :refine, :minimum, :nils, :reorder, :to_sql, :to => :scoped_all
 
         base.class_attribute(:facets)
-        base.facets = {}
+        base.facets = HashWithIndifferentAccess.new
       end
 
       #
@@ -252,6 +252,41 @@ module Repertoire
         def signature_wastage(signature_column = nil)
           signature_column ||= faceting_id
           connection.signature_wastage(table_name, signature_column)
+        end
+
+        # Returns the row count and most recent update timestamp for a model table; or nil if
+        # there is no updated_at field.
+        def stat_table(timestamp_column = nil)
+          timestamp_column ||= "updated_at"
+          connection.stat_table(table_name) if column_names.include?(timestamp_column)
+        end
+
+        # Return a key suitable for use in HTTP headers, either for the base model table or one of its
+        # facets.
+        #
+        # If the name of an indexed facet is provided, the timestamp of the facet index table is used
+        # to construct the facet's cache key. This ensures that facet counts expire when the facet is
+        # re-indexed (and not before).
+        #
+        # If the name of an unindexed facet is given, a cache key for the entire model table is provided.
+        # This ensures that faceted browsers over live data expire facet count caches when the base
+        # model table is updated.
+        #
+        # Calling facet_cache_key with no arguments returns a cache key for the entire model table. The
+        # key is a combination of the most recent update_at column value and the table row count. If
+        # the model has no updated_at attribute, caching is disabled.
+        #
+        # See the FAQ for additional information.
+        def facet_cache_key(facet = nil)
+          facet = facet.try(:to_s)
+          result = nil
+
+          stats = facets[facet].stat_table if facet_names.include?(facet)
+          stats ||= stat_table
+
+          result = { :etag => stats[:count], :last_modified => stats[:timestamp] } if stats.present?
+
+          result
         end
 
         # Once clients have migrated to Rails 4, delete and replace with 'all' where this is called

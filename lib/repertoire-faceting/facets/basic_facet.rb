@@ -34,7 +34,7 @@ module Repertoire #:nodoc:
         def create_index
           col = group_values.first
           rel = only(:where, :joins, :group)
-          sql = rel.select(["#{col} AS #{facet_name}", "facet.signature(#{table_name}.#{faceting_id})"]).to_sql
+          sql = rel.select(["#{col} AS #{facet_name}", "facet.signature(#{table_name}.#{faceting_id})", "now() AS updated_at"]).to_sql
 
           connection.create_materialized_view(facet_index_name, sql)
         end

@@ -35,8 +35,11 @@ module Repertoire
     #                   when 'alphanumeric' then ["#{facet} ASC"]
     #                   when 'count'        then ["count DESC", "#{facet} ASC"]
     #                 end
-    #       @counts = base.refine(filter).order(sorting).count(facet)
-    #       render :json => @counts.to_a
+    #
+    #       if stale?(base.facet_cache_key, :public => true)
+    #         @counts = base.refine(filter).order(sorting).count(facet)
+    #         render :json => @counts.to_a
+    #       end
     #     end
     #
     module Controller
@@ -44,26 +47,43 @@ module Repertoire
       # Web-service to return value, count pairs for a given facet, given existing filter refinements
       # on other facets in the context.  Over-ride this method if you need to specify additional 
       # query params for faceting.
+      #
+      # Public HTTP cache headers are set, in the following order:
+      #   - by the facet index table (if present)
+      #   - by the facet model table (if it has an updated_at column)
+      #   - otherwise, no HTTP cache header is set
+      #
       def counts
         facet  = params[:facet]
         filter = params[:filter] || {}
         raise "Unkown facet #{facet}" unless base.facet?(facet)
-        
-        @counts = base.refine(filter).count(facet)
 
-        render :json => @counts.to_a
+        if stale?(base.facet_cache_key(facet), :public => true)
+
+          @counts = base.refine(filter).count(facet)
+          render :json => @counts.to_a
+
+        end
       end
 
       # Web-service to return the results of a query, given existing filter requirements.  Over-ride
       # this method if you need to specify additional query parms for faceting results.
+      #
+      # Private HTTP cache headers are set:
+      #   - by the facet model table (if it has an updated_at column)
+      #   - otherwise, no HTTP cache header is set
+      #
       def results
         filter = params[:filter] || {}
-
-        @results = base.refine(filter).to_a
         
-        respond_to do |format|
-          format.html { render @results, :layout => false }
-          format.json { render :json => @results }
+        if stale?(base.facet_cache_key)
+
+          @results = base.refine(filter).to_a
+
+          respond_to do |format|
+            format.html { render @results, :layout => false }
+            format.json { render :json => @results }
+          end
         end
       end
       

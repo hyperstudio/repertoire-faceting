@@ -62,6 +62,15 @@ module Repertoire
           indexed_facets.map(&:to_sym).include?(facet_name)
         end
 
+        # Returns a row count and timestamp for the facet's index table,
+        # or nil if it is unindexed.
+        #
+        # If a future PostgreSQL timestamps materialized view refreshes
+        # via the system catalogs, that value should be used instead.
+        def stat_table
+          connection.stat_table(facet_index_name) if facet_indexed?
+        end
+
         protected
 
         # Return a facet's index table name

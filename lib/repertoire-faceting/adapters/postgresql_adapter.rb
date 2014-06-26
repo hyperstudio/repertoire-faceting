@@ -66,6 +66,23 @@ module Repertoire
       end
 
       #
+      # Methods for detecting table content changes
+      #
+      # (If a later version of PostgreSQL can hashcode a table/timestamp in the system catalog,
+      # switch to use that instead.)
+      #
+      def stat_table(table_name, column="updated_at")
+        sql = "SELECT COUNT(#{column}), MAX(#{column}) AS timestamp FROM #{table_name}"
+        result = select_one(sql)
+        result = HashWithIndifferentAccess.new({
+          :count     => Integer(result["count"]),
+          :timestamp => Time.parse(result["timestamp"])
+        })
+
+        result
+      end
+
+      #
       # Methods for running facet value counts
       #
 

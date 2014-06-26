@@ -16,6 +16,9 @@ DESIRED FEATURES / IMPROVEMENTS.
 
 TODO
 
+-- adapter tests for existence of materialized views too often
+-- need a way to merge version number into etags?
+
 -- add info on CORS to FAQ                                      DONE
 -- ensure pushState respects repertoire.defaults.path_prefix    DONE
 

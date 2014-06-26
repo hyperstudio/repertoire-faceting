@@ -50,12 +50,12 @@ module Repertoire
             end
             rel = rel.group(columns[0..level])
 
-            queries << rel.select(["#{level+1} AS level", "facet.signature(#{table_name}.#{faceting_id})"]).to_sql
+            queries << rel.select(["#{level+1} AS level", "facet.signature(#{table_name}.#{faceting_id})", "now() AS updated_at"]).to_sql
           end
 
           # Root of tree
           empty_cols = columns.map { |col| "NULL AS #{col}"}
-          queries << only(:where).select(empty_cols + ["0 AS level", "facet.signature(#{table_name}.#{faceting_id})"]).to_sql
+          queries << only(:where).select(empty_cols + ["0 AS level", "facet.signature(#{table_name}.#{faceting_id})", "now() AS updated_at"]).to_sql
 
           # Give the fullest index first (i.e. leaves of the tree), so the database
           # can resolve types before encountering any NULL values (i.e. values of

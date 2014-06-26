@@ -2,5 +2,5 @@
  
 comment = 'API for faceted indexing and queries (based on custom C bitmap type)'
 requires = plpgsql
-default_version = '0.7.3'
+default_version = '0.7.4'
 schema = 'facet'

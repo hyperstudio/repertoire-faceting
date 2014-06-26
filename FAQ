@@ -20,6 +20,67 @@
 	In cases where you do not have superuser access to the deployment host (e.g. Heroku) and so cannot run "rake db:faceting:extensions:install", you can get use the connection's "faceting_api_sql" method to load the API by hand. See the repertoire-faceting-example application's migrations for a concrete example.
 
 
+*Q* Caching for the faceted browser.
+
+*A* Because the opening page of a faceted search is also the most computationally-intensive to produce (it integrates
+counts across the entire dataset), the faceted browser is radically faster when configured to cache results. As of version
+0.7.4, the controller mixin sets HTTP cache headers in responses to reasonable defaults.
+
+  The short story is that models should have an updated_at column, which is used to compute cache keys. For models with many
+  items, you may wish to add an index on updated_at.
+
+  The detailed story:
+
+  - Requests without an HTTP etag header are processed normally
+
+  - For results queries, a cache key is built that combines the model's updated_at column with a count of the number of rows
+    in the table. If you use Rails' built-in timestamps, this will expire the cache after updating and deleting items.
+
+  - For facet counts on indexed facets, the most recent index refresh is used to construct a cache key. This ensures caches
+    expire when you call "<Model>.index_facets" to refresh the indices (and not before).
+
+  - For facet counts on unindexed facets, the model table's cache key is used.
+
+  - If the model table has no updated_at column, caching falls back to Rails default. (Your query will execute every time.)
+
+  This arrangement caches the most commonly accessed (and slowest) queries in the user's browser. Hence the first
+  request from a new session will load more slowly than consecutive ones. To speed up access across all sessions,
+  configure your Rails app to use an intermediate server cache, e.g. with Rack::Cache and memcached or Varnish.
+
+  If you choose to over-ride the results web-service in your own controller, you can easily reuse Repertoire Faceting's
+  cache settings by checking the value of <Model>.facet_cache_key:
+
+    class TodoslistController < ApplicationController
+      include Repertoire::Faceting::Controller
+      ...
+      def results
+        filter = params[:filter] || {}
+        if stale?(base.facet_cache_key)
+          @results = base.refine(filter)
+          respond_with @results
+        end
+      end
+      ...
+
+      See https://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works for context.
+
+  *Caveats*  The following caveats apply to Rails HTTP header based caching in general:
+
+  - You must make sure your ActiveRecord associations touch the parent table's updated_at column when updating, or you
+    may receive stale data. For example, if you are faceting over todos stored in a joined table:
+
+    class Todo < ActiveRecord::Base
+      belongs_to :todolist, touch: true
+    end
+
+  - It is recommended to expire all cache keys on deploying a new version of any application. However, as of Rails 4.0.5, there
+    is still no standard convention for versioning apps. It may be possible to automate this in Heroku.  See
+    http://stackoverflow.com/questions/8792716/reflecting-heroku-push-version-within-the-app.
+
+  - Because the default strategy caches items in the user agent's browser, the first load of a faceted browser session will be
+    slower than the rest. Installing a server-side cache like Rack::Cache will alleviate this.
+
+
 == About facet indexing and the signature SQL type
 
 *Q* What's the scalability of this thing?
@@ -30,6 +91,13 @@
 *Q* My facets are empty.
 
 *A* Make sure the facet indices aren't empty.  Running '<Model>.index_facets([])' from the Rails console will drop them all.
+
+
+*Q* My facet count values are out of date with the model.
+
+*A* If your facets are indexed, the indexes must be refreshed from the model table periodically.  Running '<Model>.index_facets'
+(no arguments) in the Rails console will refresh them.  In a production environment, run this periodically for each indexed model
+via a cron task.
 
 
 *Q* Can I facet over multiple models?
