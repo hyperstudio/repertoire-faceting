@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    repertoire-faceting (0.7.4)
+    repertoire-faceting (0.7.5)
       jquery-rails
       pg (>= 0.11, < 0.18)
       rails (>= 3.2.11, < 4.1)

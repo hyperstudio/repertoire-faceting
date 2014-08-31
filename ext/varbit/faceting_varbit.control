@@ -3,5 +3,5 @@
 comment = 'API for faceted indexing and queries (based on builtin VARBIT bit strings)'
 requires = plpgsql
 superuser = false
-default_version = '0.7.4'
+default_version = '0.7.5'
 schema = 'facet'

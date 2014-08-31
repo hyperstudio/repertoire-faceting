@@ -174,8 +174,10 @@ via a cron task.
       },
       handlers: {
         'click!.clear_control' : function(self) {
-          self.refinements('genre').length = 0;
-          self.trigger('changed');
+          var name    = self.facet_name(),
+              context = self.context();
+          context.refinements(name).length = 0;
+          context.trigger('changed');
           return false;
         }
       }
