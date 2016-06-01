@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.summary     = "Rails/Postgresql plugin for faceted indexing and browsing"
   s.description = "Repertoire-faceting adds scalable facet indexing, ajax facet widgets, and extras like GIS facets to Rails 3 & 4"
 
-  s.required_ruby_version = ">= 2.0.0"
+  s.required_ruby_version = ">= 2.2.0"
 
   s.required_rubygems_version = ">= 1.3.7"
   s.rubyforge_project         = "repertoire-faceting"
@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.files        = Dir.glob("{ext,lib,vendor}/**/*") + %w(FAQ INSTALL LICENSE README TODO)
   s.require_path = 'lib'
 
-  s.add_dependency('rails', '>=3.2.11', '<4.1')
+  s.add_dependency('rails', '>=3.2.11')
   s.add_dependency('jquery-rails')
   s.add_dependency('pg', '>=0.11', '<0.18')
 
