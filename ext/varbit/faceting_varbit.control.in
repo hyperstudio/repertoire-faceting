@@ -1,7 +1,7 @@
 # Faceting PostgreSQL extension module
- 
+
 comment = 'API for faceted indexing and queries (based on builtin VARBIT bit strings)'
 requires = plpgsql
 superuser = false
-default_version = '0.7.6'
+default_version = 'API_VERSION'
 schema = 'facet'

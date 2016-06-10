@@ -49,3 +49,14 @@
 --
 --    $ cd repertoire-faceting/ext
 --    $ make; sudo make install
+--
+-- N.B. Policy to date is to keep the PostgreSQL API version numbers in sync with the Rubygems
+-- module version numbers.  To bump versions, alter these files:
+--
+--    ext/Makefile                               # the PostgreSQL API version number
+--    lib/repertoire-faceting/version.rb         # the Rubygems version number
+--
+-- Because this policy alters default_version in each postgresql extension control file with each
+-- bump, only the most recent version of the PostgreSQL faceting API is available in any server
+-- (legacy API support is not available.)  To date, database servers have mapped onto applications
+-- one-to-one, so this is not a problem.

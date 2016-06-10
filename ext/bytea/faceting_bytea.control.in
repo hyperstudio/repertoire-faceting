@@ -1,6 +1,6 @@
 # Faceting PostgreSQL extension module
- 
+
 comment = 'API for faceted indexing and queries (based on plv8 + bytea bitmaps)'
 requires = 'plv8, plpgsql'
-default_version = '0.7.6'
+default_version = 'API_VERSION'
 schema = 'facet'
