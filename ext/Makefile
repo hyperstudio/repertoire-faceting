@@ -8,7 +8,7 @@
 #
 #-------------------------------------------------------------------------
 
-API_VERSION = 0.7.8
+API_VERSION = 0.7.9
 
 MODULES = signature/signature
 EXTENSION = signature/faceting \

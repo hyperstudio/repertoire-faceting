@@ -147,7 +147,7 @@ module Repertoire
           path        = Repertoire::Faceting::MODULE_PATH
           version     = Repertoire::Faceting::VERSION
           api_name    = api_name.to_sym
-          file_name   = "#{path}/ext/faceting_#{api_name}--#{version}.sql"
+          file_name   = "#{path}/ext/#{api_name}/faceting_#{api_name}--#{version}.sql"
 
           raise "Use 'CREATE EXTENSION faceting' to load the default facet api"        if api_name == :signature
           raise "Currently, the faceting API must install into a schema named 'facet'" unless schema_name == facet_schema
