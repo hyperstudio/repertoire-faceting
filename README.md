@@ -1,8 +1,8 @@
-=== Repertoire Faceting README
+###  Repertoire Faceting README
 
 Repertoire Faceting is highly scalable and extensible module for creating database-driven faceted browsers in Rails 3 & 4. It consists of three components: (1) a native PostgreSQL data type for constructing fast bitset indices over controlled vocabularies; (2) Rails model and controller mixins that add a faceting API to your existing application; and (3) a set of extensible javascript widgets for building user-interfaces. In only 10-15 lines of new code you can implement a fully-functional faceted browser for your existing Rails data models, with scalability out of the box to over 1,000,000 items.
 
-== Features
+####  Features
 
 Several features distinguish Repertoire Faceting from other faceting systems such as Simile Exhibit, Endeca, and Solr.
 
@@ -19,56 +19,58 @@ Similarly, you can write new facet implementations for novel data types, which a
 For an out-of-the box example using Repertoire Faceting, which demonstrates the module's visualization and scalability features, see the example application (http://github.com/christopheryork/repertoire-faceting-example).
 
 
-== Installation
+####  Installation
 
 See the INSTALL document for a description of how to install the module and build a basic faceted browser for your existing Rails app.
 
 
-== Running unit tests
+####  Running unit tests
 
 You can run the unit tests from the module's root directory. You will need a local PostgreSQL superuser role with your unix username (use 'createuser -Upostgres').
 
-  $ bundle install
-  $ rake db:setup
-  $ rake test
+  `$ bundle install`
+  `$ rake db:setup`
+  `$ rake test`
 
 
-== Generating documentation
+####  Generating documentation
 
 All API documentation, both ruby or javascript, is inline.  To generate:
 
-  $ rake doc
+  `$ rake doc`
 
 For the javascript API documentation, please look in the source files.
 
 
-== Faceting declarations (Model API)
+####  Faceting declarations (Model API)
 
 See Repertoire::Faceting::Model::ClassMethods
 
 
-== Faceting webservices (Controller API)
+####  Faceting webservices (Controller API)
 
 See Repertoire::Faceting::Controller
 
 
-== Facet widgets / HTML (User Interface API)
+####  Facet widgets / HTML (User Interface API)
 
 See rep.faceting.js inline documentation in the source tree
 
 
-== Custom facet implementations
+####  Custom facet implementations
 
 See Repertoire::Faceting::Facets::AbstractFacet
 
 
-== Updating Facet Indices
+####  Updating Facet Indices
 
 It is very useful to create a rake task to update your application's indices. In the project's rake task file:
 
+```ruby
   task :reindex => :environment do
     Painting.index_facets([:genre, :era])
   end
+```
 
 Then run 'rake reindex' whenever you need to update indices manually.
 
@@ -77,24 +79,26 @@ Then run 'rake reindex' whenever you need to update indices manually.
 *crontab* The easiest way to update indices periodically is to run a rake task like the one above via a UNIX tool such as launchd, periodic, or crontab. See the documentation for your tool of choice.
 
 
-== Deployment
+####  Deployment
 
 Because repertoire-faceting depends on a native shared library loaded by the PostgreSQL server, the first time you deploy you will need to build and install the extension.
 
-  <server>$ bundle install --deployment
-  <server>$ export RAILS_ENV=production
-  <server>$ rake db:faceting:extensions:install
-  <server>$ # ... from here, follow normal deployment procedure
+```shell
+  $ bundle install --deployment
+  $ export RAILS_ENV=production
+  $ rake db:faceting:extensions:install
+```
+...from here, follow normal deployment procedure
 
-
-== How the module works
+####  How the module works
 
 It is helpful to think of faceted data as a set of model items categorised by one or more controlled vocabularies, as this eliminates confusion from the start. (A faceted classification is neither object-oriented nor relational, though it can be represented in either.) For example, one might categorise Shakespeare's plays by a controlled vocabulary of genres -- comedy, history, tragedy, or romance. Counting the total number of plays for each vocabulary item in this "genre" facet, we see 13 comedies, 10 histories, 10 tragedies, and 4 romances.
 
 There are three direct implementations for faceted classifications like this in an SQL database. The controlled vocabulary can be listed explicitly in a separate table, or implicit in the range of values in a column on the central table (for single-valued facets) or on a join table (for multi-valued facets). Repertoire Faceting supports all of these configurations.
 
-*1:* Explicit controlled vocabulary, multiple valued facet
+1. Explicit controlled vocabulary, multiple valued facet
 
+```sql
     genres            plays_genres            plays
   ----+---------    ---------+----------    ----+------------------+---------
    id | name         play_id | genre_id      id | title            | date ...
@@ -109,8 +113,11 @@ There are three direct implementations for faceted classifications like this in 
                            8 | 2              8 | Hamlet           |
                                ...                ....
 
-*2:* Implicit vocabulary, multiple valued facet
+```
 
+2. Implicit vocabulary, multiple valued facet
+
+```sql
     plays_genres            plays
   ---------+----------    ----+------------------+---------
    play_id | genre_id      id | title            | date ...
@@ -124,25 +131,29 @@ There are three direct implementations for faceted classifications like this in 
          7 | tragedy        7 | Macbeth          |
          8 | tragedy        8 | Hamlet           |
              ...                ....
+```
 
-*3:* Implicit vocabulary, single valued facet
+3. Implicit vocabulary, single valued facet
 
+```sql
     plays
   ----+-----------------+---------+---------
    id | title           | genre   | date ...
   ----+-----------------|---------+---------
-   1 | The Tempest      | romance |
-   2 | Henry 4, pt 1    | history |
-   3 | Henry 4, pt 2    | history |
-   4 | Henry 5          | history |
-   5 | As You Like It   | comedy  |
-   6 | Comedy of Errors | comedy  |
-   7 | Macbeth          | tragedy |
-   8 | Hamlet           | tragedy |
+    1 | The Tempest     | romance |
+    2 | Henry 4, pt 1   | history |
+    3 | Henry 4, pt 2   | history |
+    4 | Henry 5         | history |
+    5 | As You Like It  | comedy  |
+    6 | Comedy of Errors| comedy  |
+    7 | Macbeth         | tragedy |
+    8 | Hamlet          | tragedy |
        ...                ....
+```
 
 For all of these representations, Repertoire Faceting works by constructing an inverted bitset index from the controlled vocabulary to your central model. Each bit represents a distinct model row (plays.id in this example). 1 indicates the play is in the category, and 0 that it is not:
 
+```sql
     _plays_genre_facet
   ---------+-----------
     genre  | signature
@@ -152,8 +163,11 @@ For all of these representations, Repertoire Faceting works by constructing an i
    romance | 10000000
    tragedy | 00000011
 
+```
+
 From these bitset "signatures", Repertoire Faceting can easily count the number of member plays for each category, even in combination with other facets and a base query. For example, the bitset signature for all plays whose title contains the search word "Henry" is 0110000. Masking this (via bitwise "and") with each signature in the genre index above, we see that there are 2 histories that match the base search - Henry 4 parts 1 & 2 - a none in the other categories:
 
+```sql
   ---------+------------------
     genre  | signature & base
   ---------+------------------
@@ -161,6 +175,7 @@ From these bitset "signatures", Repertoire Faceting can easily count the number 
    history | 01100000
    romance | 00000000
    tragedy | 00000000
+```
 
 Refinements on other facets are processed similarly, by looking up the relevant bitset signature for the refined value, and masking it against each potential value in the facet to be enumerated.
 
@@ -172,7 +187,7 @@ References on faceted search:
 - http://en.wikipedia.org/wiki/Controlled_vocabulary
 
 
-== A Quick Tour of API Levels
+####  A Quick Tour of API Levels
 
 The Repertoire Faceting module is intended to be a toolkit for building highly-scaleable faceted browsers over data held in relational databases. While it can be used as a black box (see the INSTALL document for a recipe), each API is also designed to be called directly. For example, you might write your own facet widgets in Javascript, using the JSON data feeds from the web service API level.
 
@@ -189,6 +204,7 @@ To the relationships between the APIs clear, here is the same basic facet count 
 
 The most basic facet count query is a simple SQL aggregation.
 
+```sql
   =# SELECT discipline, COUNT(*) FROM nobelists GROUP BY discipline;
          discipline      | count
     ---------------------+-------
@@ -198,9 +214,11 @@ The most basic facet count query is a simple SQL aggregation.
      Medicine/Physiology |     9
      Physics             |    27
     (5 rows)
+```
 
 Here is the facet value index for nobelist.discipline, as described in the prior section of the README.
 
+```sql
     =# SELECT * FROM facet.nobelists_discipline_index;
          discipline      |                            signature
     ---------------------+------------------------------------------------------------------
@@ -210,9 +228,11 @@ Here is the facet value index for nobelist.discipline, as described in the prior
      Medicine/Physiology | 000000001000000010100010001100000000000001000000000000010000001
      Peace               | 000000000000000000000000000000000000010000001
     (5 rows)
+```
 
 The faceting API's count() function returns the number of set bits in a signature. The same query, using a facet value index:
 
+```sql
     =# SELECT discipline, facet.count(signature) FROM facet.nobelists_discipline_index;
          discipline      | count
     ---------------------+-------
@@ -222,9 +242,11 @@ The faceting API's count() function returns the number of set bits in a signatur
      Medicine/Physiology |     9
      Peace               |     2
     (5 rows)
+```
 
 One of the cardinal virtues of faceted search is that facet value counts show the "landscape" of data surrounding a base query. For example, here is a raw facet value count using "Robert" and the base query.
 
+```sql
     =# SELECT discipline, COUNT(*) FROM nobelists WHERE name LIKE 'Robert%' GROUP BY discipline;
      discipline | count
     ------------+-------
@@ -232,11 +254,13 @@ One of the cardinal virtues of faceted search is that facet value counts show th
      Physics    |     1
      Economics  |     5
     (3 rows)
+```
 
-    (* Keep in mind a proper data model would use full-text index here.)
+(* Keep in mind a proper data model would use full-text index here.)
 
 To run facet value counts, we first gather a signature representing the base query, then use it as a mask over each entry in the facet value index. Here is a representative base query in raw SQL:
 
+```sql
     =# SELECT id, name, discipline, _packed_id FROM nobelists WHERE name LIKE 'Robert%';
          id     |         name          | discipline | _packed_id
     ------------+-----------------------+------------+------------
@@ -249,17 +273,20 @@ To run facet value counts, we first gather a signature representing the base que
       889316300 | Robert Engle          | Economics  |         60
      1039451971 | Robert A. Mundell     | Economics  |         63
     (8 rows)
-
+```
 We can use the faceting API aggregator to read this result into a signature. (Note we use the serial id column, since the primary key is quite sparse.)
 
+```sql
     =# SELECT facet.signature(_packed_id) FROM nobelists WHERE name LIKE 'Robert%';
                                 signature
     ------------------------------------------------------------------
      0000000000000000000000000000000000000001101100000000000000111001
     (1 row)
+```
 
 Combining this base mask bitwise with each of the signatures in the facet value indices allows us to quickly calculate counts for very large datasets. (*For clarity we access the faceting namespace directly and use a subquery).
 
+```sql
     =# SET search_path TO public, facet;
     =# SELECT discipline, facet.count(index.signature & base.signature) FROM
           (SELECT facet.signature(_packed_id) FROM nobelists              WHERE name LIKE 'Robert%') AS base,
@@ -274,13 +301,16 @@ Combining this base mask bitwise with each of the signatures in the facet value 
      Medicine/Physiology |     0
      Peace               |     0
     (5 rows)
+```
 
 If other facet values have been refined, they are also collected into signatures and used as masks.
 
+```sql
     =# SELECT discipline, facet.count(index.signature & base.signature & refine.signature) FROM
           (SELECT facet.signature(_packed_id) FROM nobelists              WHERE name LIKE 'Robert%') AS base,
           (SELECT signature                   FROM nobelists_degree_index WHERE degree = 'Ph.D.')    AS refine,
           facet.nobelists_discipline_index                                                           AS index;
+```
 
 In this fashion, facet count queries can be reduced to a single table scan over the model for the base query, plus an index table scan for each facet that has been refined.
 
@@ -292,36 +322,48 @@ Each of the PostgreSQL API bindings implements these same operators, but over a 
 
 The ActiveRecord API is built around the observation that our basic facet value count query is built-in to Rails:
 
+```ruby
     > Nobelist.count(:discipline)
     => {"Physics"=>27, "Economics"=>13, "Chemistry"=>12, "Medicine/Physiology"=>9, "Peace"=>2}
+```
 
 When the Repertoire Faceting module is loaded and facets declared in the model, the same query will read the facet index instead. Execute the query in the console, and you will see the SQL generated reads the facet value index rather than the model table.
 
+```ruby
     > Nobelist.index_facets([:discipline, :degree])
     > Nobelist.count(:discipline)
     => {"Physics"=>27, "Economics"=>13, "Chemistry"=>12, "Medicine/Physiology"=>9, "Peace"=>2}
+```
 
 Facets act just like Rails scoped queries, so you can use ActiveRecord's native syntax to specify a base query.
 
+```ruby
     > Nobelist.where("name LIKE 'Robert%'").count(:discipline)
     => {"Economics"=>5, "Chemistry"=>2, "Physics"=>1}
+```
 
 Use refine() to specify facet value refinements on other attribtues.
 
+```ruby
     > Nobelist.where("name LIKE 'Robert%'").refine(:degree => 'Ph.D.').count(:discipline)
     => {"Economics"=>3, "Physics"=>1}
+```
 
 You will see from the SQL query that the faceting module is detecting which model column to use as an id key, then reading the facet value indices wherever possible. The result is similar to the final SQL API example above.
 
 If you use refine() without count(), the module will use facet value indices to calculate the list of final results.
 
+```ruby
     > Nobelist.where("name LIKE 'Robert%'").refine(:degree => 'Ph.D.')
     => ...
+```
 
 Note that because facets are assumed to be multi-valued, refine() is different from a normal ActiveRecord where() clause. In rails an equivalent query would be:
 
+```ruby
     > Nobelist.where("name LIKE 'Robert%'").joins(:affiliations).where('affiliations.degree' => 'Ph.D.')
     => ...
+```
 
 When the number of rows in the model table is large and many facets come into play, using refine() can yield a performance gain over the straight query.
 
@@ -329,15 +371,17 @@ When the number of rows in the model table is large and many facets come into pl
 
 The web services API exposes two JSON feeds, one that returns facet value counts given a set of refinements and another that returns the actual list of results. Your Rails controller constructs the base query, and the faceting webservice handles the surrounding facet refinements. For example, one of the faceting example application's controllers declares a query similar to this:
 
-class NobelistsController < ApplicationController
+```ruby
+  class NobelistsController < ApplicationController
   ...
   def base
     search = "#{params[:search]}%"
     Nobelist.where(["name ILIKE ?", search])
   end
-
+```
 After including "faceting_for :nobelists" in the router, you can query the indexer by facet name, base query, and refinement filter:
 
+```shell
     $ curl -g "http://localhost:3000/nobelists/counts/discipline"
     [["Physics",27],["Economics",13],["Chemistry",12],["Medicine/Physiology",9],["Peace",2]]
 
@@ -346,14 +390,16 @@ After including "faceting_for :nobelists" in the router, you can query the index
 
     $ curl -g "http://localhost:3000/nobelists/counts/discipline?filter[degree][]=Ph.D.&search=Robert"
     [["Economics",3],["Physics",1]]
+```
 
 Or you can issue a refinement query to get the results list:
 
+```shell
     $ curl -g "http://localhost:3000/nobelists/?filter[degree][]=Ph.D.&search=Robert"
     => ...
+```
 
-
-== Appendix. PostgreSQL in-database Faceting API
+####  Appendix. PostgreSQL in-database Faceting API
 
 Several bindings for the in-database faceting API are provided. In order of capability, they are:
 

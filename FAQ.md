@@ -1,24 +1,27 @@
-= Repertoire Faceting FAQ
+## Repertoire Faceting FAQ
 
-== General questions
+### General questions
 
 *Q* Can I use Rails migrations with Repertoire Faceting?
 
 *A* In general, yes. However, Rails' developers recommend you use the database's native dump format rather than schema.rb. Put the following line in environment.rb:
 
-      config.active_record.schema_format = :sql
+```yml
+config.active_record.schema_format = :sql
+```
 
     You can also use migrations to install the API in your database. A simple example:
 
+```ruby
     def self.change
       reversible do |dir
         dir.up   { execute('CREATE EXTENSION faceting') }
         dir.down { execute('DROP EXTENSION faceting CASCADE') }
       end
     end
+```
 
-	In cases where you do not have superuser access to the deployment host (e.g. Heroku) and so cannot run "rake db:faceting:extensions:install", you can get use the connection's "faceting_api_sql" method to load the API by hand. See the repertoire-faceting-example application's migrations for a concrete example.
-
+In cases where you do not have superuser access to the deployment host (e.g. Heroku) and so cannot run "rake db:faceting:extensions:install", you can get use the connection's "faceting_api_sql" method to load the API by hand. See the repertoire-faceting-example application's migrations for a concrete example.
 
 *Q* Caching for the faceted browser.
 
@@ -50,6 +53,7 @@ counts across the entire dataset), the faceted browser is radically faster when 
   If you choose to over-ride the results web-service in your own controller, you can easily reuse Repertoire Faceting's
   cache settings by checking the value of <Model>.facet_cache_key:
 
+```ruby
     class TodoslistController < ApplicationController
       include Repertoire::Faceting::Controller
       ...
@@ -61,8 +65,9 @@ counts across the entire dataset), the faceted browser is radically faster when 
         end
       end
       ...
+```
 
-      See https://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works for context.
+See https://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works for context.
 
   *Caveats*  The following caveats apply to Rails HTTP header based caching in general:
 
@@ -81,7 +86,7 @@ counts across the entire dataset), the faceted browser is radically faster when 
     slower than the rest. Installing a server-side cache like Rack::Cache will alleviate this.
 
 
-== About facet indexing and the signature SQL type
+### About facet indexing and the signature SQL type
 
 *Q* What's the scalability of this thing?
 
@@ -110,7 +115,7 @@ via a cron task.
 *A* As of PostgreSQL 9.3, we have a binding for the Repertoire in-database faceting functions, based on VARBIT strings. However, it is many times slower than using the C-language signature type.
 
 
-== About the ajax faceting widgets
+### About the ajax faceting widgets
 
 
 *Q* How to access the faceting API from a client on a different origin.
@@ -118,15 +123,18 @@ via a cron task.
 *A* This is easily done. Configure your rails project to accept CORS ajax GET requests, then configure the API server
     name in repertoire.defaults.path_prefix :
 
+```js
     $().ready(function() {
       repertoire.defaults = { path_prefix: '<YOUR API SERVER>' };
       ...
-
+```
     For future reference, here is how to enable CORS for rails. In your GEMFILE:
-
+```
       gem 'rack-cors', :require => 'rack/cors'
-
+```
     In your config.rb:
+
+```ruby
 
       require 'rack/cors'
       use Rack::Cors do
@@ -139,25 +147,27 @@ via a cron task.
               :methods => [:get, :options]
         end
       end
-
+```
 
 *Q* Rails is sending JSON data in a format that my javascript widgets don't understand.
 
 *A* Put the following line in config/application.rb:
 
+```ruby
    config.active_record.include_root_in_json = false
-
+```
 
 *Q* How do I send page-specific data (for example, a search field) to the webservice with the facet widgets' data?
 
 *A* If you provide a function to the facet_context plugin, it will merge the params you return before dispatching to the webservice, e.g.
 
+```js
    $('#invoices').facet_context(function() {
      return {
        search: $("#search_field").val()
      };
    });
-
+```
 
 *Q* I want to change the default options for all widgets of a given class.
 
@@ -168,6 +178,7 @@ via a cron task.
 
 *A* Use the inject option, which is part of the base functionality.  Your injector function receives a reference to the widget's jquery element and to the widget javascript object.  Use jquery to add your control's markup, then register an event handler to add its behaviour.  For example, this injector adds a clear-all button in the title:
 
+```js
    $('#genre').facet({
       injectors: {
         '.title .controls' : function(self, data) { $(this).append('<span class="clear_control">[x]</span>'); }
@@ -182,6 +193,7 @@ via a cron task.
         }
       }
     });
+```
 
 The injector adds markup for the control at the specific jquery selector, and the handler receives events on that markup.  Both receive a single argument 'self' for the widget object, and 'this' for the matched DOM element.
 
@@ -194,18 +206,20 @@ In injectors and handlers, you have access to the complete faceting widget API (
 
 *A* You can pre-process the entire context's state before it's sent to the webservice by update():
 
+```js
    var min = 5;
    $('#genre').facet({
      injectors:  { ... },
      handlers:   { ... },
      state: function(state) { state.minimum = genre_min; }
    }
-
+```
 
 *Q* How do I subclass an existing widget, so I can reuse my changes repeatedly?
 
 *A* Basically you define a new widget class and move your injectors and handlers (above) into the appropriate places.  See the results widget for the simplest possible example, and nested_facet for a real-world example that extends the default facet widget.  At a bare minimum, you will over-ride the render() method, and possibly the update() method too.  Here is a 'hello world' that extends the default facet count widget:
 
+```js
     var hello_world = function($elem, options) {
       /* declare superclass */
     	var self = repertoire.facet($elem, options);
@@ -225,38 +239,40 @@ In injectors and handlers, you have access to the complete faceting widget API (
 
       return self;
     }
-
+```
 
 *Q* That's great, but how do I turn it into a jquery plugin I can actually use?
 
 *A* Call the plugin method and assign it to a variable in the jquery prototype.  If provided, the line following sets universal options defaults for the widget.
 
+```shell
    $.fn.hello_world = repertoire.plugin(hello_world);
    $.fn.hello_world.defaults = { ... };       // put default options here
-
+```
 
 *Q* How do these widgets relate to each other?
 
 *A* Here is the class hierarchy:
 
+```
    facet_widget (abstract)
       +--- facet
            +--- nesting_facet
       +--- results
-
+```
 
 *Q* In my widget or handler, how do I override an event handler from the superclass?
 
 *A* Register another handler to the exact same event and namespace.  E.g. toggling selection for facet value counts in the default facet widget is registered under the jquery event/namespace 'click.toggle_value'.  To over-ride:
 
-    ... [ in widget's constructor function ]
+```js
+    /// in widget's constructor function
 
     self.handler('click.toggle_value!.facet .value', function() {
        ... redefined event handler
     }
     ...
-
-
+```
 *Q* My widget needs to send additional data to the webservice, pre-process the state, compute my own query string, or use a different webservice.
 
 *A* You can over-ride self.update() to alter the webservice ajax call or replace it with your own. (a) if sending additional data that affects only the current widget, store it in a private variable and add it in update().  (b) if the additional data affects all other facets, store it in the structure returned by self.state() and make sure the other widgets/webservices can process it correctly.
