@@ -17,7 +17,7 @@ EXTENSION = signature/faceting \
 DATA_built = signature/faceting--$(API_VERSION).sql \
              bytea/faceting_bytea--$(API_VERSION).sql \
              varbit/faceting_varbit--$(API_VERSION).sql
-DOCS = README.faceting
+DOCS = README.md
 EXTRA_CLEAN = $(EXTENSION:=.control)
 
 PG_CONFIG = pg_config

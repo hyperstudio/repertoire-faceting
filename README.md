@@ -196,7 +196,7 @@ The API layers are:
   - Javascript widgets              [ see lib/assets/javascripts
   - JSON web services               [ see Repertoire::Faceting::Controller, Repertoire::Faceting::Routing
   - Rails model & finders           [ see Repertoire::Faceting::Model
-  - SQL queries and indexes         [ see ext/README.faceting
+  - SQL queries and indexes         [ see ext/README.md
 
 To the relationships between the APIs clear, here is the same basic facet count query traced through each layer. While the module itself does not always issue exactly the queries listed here, the basic data model is the same. (To experiment with the APIs, run psql or the rails console from the Repertoire Faceting Example application. You may wish to use "SET search_path = public, facet" to bring the faceting schema's namespace into scope.)
 
